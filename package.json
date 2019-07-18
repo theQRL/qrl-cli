@@ -12,7 +12,9 @@
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^2",
     "@theqrl/validate-qrl-address": "^1.1.0",
-    "kleur": "^3.0.3"
+    "crypto": "^1.0.1",
+    "kleur": "^3.0.3",
+    "qrllib": "^1.0.4"
   },
   "devDependencies": {
     "@oclif/dev-cli": "^1",
