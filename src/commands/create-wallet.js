@@ -79,9 +79,9 @@ class CreateWallet extends Command {
           valid = false
           reason = 'Height must be an even number'
         }
-        if (h < 8) {
+        if (h < 4) {
           valid = false
-          reason = 'Height must be an even number, 8 or higher'
+          reason = 'Height must be an even number, 4 or higher'
         }
         if (h > 18) {
           valid = false
@@ -94,8 +94,8 @@ class CreateWallet extends Command {
         }
         xmssHeight = h
       }
-      // default to SHAKE-128 unless otherwise specified
-      let hashFunction = QRLLIB.eHashFunction.SHAKE_128
+      // default to SHA2-256 unless otherwise specified
+      let hashFunction = QRLLIB.eHashFunction.SHA2_256
       let hashCount = 0
       if (flags.shake128) {
         hashCount += 1
@@ -175,17 +175,10 @@ TODO
 CreateWallet.flags = {
   file: flags.string({char: 'f', required: false, description: 'create wallet to json file'}),
   password: flags.string({char: 'p', required: false, description: 'password for encrypted wallet file'}),
-  height: flags.string({char: 'h', required: false, description: 'tree height (even numbers 8-18)'}),
-  shake128: flags.boolean({char: '1', default: false, description: 'use SHAKE-128 hashing machanism'}),
-  shake256: flags.boolean({char: '2', default: false, description: 'use SHAKE-256 hashing machanism'}),
-  sha2256: flags.boolean({char: '3', default: false, description: 'use SHA2-256 hashing machanism'}),
+  height: flags.string({char: 'h', required: false, description: 'tree height (even numbers 4-18)'}),
+  sha2256: flags.boolean({char: '1', default: false, description: 'use SHA2-256 hashing machanism'}),
+  shake128: flags.boolean({char: '2', default: false, description: 'use SHAKE-128 hashing machanism'}),
+  shake256: flags.boolean({char: '3', default: false, description: 'use SHAKE-256 hashing machanism'}),
 }
-
-// CreateWallet.args = [
-//   {
-//     name: 'filename',
-//     description: 'Output filename',
-//   },
-// ]
 
 module.exports = CreateWallet
