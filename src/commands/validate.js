@@ -52,6 +52,7 @@ Validate.args = [
   {
     name: 'address',
     description: 'address to validate',
+    required: true,
   },
 ]
 
