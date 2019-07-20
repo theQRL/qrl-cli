@@ -69,8 +69,51 @@ class CreateWallet extends Command {
     }
 
     waitForQRLLIB(async e => { // eslint-disable-line
-      const xmssHeight = 4
-      const hashFunction = QRLLIB.eHashFunction.SHAKE_128
+      // default to a tree height of 10 unless passed via CLI
+      let xmssHeight = 10
+      if (flags.height) {
+        let valid = true
+        let reason = ''
+        const h = parseInt(flags.height, 10)
+        if ((h & 1) === 1) {
+          valid = false
+          reason = 'Height must be an even number'
+        }
+        if (h < 8) {
+          valid = false
+          reason = 'Height must be an even number, 8 or higher'
+        }
+        if (h > 18) {
+          valid = false
+          reason = 'Height must be an even number, 18 or lower'
+        }
+        if (valid === false) {
+          spinner.fail('Wallet could not be created')
+          this.log(reason)
+          this.exit(1)
+        }
+        xmssHeight = h
+      }
+      // default to SHAKE-128 unless otherwise specified
+      let hashFunction = QRLLIB.eHashFunction.SHAKE_128
+      let hashCount = 0
+      if (flags.shake128) {
+        hashCount += 1
+        hashFunction = QRLLIB.eHashFunction.SHAKE_128
+      }
+      if (flags.shake256) {
+        hashCount += 1
+        hashFunction = QRLLIB.eHashFunction.SHAKE_256
+      }
+      if (flags.sha2256) {
+        hashCount += 1
+        hashFunction = QRLLIB.eHashFunction.SHA2_256
+      }
+      if (hashCount > 1) {
+        spinner.fail('Wallet could not be created')
+        this.log('More than one hashing mechanism selected')
+        this.exit(1)
+      }
       const randomSeed = toUint8Vector(Crypto.randomBytes(48))
       const XMSS_OBJECT = await new QRLLIB.Xmss.fromParameters(randomSeed, xmssHeight, hashFunction)
       spinner.succeed('Wallet created')
@@ -132,6 +175,10 @@ TODO
 CreateWallet.flags = {
   file: flags.string({char: 'f', required: false, description: 'create wallet to json file'}),
   password: flags.string({char: 'p', required: false, description: 'password for encrypted wallet file'}),
+  height: flags.string({char: 'h', required: false, description: 'tree height (even numbers 8-18)'}),
+  shake128: flags.boolean({char: '1', default: false, description: 'use SHAKE-128 hashing machanism'}),
+  shake256: flags.boolean({char: '2', default: false, description: 'use SHAKE-256 hashing machanism'}),
+  sha2256: flags.boolean({char: '3', default: false, description: 'use SHA2-256 hashing machanism'}),
 }
 
 // CreateWallet.args = [
