@@ -11,7 +11,6 @@ jobs:
           keys:
             - v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
             - v1-npm-{{checksum ".circleci/config.yml"}}
-      - run: apt-get install -y sudo
       - run:
           name: Install dependencies
           command: yarn
