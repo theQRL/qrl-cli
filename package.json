@@ -57,7 +57,7 @@
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "eslint .",
     "prepack": "oclif-dev manifest && oclif-dev readme",
-    "test": "nyc mocha --forbid-only \"test/**/*.test.js\"",
+    "test": "nyc mocha --forbid-only -t 50000 \"test/**/*.test.js\"",
     "version": "oclif-dev readme && git add README.md",
     "cov": "nyc report --reporter=text-lcov > coverage.lcov && ./node_modules/.bin/codecov -t $CODECOV_TOKEN"
   }
