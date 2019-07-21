@@ -58,6 +58,7 @@
     "posttest": "eslint .",
     "prepack": "oclif-dev manifest && oclif-dev readme",
     "test": "nyc mocha --forbid-only \"test/**/*.test.js\"",
-    "version": "oclif-dev readme && git add README.md"
+    "version": "oclif-dev readme && git add README.md",
+    "cov": "nyc report --reporter=text-lcov > coverage.lcov && ./node_modules/.bin/codecov -t $CODECOV_TOKEN"
   }
 }

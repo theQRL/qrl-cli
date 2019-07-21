@@ -21,7 +21,7 @@ jobs:
           command: yarn test
       - run:
           name: Upload code coverage to codecov
-          command: ./node_modules/.bin/codecov -t $CODECOV_TOKEN
+          command: yarn cov
   node-8:
     <<: *test
     docker:
