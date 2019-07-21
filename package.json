@@ -28,7 +28,8 @@
     "eslint-config-oclif": "^3.1",
     "globby": "^10",
     "mocha": "^5",
-    "nyc": "^13"
+    "nyc": "^13",
+    "pkg": "^4.4.0"
   },
   "engines": {
     "node": ">=8.0.0"
@@ -59,6 +60,7 @@
     "prepack": "oclif-dev manifest && oclif-dev readme",
     "test": "nyc mocha --forbid-only -t 50000 \"test/**/*.test.js\"",
     "version": "oclif-dev readme && git add README.md",
-    "cov": "nyc report --reporter=text-lcov > coverage.lcov && ./node_modules/.bin/codecov -t $CODECOV_TOKEN"
+    "cov": "nyc report --reporter=text-lcov > coverage.lcov && ./node_modules/.bin/codecov -t $CODECOV_TOKEN",
+    "make-binaries": "pkg . -t node8-macos-x64 -o dist/macos/qrl-cli && pkg . -t node8-win-x64 -o dist/win/qrl-cli && pkg . -t node8-linux-x64 -o dist/linux/qrl-cli"
   }
 }
