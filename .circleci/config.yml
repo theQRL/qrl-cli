@@ -11,6 +11,7 @@ jobs:
           keys:
             - v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
             - v1-npm-{{checksum ".circleci/config.yml"}}
+      - run: apt-get install -y sudo
       - run:
           name: Install dependencies
           command: yarn
@@ -26,7 +27,7 @@ jobs:
           name: Build binaries
           command: yarn run make-binaries
       - run: cd dist && find . -type f -print0 | xargs -0 shasum -a 256 > ../shasum.256.asc && cd .. && cp shasum.256.asc dist/
-      - run: npm install semantic-release
+      - run: sudo npm install -g semantic-release
       - run:
           name: "Publish Release on GitHub"
           command: semantic-release
@@ -57,8 +58,6 @@ workflows:
   "qrl-cli":
     jobs:
       - node-latest
-      - node-8
-      - node-10
       - cache:
           filters:
             tags:
