@@ -16,11 +16,11 @@ QRL CLI functions
 # Usage
 <!-- usage -->
 ```sh-session
-$ npm install -g qrl-cli
+$ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-qrl-cli/0.0.0 darwin-x64 node-v8.11.3
+@theqrl/cli/0.0.0 darwin-x64 node-v8.11.3
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND

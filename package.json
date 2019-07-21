@@ -1,5 +1,5 @@
 {
-  "name": "qrl-cli",
+  "name": "@theqrl/cli",
   "description": "QRL CLI functions",
   "version": "0.0.0",
   "author": "JP Lomas @jplomas",
