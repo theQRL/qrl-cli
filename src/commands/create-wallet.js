@@ -36,12 +36,12 @@ class CreateWallet extends Command {
 
     const concatenateTypedArrays = (resultConstructor, ...arrays) => {
       let totalLength = 0
-      for (let arr of arrays) { // eslint-disable-line
+      for (let arr of arrays) {
         totalLength += arr.length
       }
       const result = new resultConstructor(totalLength)
       let offset = 0
-      for (let arr of arrays) { // eslint-disable-line
+      for (let arr of arrays) {
         result.set(arr, offset)
         offset += arr.length
       }
@@ -68,7 +68,7 @@ class CreateWallet extends Command {
       }, 50)
     }
 
-    waitForQRLLIB(async e => { // eslint-disable-line
+    waitForQRLLIB(async _ => {
       // default to a tree height of 10 unless passed via CLI
       let xmssHeight = 10
       if (flags.height) {

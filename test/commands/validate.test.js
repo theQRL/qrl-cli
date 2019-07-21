@@ -1,17 +1,92 @@
-const {expect, test} = require('@oclif/test')
-
+/* global before */
+const assert = require('assert')
+const spawn = require('child_process').spawn
 describe('validate', () => {
-  test
-  .stdout()
-  .command(['validate'])
-  .it('runs validate', ctx => {
-    expect(ctx.stdout).to.contain('validate world')
+  let args = [
+    'validate',
+  ]
+  let exitCode
+  before(done => {
+    let process = spawn('./bin/run', args)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
   })
+  it('exit code should be non-0 if passed without an argument', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
 
-  test
-  .stdout()
-  .command(['validate', '--name', 'jeff'])
-  .it('runs validate --name jeff', ctx => {
-    expect(ctx.stdout).to.contain('validate jeff')
+describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3', () => {
+  let args = [
+    'validate',
+    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+  ]
+  let exitCode
+  before(done => {
+    let process = spawn('./bin/run', args)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if passed with a valid address as argument', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3', () => {
+  let args = [
+    'validate',
+    '-q',
+    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+  ]
+  let exitCode
+  before(done => {
+    let process = spawn('./bin/run', args)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if passed with a valid address as argument & quiet flag', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4', () => {
+  let args = [
+    'validate',
+    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
+  ]
+  let exitCode
+  before(done => {
+    let process = spawn('./bin/run', args)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with an invalid address as argument', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4', () => {
+  let args = [
+    'validate',
+    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
+    '-q',
+  ]
+  let exitCode
+  before(done => {
+    let process = spawn('./bin/run', args)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with an invalid address as argument & quiet flag', () => {
+    assert.notStrictEqual(exitCode, 0)
   })
 })
