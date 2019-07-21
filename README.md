@@ -29,26 +29,32 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`qrl-cli hello`](#qrl-cli-hello)
+* [`qrl-cli create-wallet`](#qrl-cli-create-wallet)
 * [`qrl-cli help [COMMAND]`](#qrl-cli-help-command)
+* [`qrl-cli validate ADDRESS`](#qrl-cli-validate-address)
 
-## `qrl-cli hello`
+## `qrl-cli create-wallet`
 
-Describe the command here
+Create a QRL address
 
 ```
 USAGE
-  $ qrl-cli hello
+  $ qrl-cli create-wallet
 
 OPTIONS
-  -n, --name=name  name to print
+  -1, --sha2256            use SHA2-256 hashing machanism
+  -2, --shake128           use SHAKE-128 hashing machanism
+  -3, --shake256           use SHAKE-256 hashing machanism
+  -f, --file=file          create wallet to json file
+  -h, --height=height      tree height (even numbers 4-18)
+  -p, --password=password  password for encrypted wallet file
 
 DESCRIPTION
   ...
-  Extra documentation goes here
+  TODO
 ```
 
-_See code: [src/commands/hello.js](https://github.com/theqrl/qrl-cli/blob/v0.0.0/src/commands/hello.js)_
+_See code: [src/commands/create-wallet.js](https://github.com/theqrl/qrl-cli/blob/v0.0.0/src/commands/create-wallet.js)_
 
 ## `qrl-cli help [COMMAND]`
 
@@ -66,4 +72,25 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
+
+## `qrl-cli validate ADDRESS`
+
+Validate a QRL address
+
+```
+USAGE
+  $ qrl-cli validate ADDRESS
+
+ARGUMENTS
+  ADDRESS  address to validate
+
+OPTIONS
+  -q, --quiet  quiet mode: no address details, just return validity via exit code
+
+DESCRIPTION
+  ...
+  when passed a QRL address in hexstring (preceded by 'Q'), will return details about the addresses validity.
+```
+
+_See code: [src/commands/validate.js](https://github.com/theqrl/qrl-cli/blob/v0.0.0/src/commands/validate.js)_
 <!-- commandsstop -->
