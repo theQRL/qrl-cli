@@ -6,3 +6,4 @@
 /tmp
 node_modules
 coverage.lcov
+oclif.manifest.json
