@@ -12,7 +12,11 @@
       [
         "@semantic-release/github",
         {
-          "assets": "*"
+          "assets": [
+            {"path": "dist/macos/qrl-cli", "label": "macOS distribution"},
+            {"path": "dist/win/qrl-cli.exe", "label": "Windows distribution"},
+            {"path": "dist/linux/qrl-cli", "label": "Linux distribution"}
+          ]
         }
       ]
     ]
