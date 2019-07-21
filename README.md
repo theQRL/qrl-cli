@@ -9,6 +9,8 @@ QRL CLI functions
 [![codecov](https://codecov.io/gh/theQRL/qrl-cli/branch/master/graph/badge.svg)](https://codecov.io/gh/theQRL/qrl-cli)
 [![License](https://img.shields.io/npm/l/@theqrl/cli.svg)](https://github.com/theqrl/qrl-cli/blob/master/package.json)
 
+![In action](render1563726016790.gif)
+
 <!-- toc -->
 * [Usage](#usage)
 * [Commands](#commands)
