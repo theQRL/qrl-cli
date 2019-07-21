@@ -20,7 +20,7 @@ $ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-@theqrl/cli/0.0.0 darwin-x64 node-v8.11.3
+@theqrl/cli/0.0.1 darwin-x64 node-v8.11.3
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND
@@ -54,7 +54,7 @@ DESCRIPTION
   TODO
 ```
 
-_See code: [src/commands/create-wallet.js](https://github.com/theqrl/qrl-cli/blob/v0.0.0/src/commands/create-wallet.js)_
+_See code: [src/commands/create-wallet.js](https://github.com/theqrl/qrl-cli/blob/v0.0.1/src/commands/create-wallet.js)_
 
 ## `qrl-cli help [COMMAND]`
 
@@ -92,5 +92,5 @@ DESCRIPTION
   when passed a QRL address in hexstring (preceded by 'Q'), will return details about the addresses validity.
 ```
 
-_See code: [src/commands/validate.js](https://github.com/theqrl/qrl-cli/blob/v0.0.0/src/commands/validate.js)_
+_See code: [src/commands/validate.js](https://github.com/theqrl/qrl-cli/blob/v0.0.1/src/commands/validate.js)_
 <!-- commandsstop -->
