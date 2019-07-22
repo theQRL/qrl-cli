@@ -2,13 +2,18 @@
 const assert = require('assert')
 const spawn = require('child_process').spawn
 
+const processFlags = {
+  detached: true,
+  stdio: 'inherit',
+}
+
 describe('create-wallet', () => {
   let args = [
     'create-wallet',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -27,7 +32,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -45,7 +50,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -65,7 +70,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -86,7 +91,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -104,7 +109,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -123,7 +128,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -142,7 +147,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -161,7 +166,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -180,7 +185,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -198,7 +203,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -216,7 +221,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -234,7 +239,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -253,7 +258,7 @@ describe('create-wallet', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()

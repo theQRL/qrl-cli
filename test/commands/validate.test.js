@@ -1,13 +1,19 @@
 /* global before */
 const assert = require('assert')
 const spawn = require('child_process').spawn
+
+const processFlags = {
+  detached: true,
+  stdio: 'inherit',
+}
+
 describe('validate', () => {
   let args = [
     'validate',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -18,14 +24,14 @@ describe('validate', () => {
   })
 })
 
-describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3', () => {
+describe('validate', () => {
   let args = [
     'validate',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -36,7 +42,7 @@ describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab647812
   })
 })
 
-describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3', () => {
+describe('validate', () => {
   let args = [
     'validate',
     '-q',
@@ -44,7 +50,7 @@ describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab647812
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -55,14 +61,14 @@ describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab647812
   })
 })
 
-describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4', () => {
+describe('validate', () => {
   let args = [
     'validate',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -72,7 +78,7 @@ describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab647812
     assert.notStrictEqual(exitCode, 0)
   })
 })
-describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4', () => {
+describe('validate', () => {
   let args = [
     'validate',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
@@ -80,7 +86,7 @@ describe('validate Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab647812
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args)
+    let process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
