@@ -7,9 +7,29 @@ const processFlags = {
   stdio: 'inherit',
 }
 
-describe('validate', () => {
+describe('balance', () => {
   let args = [
-    'validate',
+    'balance',
+    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    '-a',
+    'https://brooklyn.theqrl.org/nottheapi/',
+  ]
+  let exitCode
+  before(done => {
+    let process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if API is down', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+describe('balance', () => {
+  let args = [
+    'balance',
   ]
   let exitCode
   before(done => {
@@ -24,9 +44,9 @@ describe('validate', () => {
   })
 })
 
-describe('validate', () => {
+describe('balance', () => {
   let args = [
-    'validate',
+    'balance',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
   ]
   let exitCode
@@ -42,11 +62,11 @@ describe('validate', () => {
   })
 })
 
-describe('validate', () => {
+describe('balance', () => {
   let args = [
-    'validate',
-    '-q',
+    'balance',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    '-s',
   ]
   let exitCode
   before(done => {
@@ -56,14 +76,53 @@ describe('validate', () => {
       done()
     })
   })
-  it('exit code should be 0 if passed with a valid address as argument & quiet flag', () => {
+  it('exit code should be 0 if passed with a valid address and a -s flag', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
 
-describe('validate', () => {
+describe('balance', () => {
   let args = [
-    'validate',
+    'balance',
+    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    '-q',
+  ]
+  let exitCode
+  before(done => {
+    let process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if passed with a valid address and a -q flag', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+describe('balance', () => {
+  let args = [
+    'balance',
+    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    '-s',
+    '-q',
+  ]
+  let exitCode
+  before(done => {
+    let process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if passed with a valid address, -s and -q flags', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+describe('balance', () => {
+  let args = [
+    'balance',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
   ]
   let exitCode
@@ -75,24 +134,6 @@ describe('validate', () => {
     })
   })
   it('exit code should be non-0 if passed with an invalid address as argument', () => {
-    assert.notStrictEqual(exitCode, 0)
-  })
-})
-describe('validate', () => {
-  let args = [
-    'validate',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
-    '-q',
-  ]
-  let exitCode
-  before(done => {
-    let process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be non-0 if passed with an invalid address as argument & quiet flag', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })

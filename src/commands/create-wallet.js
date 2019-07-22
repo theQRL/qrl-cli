@@ -9,6 +9,7 @@ const bech32 = require('bech32')
 const ora = require('ora')
 const fs = require('fs')
 const aes256 = require('aes256')
+let QRLLIBLoaded = false
 
 class CreateWallet extends Command {
   async run() {
@@ -59,9 +60,10 @@ class CreateWallet extends Command {
       setTimeout(() => {
         // Test the QRLLIB object has the str2bin function.
         // This is sufficient to tell us QRLLIB has loaded.
-        if (typeof QRLLIB.str2bin === 'function') {
+        if (typeof QRLLIB.str2bin === 'function' && QRLLIBLoaded === true) {
           callBack()
         } else {
+          QRLLIBLoaded = true
           return waitForQRLLIB(callBack)
         }
         return false
