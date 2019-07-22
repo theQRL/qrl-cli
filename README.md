@@ -31,9 +31,33 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
+* [`qrl-cli balance ADDRESS`](#qrl-cli-balance-address)
 * [`qrl-cli create-wallet`](#qrl-cli-create-wallet)
 * [`qrl-cli help [COMMAND]`](#qrl-cli-help-command)
 * [`qrl-cli validate ADDRESS`](#qrl-cli-validate-address)
+
+## `qrl-cli balance ADDRESS`
+
+Get a wallet balance from the network
+
+```
+USAGE
+  $ qrl-cli balance ADDRESS
+
+ARGUMENTS
+  ADDRESS  address to return balance for
+
+OPTIONS
+  -a, --api=api  api endpoint (for custom QRL network deployments)
+  -q, --quanta   reports the balance in Quanta
+  -s, --shor     reports the balance in Shor
+
+DESCRIPTION
+  ...
+  TODO
+```
+
+_See code: [src/commands/balance.js](https://github.com/theqrl/qrl-cli/blob/v0.0.2/src/commands/balance.js)_
 
 ## `qrl-cli create-wallet`
 
