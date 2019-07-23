@@ -1,8 +1,7 @@
 /* eslint new-cap: 0 */
 const {Command, flags} = require('@oclif/command')
 const {red, green} = require('kleur')
-// const ora = require('ora')
-// might be nice to add ora spinner whilst loading from API
+const ora = require('ora')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const axios = require('axios')
 const BigNumber = require('bignumber.js')
@@ -25,6 +24,7 @@ class Balance extends Command {
       this.log(`${red('⨉')} Unable to get a balance: invalid QRL address`)
       this.exit(1)
     }
+    const spinner = ora({text: 'Fetching balance from API...'}).start()
     let api = ''
     if (flags.api) {
       api = flags.api
@@ -32,6 +32,7 @@ class Balance extends Command {
       api = 'https://brooklyn.theqrl.org/api/GetBalance'
     }
     const bal = await GetBalance(address, api)
+    spinner.stop()
     if (bal.error === 1) {
       this.log(`${red('⨉')} ${bal.errorMessage}`)
       this.exit(1)

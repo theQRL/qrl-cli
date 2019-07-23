@@ -22,7 +22,7 @@ $ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-@theqrl/cli/1.1.0 darwin-x64 node-v8.11.3
+@theqrl/cli/1.1.0 linux-x64 node-v12.3.1
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND
@@ -34,6 +34,7 @@ USAGE
 * [`qrl-cli balance ADDRESS`](#qrl-cli-balance-address)
 * [`qrl-cli create-wallet`](#qrl-cli-create-wallet)
 * [`qrl-cli help [COMMAND]`](#qrl-cli-help-command)
+* [`qrl-cli receive ADDRESS`](#qrl-cli-receive-address)
 * [`qrl-cli validate ADDRESS`](#qrl-cli-validate-address)
 
 ## `qrl-cli balance ADDRESS`
@@ -98,6 +99,24 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
+
+## `qrl-cli receive ADDRESS`
+
+Displays a QR code of the QRL address to receive a transaction
+
+```
+USAGE
+  $ qrl-cli receive ADDRESS
+
+ARGUMENTS
+  ADDRESS  address to display QR code for
+
+DESCRIPTION
+  ...
+  TODO
+```
+
+_See code: [src/commands/receive.js](https://github.com/theqrl/qrl-cli/blob/v1.1.0/src/commands/receive.js)_
 
 ## `qrl-cli validate ADDRESS`
 
