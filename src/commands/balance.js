@@ -2,7 +2,6 @@
 const {Command, flags} = require('@oclif/command')
 const {red, green} = require('kleur')
 const ora = require('ora')
-// might be nice to add ora spinner whilst loading from API
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const axios = require('axios')
 const BigNumber = require('bignumber.js')
