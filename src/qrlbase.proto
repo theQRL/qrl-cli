@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package qrl;
+
+service Base {
+  rpc GetNodeInfo (GetNodeInfoReq) returns (GetNodeInfoResp) {}
+}
+
+message GetNodeInfoReq
+{
+}
+
+message GetNodeInfoResp
+{
+    string version = 1;
+    string grpcProto = 2;
+}
