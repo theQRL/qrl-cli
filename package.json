@@ -2,7 +2,7 @@
   "name": "@theqrl/cli",
   "description": "QRL CLI functions",
   "version": "1.1.0",
-  "author": "JP Lomas <jp@qrl.foundation> The QRL Foundation",
+  "author": "JP Lomas <jp@theqrl.org>, The QRL Foundation",
   "bin": {
     "qrl-cli": "./bin/run"
   },
@@ -68,6 +68,7 @@
     "posttest": "eslint .",
     "prepack": "oclif-dev manifest && oclif-dev readme",
     "test": "nyc mocha --forbid-only -t 50000 \"test/**/*.test.js\"",
+    "test-ots": "nyc mocha --forbid-only -t 50000 \"test/commands/ots.test.js\"",
     "version": "oclif-dev readme && git add README.md",
     "cov": "nyc report --reporter=text-lcov > coverage.lcov && ./node_modules/.bin/codecov -t $CODECOV_TOKEN",
     "make-binaries": "pkg . -t node8-macos-x64 -o dist/macos/qrl-cli && pkg . -t node8-win-x64 -o dist/win/qrl-cli && pkg . -t node8-linux-x64 -o dist/linux/qrl-cli"

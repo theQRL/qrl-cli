@@ -136,11 +136,8 @@ class OTSKey extends Command {
       await qrlClient.GetOTS(request, async (error, response) => {
         if (error) {
           this.log(`${red('⨉')} Unable to read next unused OTS key`)
-          this.exit(1)
         }
-        // console.log('response:', response)
         spinner.succeed(`Next unused OTS key: ${response.next_unused_ots_index}`)
-        this.exit(0)
       })
     })
   }
