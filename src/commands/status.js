@@ -1,22 +1,22 @@
-/* eslint new-cap: 0, max-depth: 0 */
+/* eslint new-cap: 0 */
 const {Command, flags} = require('@oclif/command')
-const {red, white} = require('kleur')
+const {red, white, black} = require('kleur')
 const ora = require('ora')
-const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const grpc = require('grpc')
 const {createClient} = require('grpc-kit')
 const tmp = require('tmp')
 const fs = require('fs')
 const util = require('util')
 const CryptoJS = require('crypto-js')
-const aes256 = require('aes256')
-const {cli} = require('cli-ux')
+const moment = require('moment')
 const {QRLPROTO_SHA256} = require('../get-qrl-proto-shasum')
 const protoLoader = require('@grpc/proto-loader')
 const PROTO_PATH = `${__dirname}/../../src/qrlbase.proto`
 
 const readFile = util.promisify(fs.readFile)
 const writeFile = util.promisify(fs.writeFile)
+
+const shorPerQuanta = 10 ** 9
 
 const clientGetNodeInfo = client => {
   return new Promise((resolve, reject) => {
@@ -27,11 +27,6 @@ const clientGetNodeInfo = client => {
       resolve(response)
     })
   })
-}
-
-const openWalletFile = function (path) {
-  const contents = fs.readFileSync(path)
-  return JSON.parse(contents)[0]
 }
 
 let qrlClient = null
@@ -105,57 +100,9 @@ async function loadGrpcProto(protofile, endpoint) {
   }
 }
 
-class OTSKey extends Command {
+class Status extends Command {
   async run() {
-    const {args, flags} = this.parse(OTSKey)
-    let address = args.address
-    if (!validateQrlAddress.hexString(address).result) {
-      // not a valid address - is it a file?
-      let isFile = false
-      let isValidFile = false
-      const path = address
-      try {
-        if (fs.existsSync(path)) {
-          isFile = true
-        }
-      } catch (error) {
-        this.log(`${red('⨉')} Unable to get OTS: invalid QRL address/wallet file`)
-        this.exit(1)
-      }
-      if (isFile === false) {
-        this.log(`${red('⨉')} Unable to get OTS: invalid QRL address/wallet file`)
-        this.exit(1)
-      } else {
-        const walletJson = openWalletFile(path)
-        try {
-          if (walletJson.encrypted === false) {
-            isValidFile = true
-            address = walletJson.address
-          }
-          if (walletJson.encrypted === true) {
-            let password = ''
-            if (flags.password) {
-              password = flags.password
-            } else {
-              password = await cli.prompt('Enter password for wallet file', {type: 'hide'})
-            }
-            address = aes256.decrypt(password, walletJson.address)
-            if (validateQrlAddress.hexString(address).result) {
-              isValidFile = true
-            } else {
-              this.log(`${red('⨉')} Unable to open wallet file: invalid password`)
-              this.exit(1)
-            }
-          }
-        } catch (error) {
-          this.exit(1)
-        }
-      }
-      if (isValidFile === false) {
-        this.log(`${red('⨉')} Unable to get a balance: invalid QRL address/wallet file`)
-        this.exit(1)
-      }
-    }
+    const {flags} = this.parse(Status)
     let grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
     let network = 'Testnet'
     if (flags.grpc) {
@@ -171,7 +118,7 @@ class OTSKey extends Command {
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
-    const spinner = ora({text: 'Fetching OTS from API...'}).start()
+    const spinner = ora({text: 'Fetching status from node...'}).start()
     const proto = await loadGrpcBaseProto(grpcEndpoint)
     checkProtoHash(proto).then(async protoHash => {
       if (!protoHash) {
@@ -180,37 +127,48 @@ class OTSKey extends Command {
       }
       // next load GRPC object and check hash of that too
       await loadGrpcProto(proto, grpcEndpoint)
-      const request = {
-        address: Buffer.from(address.substring(1), 'hex'),
-      }
-      await qrlClient.GetOTS(request, async (error, response) => {
+      const request = {}
+      await qrlClient.GetStats(request, async (error, response) => {
         if (error) {
-          this.log(`${red('⨉')} Unable to read next unused OTS key`)
+          this.log(`${red('⨉')} Unable to read status`)
         }
-        spinner.succeed(`Next unused OTS key: ${response.next_unused_ots_index}`)
+        spinner.succeed('Network status:')
+        this.log(`    ${black().bgWhite('Network id')} ${response.node_info.network_id}`)
+        this.log(`    ${black().bgWhite('Network uptime')} ${Math.floor(moment.duration(parseInt(response.uptime_network, 10), 'seconds').asDays())} days`)
+        this.log(`    ${black().bgWhite('Epoch')} ${response.epoch}`)
+        this.log(`    ${black().bgWhite('Coins emitted')} ${response.coins_emitted / shorPerQuanta}`)
+        this.log(`    ${black().bgWhite('Total coin supply')} ${response.coins_total_supply}`)
+        this.log(`    ${black().bgWhite('Last block reward')} ${response.block_last_reward / shorPerQuanta}`)
+        const spinnerNode = ora().start()
+        spinnerNode.succeed('Node status:')
+        this.log(`    ${black().bgWhite('Version')} ${response.node_info.version}`)
+        this.log(`    ${black().bgWhite('State')} ${response.node_info.state}`)
+        this.log(`    ${black().bgWhite('Connections')} ${response.node_info.num_connections}`)
+        this.log(`    ${black().bgWhite('Known peers')} ${response.node_info.num_known_peers}`)
+        this.log(`    ${black().bgWhite('Node uptime')} ${Math.floor(moment.duration(parseInt(response.node_info.uptime, 10), 'seconds').asDays())} days`)
+        this.log(`    ${black().bgWhite('Block height')} ${response.node_info.block_height}`)
       })
     })
   }
 }
 
-OTSKey.description = `Get a address's OTS state from the network
+Status.description = `Gets the network status
 ...
 TODO
 `
 
-OTSKey.args = [
-  {
-    name: 'address',
-    description: 'address to return OTS state for',
-    required: true,
-  },
-]
+// Status.args = [
+//   {
+//     name: 'address',
+//     description: 'address to return OTS state for',
+//     required: true,
+//   },
+// ]
 
-OTSKey.flags = {
+Status.flags = {
   testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
-  password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
 }
 
-module.exports = {OTSKey}
+module.exports = {Status}
