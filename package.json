@@ -1,7 +1,7 @@
 {
   "name": "@theqrl/cli",
   "description": "QRL CLI functions",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "JP Lomas <jp@theqrl.org>, The QRL Foundation",
   "bin": {
     "qrl-cli": "./bin/run"
