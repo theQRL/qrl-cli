@@ -101,8 +101,11 @@ class Balance extends Command {
 }
 
 Balance.description = `Get a wallet balance from the network
-...
-TODO
+
+Queries the balance of the wallet.json file or address. 
+Use the (-p) flag to pass the password of encrypted wallet file.
+
+See the documentation at https://docs.theqrl.org/developers/qrl-cli
 `
 
 Balance.args = [
