@@ -69,7 +69,7 @@ class Send extends Command {
     let output = {}
     output.tx = []
     let sendMethods = 0
-    if (flags.object) {
+    if (flags.jsonObject) {
       sendMethods += 1
     }
     if (flags.recipient) {
@@ -79,29 +79,29 @@ class Send extends Command {
       sendMethods += 1
     }
     if (sendMethods === 0) {
-      this.log(`${red('⨉')} Unable to get send: no recipients`)
+      this.log(`${red('⨉')} Unable to send: no recipients`)
       this.exit(1)
     }
     if (sendMethods > 1) {
-      this.log(`${red('⨉')} Unable to get send: use either recipient (-r) *or* object containing multiple recipients (-j) *or* JSON file (-f)`)
+      this.log(`${red('⨉')} Unable to send: use either recipient (-r) *or* object containing multiple recipients (-j) *or* JSON file (-f)`)
       this.exit(1)
     }
     if (flags.shor) {
-      if (flags.file || flags.object) {
-        this.log(`${red('⨉')} Unable to get send: -s flag is redundant where JSON used as all values are in Shor`)
+      if (flags.file || flags.jsonObject) {
+        this.log(`${red('⨉')} Unable to send: -s flag is redundant where JSON used as all values are in Shor`)
         this.exit(1)
       }
     }
     if (!flags.wallet && !flags.hexseed) {
-      this.log(`${red('⨉')} Unable to get send: no wallet json file or hexseed specified`)
+      this.log(`${red('⨉')} Unable to send: no wallet json file or hexseed specified`)
       this.exit(1)
     }
-    if (flags.object) {
-      output = JSON.parse(flags.object)
+    if (flags.jsonObject) {
+      output = JSON.parse(flags.jsonObject)
       // now check the json is valid --> separate function
       const validate = checkTxJSON(output.tx)
       if (validate.status === false) {
-        this.log(`${red('⨉')} Unable to get send: json object passed with -j contains invalid output data (${validate.error})`)
+        this.log(`${red('⨉')} Unable to send: json object passed with -j contains invalid output data (${validate.error})`)
         this.exit(1)
       }
     }
@@ -110,14 +110,14 @@ class Send extends Command {
       output = JSON.parse(contents)
       const validate = checkTxJSON(output.tx)
       if (validate.status === false) {
-        this.log(`${red('⨉')} Unable to get send: json file contains invalid output data (${validate.error})`)
+        this.log(`${red('⨉')} Unable to send: json file contains invalid output data (${validate.error})`)
         this.exit(1)
       }
     }
     if (flags.recipient) {
       // passed as an -r flag
       if (!validateQrlAddress.hexString(flags.recipient).result) {
-        this.log(`${red('⨉')} Unable to get send: invalid recipient address`)
+        this.log(`${red('⨉')} Unable to send: invalid recipient address`)
         this.exit(1)
       }
       // valid address passed with -r flag, so single output
