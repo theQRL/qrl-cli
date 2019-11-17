@@ -8,16 +8,10 @@ const tmp = require('tmp')
 const fs = require('fs')
 const util = require('util')
 const CryptoJS = require('crypto-js')
-const aes256 = require('aes256')
 const {cli} = require('cli-ux')
 const {QRLPROTO_SHA256} = require('../get-qrl-proto-shasum')
 const protoLoader = require('@grpc/proto-loader')
 const PROTO_PATH = `${__dirname}/../../src/qrlbase.proto`
-const {QRLLIBmodule} = require('/Users/abilican/Documents/projects/perso/theqrl/myforks/qrllib/tests/js/tmp/offline-libjsqrl') 
-const {DILLIBmodule} = require('/Users/abilican/Documents/projects/perso/theqrl/myforks/qrllib/tests/js/tmp/offline-libjsdilithium') 
-let QRLLIBLoaded = false
-let DILLIBLoaded = false
-const Crypto = require('crypto')
 
 const readFile = util.promisify(fs.readFile)
 const writeFile = util.promisify(fs.writeFile)
@@ -32,11 +26,6 @@ const clientGetNodeInfo = client => {
     })
   })
 }
-
-// const openWalletFile = function (path) {
-//   const contents = fs.readFileSync(path)
-//   return JSON.parse(contents)[0]
-// }
 
 let qrlClient = null
 
@@ -67,13 +56,11 @@ async function loadGrpcBaseProto(grpcEndpoint) {
         throw new Error('tmp filesystem error')
       }
     })
-    // console.log(qrlProtoFilePath)
     return qrlProtoFilePath
   })
 }
 
 async function loadGrpcProto(protofile, endpoint) {
-    console.log("Loading gRPC proto...")
   const options = {
     keepCase: true,
     longs: String,
@@ -89,14 +76,11 @@ async function loadGrpcProto(protofile, endpoint) {
   
   let verified = false
   QRLPROTO_SHA256.forEach(value => {
-    // console.log(calculatedObjectHash)
-    // console.log(value.objectSha256)
     if (value.objectSha256 === calculatedObjectHash) {
       verified = true
     }
   })
   // If the grpc object shasum matches, establish the grpc connection.
-  console.log(verified)
   if (verified) {
     qrlClient = createClient({
       protoPath: protofile,
@@ -118,121 +102,58 @@ async function loadGrpcProto(protofile, endpoint) {
 class EphemeralKeys extends Command {
   async run() {
     const {args, flags} = this.parse(EphemeralKeys)
-
+    
+    let address = args.address
+    let item_per_page = args.item_per_page
+    let page_number = args.page_number
     let grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
     let network = 'Devnet'
 
     this.log(white().bgBlue(network))
-    const spinner = ora({text: 'Fetching Ephemeral keys from API...'}).start()
+    const spinner = ora({text: 'Fetching Ephemeral keys from API...\n'}).start()
 
-    
-
-    // const proto = await loadGrpcBaseProto(grpcEndpoint)
-    // checkProtoHash(proto).then(async protoHash => {
-    //   if (!protoHash) {
-    //     this.log(`${red('⨉')} Unable to validate .proto file from node`)
-    //     this.exit(1)
-    //   }
-    //   // next load GRPC object and check hash of that too
-    //   await loadGrpcProto(proto, grpcEndpoint)
-    //   const request = {}
-    //   await qrlClient.GetNodeState(request, async (error, response) => {
-    //     if (error) {
-    //       this.log(`${red('⨉')} Unable to read next unused OTS key`)
-    //     }
-    //     spinner.succeed(`RESPONSE: ${JSON.stringify(response.info) }`)
-    //   })
-    // })
-
-
-    const test = arr => {
-        const vec = new DILLIB.getString()
-        console.log(vec)
-    }
-
-
-    const waitForDILLIB = callBack => {
-        setTimeout(() => {
-        // Test the QRLLIB object has the str2bin function.
-        // This is sufficient to tell us QRLLIB has loaded.
-        if (typeof DILLIB.getString === 'function' && DILLIBLoaded === true) {
-            callBack()
-        } 
-        else {
-            DILLIBLoaded = true
-            return waitForDILLIB(callBack)
+    const proto = await loadGrpcBaseProto(grpcEndpoint)
+    checkProtoHash(proto).then(async protoHash => {
+      if (!protoHash) {
+        this.log(`${red('⨉')} Unable to validate .proto file from node`)
+        this.exit(1)
+      }
+      // next load GRPC object and check hash of that too
+      await loadGrpcProto(proto, grpcEndpoint)
+      const getTransactionsByAddressReq = {
+        address: Buffer.from( address.substring(1) , 'hex'),
+        item_per_page: item_per_page,
+        page_number: page_number
+      }
+      await qrlClient.GetLatticePKsByAddress(getTransactionsByAddressReq, async (error, response) => {
+        if (error) {
+          this.log(`${red('⨉')} Unable to get Lattice transaction list`)
         }
-        return false
-        }, 50)
-    }
-
-    waitForDILLIB(async _ => {
-        // console.log(DILLIB.Dilithium.empty())
-        // console.log(DILLIB.getString())
-        const DIL_OBJECT = await new DILLIB.Dilithium.empty()
-        console.log(" ")
-        console.log("Dilithium PK")
-        console.log(DIL_OBJECT.getPK())
-        console.log("Dilithium SK")
-        console.log(DIL_OBJECT.getSK())
-        spinner.succeed(`Dilithium`)
+        spinner.succeed(`RESPONSE: ${JSON.stringify(response) }`)
+        spinner.succeed('DONE')
+      })
     })
-
-
-
-    // const toUint8Vector = arr => {
-    //     console.log("toUint8Vector")
-    //     const vec = new QRLLIB.Uint8Vector()
-    //     console.log(vec)
-    //     for (let i = 0; i < arr.length; i += 1) {
-    //         console.log(arr[i])
-    //       vec.push_back(arr[i])
-    //     }
-    //     return vec
-    //   }
-
-
-    //   const waitForQRLLIB = callBack => {
-    //     setTimeout(() => {
-    //       // Test the QRLLIB object has the str2bin function.
-    //       // This is sufficient to tell us QRLLIB has loaded.
-    //       if (typeof QRLLIB.str2bin === 'function' && QRLLIBLoaded === true) {
-    //         callBack()
-    //       } else {
-    //         QRLLIBLoaded = true
-    //         return waitForQRLLIB(callBack)
-    //       }
-    //       return false
-    //     }, 50)
-    //   }
-
-    // waitForQRLLIB(async _ => {
-    //     console.log("WaitForQRLLIB")
-    //   // default to a tree height of 10 unless passed via CLI
-    //   let xmssHeight = 10
-    //   // default to SHA2-256 unless otherwise specified
-    //   console.log(QRLLIB)
-    //   let hashFunction = QRLLIB.eHashFunction.SHA2_256
-    //   let hashCount = 0
-    //   const randomSeed = toUint8Vector(Crypto.randomBytes(48))
-    //   console.log(randomSeed)
-    //   const XMSS_OBJECT = await new QRLLIB.Xmss.fromParameters(randomSeed, xmssHeight, hashFunction)
-    // //   spinner.succeed('Wallet created')
-    // })
-
-
-
   }
 }
 
-EphemeralKeys.description = `Get Ephemeral keys associated to an address
+EphemeralKeys.description = `Get Ephemeral keys associated to a QRL address
 `
 
 EphemeralKeys.args = [
   {
     name: 'address',
     description: 'address to return OTS state for',
-    required: false,
+    required: true,
+  },
+  {
+    name: 'item_per_page',
+    description: 'number of items to show per page',
+    required: true,
+  },
+  {
+    name: 'page_number',
+    description: 'page number to retrieve',
+    required: true,
   },
 ]
 
