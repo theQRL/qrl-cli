@@ -38,8 +38,8 @@ USAGE
 * [`qrl-cli receive ADDRESS`](#qrl-cli-receive-address)
 * [`qrl-cli status`](#qrl-cli-status)
 * [`qrl-cli validate ADDRESS`](#qrl-cli-validate-address)
-* [`qrl-cli create-lattice`](#qrl-cli-create-lattice-wallet)
-* [`qrl-cli get-keys`](#qrl-cli-get-keys-address-item-page)
+* [`qrl-cli create-lattice WALLET`](#qrl-cli-create-lattice-wallet)
+* [`qrl-cli get-keys ADDRESS ITEM PAGE`](#qrl-cli-get-keys-address-item-page)
 
 ## `qrl-cli balance ADDRESS`
 
