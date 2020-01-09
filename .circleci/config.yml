@@ -3,7 +3,7 @@ version: 2
 jobs:
   node-latest: &test
     docker:
-      - image: circleci/node:8.11.2
+      - image: circleci/node:8.16.1
     working_directory: ~/cli
     steps:
       - checkout

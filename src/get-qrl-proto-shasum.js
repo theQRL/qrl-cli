@@ -1,14 +1,11 @@
 /* qrl.proto sha256 sum for each release of QRL Node */
 const QRLPROTO_SHA256 = [
   {
-    version: '1.1.10 python',
-    protoSha256: '00032d07d4b4637103db15b3d68ae019c14988e870475832af6eb5bd390e04f5',
-    objectSha256: 'a93598b15aea7d4d40656e3a824891a6c881cbcb3678c7bec0110f9614b8e271',
-  },
-  {
-    version: '1.1.11 python',
-    protoSha256: '00032d07d4b4637103db15b3d68ae019c14988e870475832af6eb5bd390e04f5',
-    objectSha256: 'a93598b15aea7d4d40656e3a824891a6c881cbcb3678c7bec0110f9614b8e271',
+    version: '0+unknown python',
+    protoSha256:
+      '34f22af23f87cd879b3e888011bb47f0ce10db6765cdfe02b0574279dabec197',
+    objectSha256:
+      'a222eafd0f8fd8b3b14177008a753934a620f40ae5605723bc04eabb25977f36',
   },
 ]
 
