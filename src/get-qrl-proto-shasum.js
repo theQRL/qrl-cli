@@ -2,8 +2,10 @@
 const QRLPROTO_SHA256 = [
   {
     version: '0+unknown python',
-    protoSha256: '64ef968299f4f660fa9327a706d0b7839748a04b20fed58921539788da4c1270',
-    objectSha256: 'a051cf50726d37e5382ceb74e3fb26b1d25012161f3b28aacc084e56de1623cf',
+    protoSha256:
+      '34f22af23f87cd879b3e888011bb47f0ce10db6765cdfe02b0574279dabec197',
+    objectSha256:
+      'a222eafd0f8fd8b3b14177008a753934a620f40ae5605723bc04eabb25977f36',
   },
 ]
 
