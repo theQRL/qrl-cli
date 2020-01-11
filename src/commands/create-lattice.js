@@ -426,12 +426,34 @@ class EphemeralKeys extends Command {
                 if (error) {
                   this.log(`${red('⨉')} Unable send push transaction`)
                 }
+                spinner.succeed(`RESPONSE: ${JSON.stringify(response) }`)
                 var pushTransactionRes = JSON.stringify(response.tx_hash)
                 var txhash = JSON.parse(pushTransactionRes)
                 // spinner.succeed(`RESPONSE: ${txhash.data}`)
                 spinner.succeed('Transaction created')
                 spinner.succeed(`Transaction ID: ${bytesToHex(txhash.data)}`)
-                // spinner.succeed(`RESPONSE: ${JSON.stringify(response) }`)
+
+                // save private keys to encrypted file
+                const ephemeralDetail = {
+                  encrypted: false,
+                  kyberPK: kyberPK.toString('hex'),
+                  dilithiumPK: dilithiumPK.toString('hex'),
+                  ecdsaPK: ecdsaPK.toString('hex'),
+                  eciesPK: ecdsaPK.toString('hex'),
+                }
+
+                if (flags.ephemeralPwd) {
+                  const passphrase = flags.ephemeralPwd
+                  ephemeralDetail.encrypted = true
+                  ephemeralDetail.kyberPK = aes256.encrypt(passphrase, ephemeralDetail.kyberPK)
+                  ephemeralDetail.dilithiumPK = aes256.encrypt(passphrase, ephemeralDetail.dilithiumPK)
+                  ephemeralDetail.ecdsaPK = aes256.encrypt(passphrase, ephemeralDetail.ecdsaPK)
+                  ephemeralDetail.eciesPK = aes256.encrypt(passphrase, ephemeralDetail.ecdsaPK)
+                }
+
+                const ephemeralJson = ['[', JSON.stringify(ephemeralDetail), ']'].join('')
+                fs.writeFileSync(flags.ephemeralFile, ephemeralJson)
+                spinner.succeed(`Ephemeral private keys written to ${flags.ephemeralFile}`)
               })
             })
           })
@@ -459,6 +481,8 @@ Documentation at https://docs.theqrl.org/developers/qrl-cli
 
 EphemeralKeys.flags = {
   file: flags.string({char: 'f', required: true, description: 'wallet json file'}),
+  ephemeralFile: flags.string({char: 'e', required: true, description: 'file to export ephemeral private keys'}),
+  ephemeralPwd: flags.string({char: 's', required: false, description: 'ephemeral file password'}),
   output: flags.boolean({char: 'o', default: false, description: 'output file to save lattice private keys'}),
   testnet: flags.boolean({char: 't', default: false, description: 'sends Lattice transaction to testnet'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'sends Lattice transaction to mainnet'}),
