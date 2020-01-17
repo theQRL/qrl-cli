@@ -153,26 +153,6 @@ class Verify extends Command {
       try {
         isValidFile = true
         encryptedSig = sigJson
-        // if (sigJson.encrypted === false) {
-        //   isValidFile = true
-        //   encryptedSig = sigJson
-        // }
-        // if (sigJson.encrypted === true) {
-        //   let password = ''
-        //   if (flags.password) {
-        //     password = flags.password
-        //   } else {
-        //     password = await cli.prompt('Enter password for ephemeral file', {type: 'hide'})
-        //   }
-        //   encryptedSig = aes256.decrypt(password, sigJson.ecdsaSK)
-        //   isValidFile = true
-        //   // if (validateQrlAddress.hexString(address).result) {
-        //   //   isValidFile = true
-        //   // } else {
-        //   //   this.log(`${red('⨉')} Unable to open wallet file: invalid password`)
-        //   //   this.exit(1)
-        //   // }
-        // }
       } catch (error) {
         this.exit(1)
       }

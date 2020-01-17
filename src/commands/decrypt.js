@@ -149,7 +149,6 @@ class Decrypt extends Command {
       }
 
       eccrypto.decrypt(Buffer.from(ecdsaSK.toString(), 'hex'), msg).then(function (plaintext) {
-        // console.log("Message to part B:", plaintext.toString());
         spinner.succeed(plaintext.toString())
       })
     })
