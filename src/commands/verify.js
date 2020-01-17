@@ -12,6 +12,7 @@ const {QRLPROTO_SHA256} = require('../get-qrl-proto-shasum')
 const protoLoader = require('@grpc/proto-loader')
 const PROTO_PATH = `${__dirname}/../../src/qrlbase.proto`
 var eccrypto = require('eccrypto')
+var crypto = require('crypto')
 
 const readFile = util.promisify(fs.readFile)
 const writeFile = util.promisify(fs.writeFile)
@@ -28,6 +29,11 @@ const clientGetNodeInfo = client => {
 }
 
 let qrlClient = null
+
+const openEphemeralFile = function (path) {
+  const contents = fs.readFileSync(path)
+  return JSON.parse(contents)[0]
+}
 
 async function checkProtoHash(file) {
   return readFile(file)
@@ -119,14 +125,63 @@ async function loadGrpcProto(protofile, endpoint) {
   }
 }
 
-class Encrypt extends Command {
+class Verify extends Command {
   async run() {
-    const {args} = this.parse(Encrypt)
+    const {args} = this.parse(Verify)
 
     let address = args.address
     let itemPerPage = args.item_per_page
     let pageNumber = args.page_number
-    let message = args.message
+
+    let isFile = false
+    let isValidFile = false
+    let encryptedSig
+    const path = 'signature.txt'
+    try {
+      if (fs.existsSync(path)) {
+        isFile = true
+      }
+    } catch (error) {
+      this.log(`${red('⨉')} Unable to get signature: invalid signature file`)
+      this.exit(1)
+    }
+    if (isFile === false) {
+      this.log(`${red('⨉')} Unable to get signature: invalid signature file`)
+      this.exit(1)
+    } else {
+      const sigJson = openEphemeralFile(path)
+      try {
+        isValidFile = true
+        encryptedSig = sigJson
+        // if (sigJson.encrypted === false) {
+        //   isValidFile = true
+        //   encryptedSig = sigJson
+        // }
+        // if (sigJson.encrypted === true) {
+        //   let password = ''
+        //   if (flags.password) {
+        //     password = flags.password
+        //   } else {
+        //     password = await cli.prompt('Enter password for ephemeral file', {type: 'hide'})
+        //   }
+        //   encryptedSig = aes256.decrypt(password, sigJson.ecdsaSK)
+        //   isValidFile = true
+        //   // if (validateQrlAddress.hexString(address).result) {
+        //   //   isValidFile = true
+        //   // } else {
+        //   //   this.log(`${red('⨉')} Unable to open wallet file: invalid password`)
+        //   //   this.exit(1)
+        //   // }
+        // }
+      } catch (error) {
+        this.exit(1)
+      }
+    }
+    if (isValidFile === false) {
+      this.log(`${red('⨉')} Unable to get signature: invalid signature file`)
+      this.exit(1)
+    }
+
     let grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
     let network = 'Devnet'
 
@@ -143,6 +198,7 @@ class Encrypt extends Command {
       }
       // next load GRPC object and check hash of that too
       await loadGrpcProto(proto, grpcEndpoint)
+
       const getTransactionsByAddressReq = {
         address: Buffer.from(address.substring(1), 'hex'),
         // eslint-disable-next-line camelcase
@@ -157,15 +213,21 @@ class Encrypt extends Command {
           if (error) {
             this.log(`${red('⨉')} Unable to get Lattice transaction list`)
           }
-          // get ECDSA pk
+          // spinner.succeed(`RESPONSE: ${JSON.stringify(response.lattice_pks_detail[0].pk3)}`)
+
+          // this.log(response.lattice_pks_detail[0].pk3)
           let pk = response.lattice_pks_detail[0].pk3
           let pkB = Buffer.from(pk.toString(), 'hex')
 
-          eccrypto.encrypt(pkB, Buffer.from(message)).then(function (encrypted) {
-            // console.log( JSON.stringify(encrypted)  )
-            const encJson = ['[', JSON.stringify(encrypted), ']'].join('')
-            fs.writeFileSync('encrypted.txt', encJson)
-            spinner.succeed('DONE')
+          var str = 'QRLforever'
+          // Always hash you message to sign!
+          var msg = crypto.createHash('sha256').update(str).digest()
+          const sig = Buffer.from(encryptedSig)
+          eccrypto.verify(pkB, msg, sig).then(function () {
+            spinner.succeed('VERIFICATION OK')
+          }).catch(function () {
+            // console.log("Signature is BAD");
+            spinner.succeed('ERROR VERIFICATION')
           })
         }
       )
@@ -173,10 +235,10 @@ class Encrypt extends Command {
   }
 }
 
-Encrypt.description = `Encrypt message using recipient public keys
+Verify.description = `Encrypt message using recipient public keys
 `
 
-Encrypt.args = [
+Verify.args = [
   {
     name: 'address',
     description: 'QRL wallet address to send message to',
@@ -192,18 +254,12 @@ Encrypt.args = [
     description: 'page number to retrieve',
     required: true,
   },
-  {
-    name: 'message',
-    description: 'message to encrypt',
-    required: true,
-  },
-
 ]
 
-Encrypt.flags = {
+Verify.flags = {
   testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
 }
 
-module.exports = {Encrypt}
+module.exports = {Verify}

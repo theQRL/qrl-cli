@@ -426,7 +426,7 @@ class EphemeralKeys extends Command {
                 if (error) {
                   this.log(`${red('⨉')} Unable send push transaction`)
                 }
-                spinner.succeed(`RESPONSE: ${JSON.stringify(response) }`)
+                // spinner.succeed(`RESPONSE: ${JSON.stringify(response)}`)
                 var pushTransactionRes = JSON.stringify(response.tx_hash)
                 var txhash = JSON.parse(pushTransactionRes)
                 // spinner.succeed(`RESPONSE: ${txhash.data}`)
@@ -438,8 +438,8 @@ class EphemeralKeys extends Command {
                   encrypted: false,
                   kyberPK: kyberPK.toString('hex'),
                   dilithiumPK: dilithiumPK.toString('hex'),
-                  ecdsaPK: ecdsaPK.toString('hex'),
-                  eciesPK: ecdsaPK.toString('hex'),
+                  ecdsaSK: privateKey.toString('hex'),
+                  eciesSK: privateKey.toString('hex'),
                 }
 
                 if (flags.ephemeralPwd) {
@@ -447,8 +447,8 @@ class EphemeralKeys extends Command {
                   ephemeralDetail.encrypted = true
                   ephemeralDetail.kyberPK = aes256.encrypt(passphrase, ephemeralDetail.kyberPK)
                   ephemeralDetail.dilithiumPK = aes256.encrypt(passphrase, ephemeralDetail.dilithiumPK)
-                  ephemeralDetail.ecdsaPK = aes256.encrypt(passphrase, ephemeralDetail.ecdsaPK)
-                  ephemeralDetail.eciesPK = aes256.encrypt(passphrase, ephemeralDetail.ecdsaPK)
+                  ephemeralDetail.ecdsaSK = aes256.encrypt(passphrase, ephemeralDetail.ecdsaSK)
+                  ephemeralDetail.eciesSK = aes256.encrypt(passphrase, ephemeralDetail.eciesSK)
                 }
 
                 const ephemeralJson = ['[', JSON.stringify(ephemeralDetail), ']'].join('')

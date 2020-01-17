@@ -13,7 +13,6 @@ const {QRLPROTO_SHA256} = require('../get-qrl-proto-shasum')
 const protoLoader = require('@grpc/proto-loader')
 const PROTO_PATH = `${__dirname}/../../src/qrlbase.proto`
 var eccrypto = require('eccrypto')
-var crypto = require('crypto')
 
 const readFile = util.promisify(fs.readFile)
 const writeFile = util.promisify(fs.writeFile)
@@ -77,15 +76,17 @@ async function loadGrpcBaseProto(grpcEndpoint) {
   })
 }
 
-class Sign extends Command {
+class Decrypt extends Command {
   async run() {
-    const {flags} = this.parse(Sign)
+    // const {args} = this.parse(Decrypt)
 
-    // Retrieving the hexseed from wallet file
+    // Retrieving ecdsaSK from wallet file
     let isFile = false
     let isValidFile = false
     let ecdsaSK
-    const path = flags.file
+    let encryptedMsg
+    const path = 'ephemeral.json'
+    const encPath = 'encrypted.txt'
     try {
       if (fs.existsSync(path)) {
         isFile = true
@@ -99,10 +100,12 @@ class Sign extends Command {
       this.exit(1)
     } else {
       const walletJson = openEphemeralFile(path)
+      const encJson = openEphemeralFile(encPath)
       try {
         if (walletJson.encrypted === false) {
           isValidFile = true
           ecdsaSK = walletJson.ecdsaSK
+          encryptedMsg = encJson
         }
         if (walletJson.encrypted === true) {
           let password = ''
@@ -138,28 +141,28 @@ class Sign extends Command {
         this.exit(1)
       }
 
-      var msg = crypto.createHash('sha256').update(flags.message).digest()
+      const msg =  {
+        iv: Buffer.from(encryptedMsg.iv),
+        ephemPublicKey: Buffer.from(encryptedMsg.ephemPublicKey),
+        ciphertext: Buffer.from(encryptedMsg.ciphertext),
+        mac: Buffer.from(encryptedMsg.mac),
+      }
 
-      eccrypto.sign(Buffer.from(ecdsaSK.toString(), 'hex'), msg).then(function (sig) {
-        // console.log("Signature in DER format:", sig);
-        const sigJson = ['[', JSON.stringify(sig), ']'].join('')
-        fs.writeFileSync('signature.txt', sigJson)
-        spinner.succeed('DONE')
+      eccrypto.decrypt(Buffer.from(ecdsaSK.toString(), 'hex'), msg).then(function (plaintext) {
+        // console.log("Message to part B:", plaintext.toString());
+        spinner.succeed(plaintext.toString())
       })
     })
   }
 }
 
-Sign.description = `Sign message using saved private keys
+Decrypt.description = `Encrypt message using recipient public keys
 `
 
-Sign.flags = {
-  file: flags.string({char: 'f', required: true, description: 'ephemeral file containinf the private keys to use'}),
-  password: flags.string({char: 'p', required: false, description: 'ephemeral file password'}),
-  message: flags.string({char: 's', required: true, description: 'message to sign'}),
+Decrypt.flags = {
   testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
 }
 
-module.exports = {Sign}
+module.exports = {Decrypt}
