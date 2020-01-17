@@ -436,8 +436,8 @@ class EphemeralKeys extends Command {
                 // save private keys to encrypted file
                 const ephemeralDetail = {
                   encrypted: false,
-                  kyberPK: kyberPK.toString('hex'),
-                  dilithiumPK: dilithiumPK.toString('hex'),
+                  kyberSK: kyberPK.toString('hex'),
+                  dilithiumSK: dilithiumPK.toString('hex'),
                   ecdsaSK: privateKey.toString('hex'),
                   eciesSK: privateKey.toString('hex'),
                 }
@@ -445,8 +445,8 @@ class EphemeralKeys extends Command {
                 if (flags.ephemeralPwd) {
                   const passphrase = flags.ephemeralPwd
                   ephemeralDetail.encrypted = true
-                  ephemeralDetail.kyberPK = aes256.encrypt(passphrase, ephemeralDetail.kyberPK)
-                  ephemeralDetail.dilithiumPK = aes256.encrypt(passphrase, ephemeralDetail.dilithiumPK)
+                  ephemeralDetail.kyberSK = aes256.encrypt(passphrase, ephemeralDetail.kyberPK)
+                  ephemeralDetail.dilithiumSK = aes256.encrypt(passphrase, ephemeralDetail.dilithiumPK)
                   ephemeralDetail.ecdsaSK = aes256.encrypt(passphrase, ephemeralDetail.ecdsaSK)
                   ephemeralDetail.eciesSK = aes256.encrypt(passphrase, ephemeralDetail.eciesSK)
                 }
