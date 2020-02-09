@@ -419,7 +419,7 @@ class EphemeralKeys extends Command {
                 nonce: nonce,
                 // eslint-disable-next-line camelcase
                 transaction_hash: Buffer.from(txnHash, 'hex'),
-                latticePK: latticePk
+                latticePK: latticePk,
               }
 
               const pushTransactionReq = {
@@ -445,6 +445,7 @@ class EphemeralKeys extends Command {
                   dilithiumSK: dilithiumSK.toString('hex'),
                   ecdsaSK: privateKey.toString('hex'),
                   eciesSK: privateKey.toString('hex'),
+                  txHash: bytesToHex(txhash.data),
                 }
 
                 if (flags.ephemeralPwd) {
@@ -454,6 +455,7 @@ class EphemeralKeys extends Command {
                   ephemeralDetail.dilithiumSK = aes256.encrypt(passphrase, ephemeralDetail.dilithiumPK)
                   ephemeralDetail.ecdsaSK = aes256.encrypt(passphrase, ephemeralDetail.ecdsaSK)
                   ephemeralDetail.eciesSK = aes256.encrypt(passphrase, ephemeralDetail.eciesSK)
+                  ephemeralDetail.txHash = aes256.encrypt(passphrase, ephemeralDetail.txHash)
                 }
 
                 const ephemeralJson = ['[', JSON.stringify(ephemeralDetail), ']'].join('')
