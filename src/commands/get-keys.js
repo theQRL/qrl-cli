@@ -134,6 +134,7 @@ class EphemeralKeys extends Command {
     }).start()
 
     const proto = await loadGrpcBaseProto(grpcEndpoint)
+    spinner.succeed(proto)
     checkProtoHash(proto).then(async protoHash => {
       if (!protoHash) {
         this.log(`${red('⨉')} Unable to validate .proto file from node`)
@@ -141,6 +142,28 @@ class EphemeralKeys extends Command {
       }
       // next load GRPC object and check hash of that too
       await loadGrpcProto(proto, grpcEndpoint)
+
+
+      // const getAddressStateReq = {
+      //   address: Buffer.from(address.substring(1), 'hex'),
+      //   // eslint-disable-next-line camelcase
+      //   exclude_ots_bitfield: true,
+      //   // eslint-disable-next-line camelcase
+      //   exclude_transaction_hashes: true,
+      // }
+
+      // await qrlClient.GetAddressState(
+      //   getAddressStateReq,
+      //   async (error, response) => {
+      //     if (error) {
+      //       this.log(`${red('⨉')} Unable to get Lattice transaction list`)
+      //     }
+      //     // let pk3st = Buffer.from( response.lattice_pks_detail[0].pk3, 'hex' )
+      //     spinner.succeed(`RESPONSE: ${ response.state.lattice_pk_count }`)
+      //     spinner.succeed('DONE')
+      //   }
+      // )
+
       const getTransactionsByAddressReq = {
         address: Buffer.from(address.substring(1), 'hex'),
         // eslint-disable-next-line camelcase
@@ -154,7 +177,8 @@ class EphemeralKeys extends Command {
           if (error) {
             this.log(`${red('⨉')} Unable to get Lattice transaction list`)
           }
-          spinner.succeed(`RESPONSE: ${JSON.stringify(response)}`)
+          let pk3st = Buffer.from( response.lattice_pks_detail[0].pk2, 'hex' )
+          spinner.succeed(`RESPONSE: ${ response.lattice_pks_detail }`)
           spinner.succeed('DONE')
         }
       )

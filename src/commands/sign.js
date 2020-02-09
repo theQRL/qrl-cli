@@ -154,7 +154,7 @@ Sign.description = `Sign message using saved private keys
 `
 
 Sign.flags = {
-  file: flags.string({char: 'f', required: true, description: 'ephemeral file containinf the private keys to use'}),
+  file: flags.string({char: 'f', required: true, description: 'ephemeral file containing the private keys to use'}),
   password: flags.string({char: 'p', required: false, description: 'ephemeral file password'}),
   message: flags.string({char: 's', required: true, description: 'message to sign'}),
   testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),

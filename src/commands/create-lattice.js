@@ -315,19 +315,22 @@ class EphemeralKeys extends Command {
       waitForKYBLIB(async _ => {
         const KYB_OBJECT = await new KYBLIB.Kyber.empty()
         const kyberPK = Buffer.from(KYB_OBJECT.getPK(), 'hex')
+        const kyberSK = Buffer.from(KYB_OBJECT.getSK(), 'hex')
         // const kyberSK = Buffer.from(KYB_OBJECT.getSK(), 'hex')
         spinner.succeed('Kyber PK created')
         waitForDILLIB(async _ => {
           const DIL_OBJECT = await new DILLIB.Dilithium.empty()
           const dilithiumPK = Buffer.from(DIL_OBJECT.getPK(), 'hex')
+          const dilithiumSK = Buffer.from(DIL_OBJECT.getSK(), 'hex')
           // const dilithiumSK = Buffer.from(DIL_OBJECT.getSK(), 'hex')
           spinner.succeed('Dilithium PK created')
           // A new random 32-byte private key.
           var privateKey = eccrypto.generatePrivate()
           var publicKey = eccrypto.getPublic(privateKey)
           // const ecdsaPK = QRLLIB.hstr2bin(Buffer.from(publicKey.toString('hex')))
-          const ecdsaPK = Buffer.from(publicKey.toString('hex'))
+          const ecdsaPK = Buffer.from(publicKey)
           spinner.succeed('ECDSA PK created')
+          spinner.succeed(publicKey.toString('hex'))
 
           const proto = await loadGrpcBaseProto(grpcEndpoint)
           checkProtoHash(proto).then(async protoHash => {
@@ -383,6 +386,8 @@ class EphemeralKeys extends Command {
               const shaSum = QRLLIB.sha2_256(hashableBytes)
               // spinner.succeed(`SHASUM: ${QRLLIB.bin2hstr(shaSum)}`)
 
+              // new BigNumber(3).toNumber()
+              XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
               const signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
               const txnHashConcat = concatenateTypedArrays(
@@ -414,7 +419,7 @@ class EphemeralKeys extends Command {
                 nonce: nonce,
                 // eslint-disable-next-line camelcase
                 transaction_hash: Buffer.from(txnHash, 'hex'),
-                latticePK: latticePk,
+                latticePK: latticePk
               }
 
               const pushTransactionReq = {
@@ -436,8 +441,8 @@ class EphemeralKeys extends Command {
                 // save private keys to encrypted file
                 const ephemeralDetail = {
                   encrypted: false,
-                  kyberSK: kyberPK.toString('hex'),
-                  dilithiumSK: dilithiumPK.toString('hex'),
+                  kyberSK: kyberSK.toString('hex'),
+                  dilithiumSK: dilithiumSK.toString('hex'),
                   ecdsaSK: privateKey.toString('hex'),
                   eciesSK: privateKey.toString('hex'),
                 }
@@ -484,6 +489,7 @@ EphemeralKeys.flags = {
   ephemeralFile: flags.string({char: 'e', required: true, description: 'file to export ephemeral private keys'}),
   ephemeralPwd: flags.string({char: 's', required: false, description: 'ephemeral file password'}),
   output: flags.boolean({char: 'o', default: false, description: 'output file to save lattice private keys'}),
+  otsindex: flags.string({char: 'i', required: true, description: 'OTS key index'}),
   testnet: flags.boolean({char: 't', default: false, description: 'sends Lattice transaction to testnet'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'sends Lattice transaction to mainnet'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
