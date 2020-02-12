@@ -41,7 +41,8 @@ const checkTxJSON = function (check) {
       valid.error = `Output #${index} does not have a 'shor' key`
     }
   })
-  // TODO: need some BigNumber checks here
+  // need some BigNumber checks here
+  // ...
   // checks complete
   return valid
 }
@@ -50,14 +51,14 @@ class Send extends Command {
   async run() {
     const {args, flags} = this.parse(Send)
     // network
-    let grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+    let grpcEndpoint = 'testnet-1.automated.theqrl.org:19009' // eslint-disable-line no-unused-vars
     let network = 'Testnet'
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
       network = 'Testnet'
     }
     if (flags.mainnet) {

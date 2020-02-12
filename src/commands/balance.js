@@ -1,9 +1,12 @@
 /* eslint new-cap: 0, max-depth: 0 */
 const {Command, flags} = require('@oclif/command')
 const {red, green, white} = require('kleur')
+let {qrlClient,
+  checkProtoHash,
+  loadGrpcBaseProto,
+  loadGrpcProto} = require('../functions/grpc')
 const ora = require('ora')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
-const axios = require('axios')
 const BigNumber = require('bignumber.js')
 const fs = require('fs')
 const aes256 = require('aes256')
@@ -11,23 +14,21 @@ const {cli} = require('cli-ux')
 
 const shorPerQuanta = 10 ** 9
 
-const GetBalance = async function (address, api) {
-  return axios.get(api, {params: {address: address}}).then((response => {
-    return response.data
-  })).catch(error => {
-    return {error: 1, errorMessage: error.message}
-  })
-}
-
 const openWalletFile = function (path) {
   const contents = fs.readFileSync(path)
   return JSON.parse(contents)[0]
 }
 
+const addressForAPI = (address) => { // eslint-disable-line
+  return Buffer.from(address.substring(1), 'hex')
+}
+
 class Balance extends Command {
   async run() {
+
     const {args, flags} = this.parse(Balance)
     let address = args.address
+    let exitCode = null
     if (!validateQrlAddress.hexString(address).result) {
       // not a valid address - is it a file?
       let isFile = false
@@ -75,28 +76,72 @@ class Balance extends Command {
         this.exit(1)
       }
     }
-    this.log(white().bgBlack(address))
-    const spinner = ora({text: 'Fetching balance from API...'}).start()
-    let api = ''
-    if (flags.api) {
-      api = flags.api
-    } else {
-      api = 'https://brooklyn.theqrl.org/api/GetBalance'
+    let grpcEndpoint = 'mainnet-2.automated.theqrl.org:19009'
+    let network = 'Mainnet'
+    if (flags.grpc) {
+      grpcEndpoint = flags.grpc
+      network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
-    const bal = await GetBalance(address, api)
-    spinner.stop()
-    if (bal.error === 1) {
-      this.log(`${red('⨉')} ${bal.errorMessage}`)
-      this.exit(1)
+    if (flags.devnet) {
+      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
+      network = 'Devnet'
     }
-    let balance = new BigNumber(bal.data.balance)
-    if (flags.shor) {
-      this.log(`${green('✓')} Balance: ${balance} Shor`)
+    if (flags.testnet) {
+      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      network = 'Testnet'
     }
-    if (flags.quanta || !flags.shor) {
-      // default to showing balance in Quanta if no flags
-      this.log(`${green('✓')} Balance: ${balance / shorPerQuanta} Quanta`)
+    if (flags.mainnet) {
+      grpcEndpoint = 'mainnet-2.automated.theqrl.org:19009'
+      network = 'Mainnet'
     }
+    this.log(white().bgBlue(network))
+    const spinner = ora({text: 'Fetching balance from node...'}).start()
+    const proto = await loadGrpcBaseProto(grpcEndpoint)
+    checkProtoHash(proto).then(async protoHash => {
+      if (!protoHash) {
+        this.log(`${red('⨉')} Unable to validate .proto file from node`)
+        this.exit(1)
+      }
+      // next load GRPC object and check hash of that too
+      qrlClient = await loadGrpcProto(proto, grpcEndpoint)
+      const request = {
+        address: addressForAPI(address),
+      }
+      if (network === 'Testnet') {
+        qrlClient.GetOptimizedAddressState(request, (error, response) => {
+          if (error) {
+            this.log(`${red('⨉')} Unable to read status`)
+            this.exit(1)
+          }
+          let balance = new BigNumber(parseInt(response.state.balance, 10))
+          if (flags.shor) {
+            spinner.succeed(`Balance: ${balance} Shor`)
+          }
+          if (flags.quanta || !flags.shor) {
+            // default to showing balance in Quanta if no flags
+            spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
+          }
+        })
+      } else {
+        await qrlClient.GetAddressState(request, (error, response) => {
+          if (error) {
+            this.log(`${red('⨉')} Unable to read status`)
+            exitCode = 1
+            return
+          }
+          let balance = new BigNumber(parseInt(response.state.balance, 10))
+          if (flags.shor) {
+            spinner.succeed(`Balance: ${balance} Shor`)
+            exitCode = 0
+          }
+          if (flags.quanta || !flags.shor) {
+            // default to showing balance in Quanta if no flags
+            spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
+            exitCode = 0
+          }
+        })
+      }
+    })
   }
 }
 
@@ -117,9 +162,12 @@ Balance.args = [
 ]
 
 Balance.flags = {
+  testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the balance'}),
+  mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the balance'}),
+  devnet: flags.boolean({char: 'd', default: false, description: 'queries devnet for the balance'}),
   shor: flags.boolean({char: 's', default: false, description: 'reports the balance in Shor'}),
   quanta: flags.boolean({char: 'q', default: false, description: 'reports the balance in Quanta'}),
-  api: flags.string({char: 'a', required: false, description: 'api endpoint (for custom QRL network deployments)'}),
+  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
   password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
 }
 

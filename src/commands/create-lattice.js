@@ -16,7 +16,7 @@ const util = require('util')
 const CryptoJS = require('crypto-js')
 const aes256 = require('aes256')
 const {cli} = require('cli-ux')
-const {QRLPROTO_SHA256} = require('../get-qrl-proto-shasum')
+const {QRLPROTO_SHA256} = require('../functions/get-qrl-proto-shasum')
 const protoLoader = require('@grpc/proto-loader')
 const PROTO_PATH = `${__dirname}/../../src/qrlbase.proto`
 // eslint-disable-next-line no-unused-vars

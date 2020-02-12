@@ -4,7 +4,7 @@ const {red, white, black} = require('kleur')
 const ora = require('ora')
 const moment = require('moment')
 
-const {qrlClient,
+let {qrlClient,
   checkProtoHash,
   loadGrpcBaseProto,
   loadGrpcProto} = require('../functions/grpc')
@@ -14,18 +14,22 @@ const shorPerQuanta = 10 ** 9
 class Status extends Command {
   async run() {
     const {flags} = this.parse(Status)
-    let grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
-    let network = 'Testnet'
+    let grpcEndpoint = 'mainnet-2.automated.theqrl.org:19009'
+    let network = 'Mainnet'
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
+    if (flags.devnet) {
+      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
+      network = 'Devnet'
+    }
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
+      grpcEndpoint = 'mainnet-2.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
@@ -37,9 +41,10 @@ class Status extends Command {
         this.exit(1)
       }
       // next load GRPC object and check hash of that too
-      await loadGrpcProto(proto, grpcEndpoint)
+      qrlClient = await loadGrpcProto(proto, grpcEndpoint)
       const request = {}
-      await qrlClient.GetStats(request, async (error, response) => {
+
+      qrlClient.GetStats(request, (error, response) => {
         if (error) {
           this.log(`${red('⨉')} Unable to read status`)
         }
@@ -80,6 +85,7 @@ Advanced: you can use a custom defined node to query for status. Use the (-g) gr
 Status.flags = {
   testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
+  devnet: flags.boolean({char: 'd', default: false, description: 'queries devnet for the OTS state'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
 }
 

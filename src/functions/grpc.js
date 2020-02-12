@@ -91,9 +91,10 @@ async function loadGrpcProto(protofile, endpoint) {
         oneofs: true,
       },
     }, endpoint)
-  } else {
-    throw new Error('Unable to verify proto file')
+    return qrlClient
   }
+  console.log('Unable to verifty proto file - have hashes changed?') // eslint-disable-line no-console
+  throw new Error('Unable to verify proto file')
 }
 
 module.exports = {
