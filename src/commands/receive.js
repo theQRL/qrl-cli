@@ -69,8 +69,9 @@ class Receive extends Command {
 }
 
 Receive.description = `Displays a QR code of the QRL address to receive a transaction
-...
-TODO
+
+Prints the QRL address in both textual and QR format. Pass either an address or a wallet.json file
+If using an encrypted wallet file pass the encryption password with the (-p) flag.
 `
 
 Receive.args = [

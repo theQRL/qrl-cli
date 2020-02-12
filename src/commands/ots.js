@@ -106,8 +106,11 @@ class OTSKey extends Command {
 }
 
 OTSKey.description = `Get a address's OTS state from the network
-...
-TODO
+
+Reports the next unused availabel OTS key. Pass either an address starting with 
+QQ0004 or a wallet.json file to se the next OTS. You can set the network flag with either (-t) testnet or (-m) mainnet
+
+If the wallet file is encrypted use the -p flag to pass the wallet file encryption password.
 `
 
 OTSKey.args = [

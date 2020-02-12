@@ -64,8 +64,9 @@ class Status extends Command {
 }
 
 Status.description = `Gets the network status
-...
-TODO
+
+Reports network status from the node queried. You can select either (-m) mainnet or (-t) testnet
+Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 `
 
 // Status.args = [

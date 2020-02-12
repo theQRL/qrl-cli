@@ -38,6 +38,8 @@ USAGE
 * [`qrl-cli receive ADDRESS`](#qrl-cli-receive-address)
 * [`qrl-cli status`](#qrl-cli-status)
 * [`qrl-cli validate ADDRESS`](#qrl-cli-validate-address)
+* [`qrl-cli create-lattice WALLET`](#qrl-cli-create-lattice-wallet)
+* [`qrl-cli get-keys ADDRESS ITEM PAGE`](#qrl-cli-get-keys-address-item-page)
 
 ## `qrl-cli balance ADDRESS`
 
@@ -188,4 +190,57 @@ DESCRIPTION
 ```
 
 _See code: [src/commands/validate.js](https://github.com/theqrl/qrl-cli/blob/v1.3.0/src/commands/validate.js)_
+
+## `qrl-cli create-lattice WALLET`
+
+Create a Lattice transaction and save the public keys to the node
+
+```
+USAGE
+  $ qrl-cli create-lattice --file WALLET
+
+ARGUMENTS
+  WALLET  wallet file
+
+OPTIONS
+  -q, --quiet              quiet mode: no address details, just return validity via exit code
+  -f, --file=file          (required) wallet json file
+  -g, --grpc=grpc          advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -m, --mainnet            sends Lattice transaction to mainnet
+  -o, --output             output file to save lattice private keys
+  -p, --password=password  wallet file password
+  -t, --testnet            sends Lattice transaction to testnet
+
+DESCRIPTION
+  ...
+  create a lattice transaction and save public keys associated to the QRL wallet
+```
+
+_See code: [src/commands/create-lattice.js](https://github.com/theqrl/qrl-cli/blob/v1.3.0/src/commands/create-lattice.js)_
+
+## `qrl-cli get-keys ADDRESS ITEM PAGE`
+
+Retrieve public keys associated with a QRL address
+
+```
+USAGE
+  $ qrl-cli get-keys ADDRESS ITEM PAGE
+
+ARGUMENTS
+  ADDRESS   QRL address to retrieve associated keys
+  ITEM      number of items to show per page
+  PAGE      page number to retrieve
+
+OPTIONS
+  -g, --grpc=grpc          advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -m, --mainnet            sends Lattice transaction to mainnet
+  -t, --testnet            sends Lattice transaction to testnet
+
+DESCRIPTION
+  ...
+  returns the public keys associated to the given QRL address
+```
+
+_See code: [src/commands/get-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.3.0/src/commands/get-keys.js)_
+
 <!-- commandsstop -->
