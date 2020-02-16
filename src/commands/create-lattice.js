@@ -25,6 +25,7 @@ const {QRLLIBmodule} = require('qrllib/build/offline-libjsqrl')
 const {DILLIBmodule} = require('qrllib/build/offline-libjsdilithium')
 // eslint-disable-next-line no-unused-vars
 const {KYBLIBmodule} = require('qrllib/build/offline-libjskyber')
+
 let QRLLIBLoaded = false
 let DILLIBLoaded = false
 let KYBLIBLoaded = false
@@ -102,11 +103,6 @@ function binaryToBytes(convertMe) {
   }
   return thisBytes
 }
-
-// Convert hex to bytes
-// function hexToBytes(hex) {
-//   return Buffer.from(hex, 'hex')
-// }
 
 // Convert bytes to hex
 function bytesToHex(byteArray) {
@@ -306,7 +302,6 @@ class EphemeralKeys extends Command {
       // let hashCount = 0
       // const randomSeed = toUint8Vector(Crypto.randomBytes(48))
 
-      // NEEDS MANUAL ADJUSTMENT OF THE HEXSEED
       const XMSS_OBJECT = await new QRLLIB.Xmss.fromHexSeed(hexseed)
       const xmssPK = Buffer.from(XMSS_OBJECT.getPK(), 'hex')
 
@@ -386,7 +381,6 @@ class EphemeralKeys extends Command {
               const shaSum = QRLLIB.sha2_256(hashableBytes)
               // spinner.succeed(`SHASUM: ${QRLLIB.bin2hstr(shaSum)}`)
 
-              // new BigNumber(3).toNumber()
               XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
               const signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
 

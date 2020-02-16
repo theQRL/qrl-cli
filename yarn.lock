@@ -3198,10 +3198,10 @@ qrcode-terminal@^0.12.0:
   resolved "https://registry.yarnpkg.com/qrcode-terminal/-/qrcode-terminal-0.12.0.tgz#bb5b699ef7f9f0505092a3748be4464fe71b5819"
   integrity sha512-EXtzRZmC+YGmGlDFbXKxQiMZNwCLEO6BANKXG4iCtSIM0yqc/pappSx3RIKr4r0uh5JsBckOXeKrB3Iz7mdQpQ==
 
-qrllib@^1.1.6:
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/qrllib/-/qrllib-1.1.6.tgz#9f42cd43a659f257be86934614c3023e5a0a88de"
-  integrity sha512-0irZuSMCoor9Kl3kvV9EkrK8Y5JE1YZh4GduHyDT+B1dEQkKeYFU2MlWKsRzESP3y5pbOf8dq9PpTTo1pMwxzA==
+qrllib@^1.1.7:
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/qrllib/-/qrllib-1.1.7.tgz#2aad380c9f0e30f9d29808a3790169b4c3b46954"
+  integrity sha512-f+X460H7nmsZdoeHKns2UgZCvhMsCoeEDzzOriVq6TxKUpuoGO7BcFJy1bJPmvqlAfo53SdkZvMk3Wh4u1SW3w==
 
 qs@~6.5.2:
   version "6.5.2"
