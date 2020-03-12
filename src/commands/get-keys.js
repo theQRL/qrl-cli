@@ -142,8 +142,6 @@ class EphemeralKeys extends Command {
       }
       // next load GRPC object and check hash of that too
       await loadGrpcProto(proto, grpcEndpoint)
-
-
       // const getAddressStateReq = {
       //   address: Buffer.from(address.substring(1), 'hex'),
       //   // eslint-disable-next-line camelcase
@@ -177,8 +175,8 @@ class EphemeralKeys extends Command {
           if (error) {
             this.log(`${red('⨉')} Unable to get Lattice transaction list`)
           }
-          let pk3st = Buffer.from( response.lattice_pks_detail[0].pk2, 'hex' )
-          spinner.succeed(`RESPONSE: ${ response.lattice_pks_detail }`)
+          // let pk3st = Buffer.from( response.lattice_pks_detail[0].pk2, 'hex' )
+          spinner.succeed(`RESPONSE: ${response.lattice_pks_detail}`)
           spinner.succeed('DONE')
         }
       )
