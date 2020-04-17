@@ -21,7 +21,7 @@ class OTSKey extends Command {
   async run() {
     const {args, flags} = this.parse(OTSKey)
     let address = args.address
-    let exitCode = 1
+    let exitCode = 1 // eslint-disable-line no-unused-vars
     if (!validateQrlAddress.hexString(address).result) {
       // not a valid address - is it a file?
       let isFile = false
@@ -69,7 +69,7 @@ class OTSKey extends Command {
         this.exit(1)
       }
     }
-    let grpcEndpoint = 'mainnet-2.automated.theqrl.org:19009'
+    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
     let network = 'Mainnet'
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
@@ -84,7 +84,7 @@ class OTSKey extends Command {
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-2.automated.theqrl.org:19009'
+      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))

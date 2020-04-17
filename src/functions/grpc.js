@@ -6,7 +6,7 @@ const grpc = require('grpc')
 const {createClient} = require('grpc-kit')
 const tmp = require('tmp')
 const CryptoJS = require('crypto-js')
-const {QRLPROTO_SHA256} = require('../functions/get-qrl-proto-shasum')
+const {QRLPROTO_SHA256} = require('@theqrl/qrl-proto-sha256')
 const protoLoader = require('@grpc/proto-loader')
 const PROTO_PATH = `${__dirname}/../../src/qrlbase.proto`
 const fs = require('fs')
@@ -20,6 +20,7 @@ const clientGetNodeInfo = client => {
       if (error) {
         reject(error)
       }
+      // console.log('node version: ' + response.version)
       resolve(response)
     })
   })
@@ -73,7 +74,7 @@ async function loadGrpcProto(protofile, endpoint) {
   const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(CryptoJS.enc.Hex)
   let verified = false
   QRLPROTO_SHA256.forEach(value => {
-    if (value.objectSha256 === calculatedObjectHash) {
+    if (value.memoryHash === calculatedObjectHash) {
       verified = true
     }
   })
