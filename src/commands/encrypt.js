@@ -121,12 +121,15 @@ async function loadGrpcProto(protofile, endpoint) {
 
 class Encrypt extends Command {
   async run() {
-    const {args} = this.parse(Encrypt)
+    const {args, flags} = this.parse(Encrypt)
 
-    let address = args.address
-    let itemPerPage = args.item_per_page
-    let pageNumber = args.page_number
-    let message = args.message
+    // let address = args.address
+    // let itemPerPage = args.item_per_page
+    // let pageNumber = args.page_number
+    // let message = args.message
+    // let txhash = args.txhash
+    const txhash = flags.txhash
+    const string = flags.string
     let grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
     let network = 'Devnet'
 
@@ -141,34 +144,71 @@ class Encrypt extends Command {
         this.log(`${red('⨉')} Unable to validate .proto file from node`)
         this.exit(1)
       }
-      // next load GRPC object and check hash of that too
-      await loadGrpcProto(proto, grpcEndpoint)
-      const getTransactionsByAddressReq = {
-        address: Buffer.from(address.substring(1), 'hex'),
-        // eslint-disable-next-line camelcase
-        item_per_page: itemPerPage,
-        // eslint-disable-next-line camelcase
-        page_number: pageNumber,
-      }
 
-      await qrlClient.GetLatticePKsByAddress(
-        getTransactionsByAddressReq,
-        async (error, response) => {
-          if (error) {
-            this.log(`${red('⨉')} Unable to get Lattice transaction list`)
-          }
-          // get ECDSA pk
-          let pk = response.lattice_pks_detail[0].pk3
-          let pkB = Buffer.from(pk.toString(), 'hex')
-
-          eccrypto.encrypt(pkB, Buffer.from(message)).then(function (encrypted) {
-            // console.log( JSON.stringify(encrypted)  )
-            const encJson = ['[', JSON.stringify(encrypted), ']'].join('')
-            fs.writeFileSync('encrypted.txt', encJson)
-            spinner.succeed('DONE')
-          })
+      // spinner.succeed(txhash)
+      // let address = args.address
+      // eslint-disable-next-line no-negated-condition
+      if (!txhash) {
+        let itemPerPage = args.item_per_page
+        let pageNumber = args.page_number
+        let message = args.message
+        let address = args.address
+        // next load GRPC object and check hash of that too
+        await loadGrpcProto(proto, grpcEndpoint)
+        const getTransactionsByAddressReq = {
+          address: Buffer.from(address.substring(1), 'hex'),
+          // eslint-disable-next-line camelcase
+          item_per_page: itemPerPage,
+          // eslint-disable-next-line camelcase
+          page_number: pageNumber,
         }
-      )
+
+        await qrlClient.GetLatticePKsByAddress(
+          getTransactionsByAddressReq,
+          async (error, response) => {
+            if (error) {
+              this.log(`${red('⨉')} Unable to get Lattice transaction list`)
+            }
+            // get ECDSA pk
+            let pk = response.lattice_pks_detail[0].pk3
+            let pkB = Buffer.from(pk.toString(), 'hex')
+
+            eccrypto.encrypt(pkB, Buffer.from(message)).then(function (encrypted) {
+              // console.log( JSON.stringify(encrypted)  )
+              const encJson = ['[', JSON.stringify(encrypted), ']'].join('')
+              fs.writeFileSync('encrypted.txt', encJson)
+              spinner.succeed('DONE')
+            })
+          }
+        )
+      } else {
+        await loadGrpcProto(proto, grpcEndpoint)
+        const getTransactionReq = {
+          // eslint-disable-next-line camelcase
+          tx_hash: Buffer.from(txhash, 'hex'),
+        }
+
+        await qrlClient.GetTransaction(
+          getTransactionReq,
+          async (error, response) => {
+            if (error) {
+              this.log(`${red('⨉')} Unable to get Lattice transaction list`)
+            }
+            // get ECDSA pk
+
+            // console.log(response)
+            // spinner.succeed(response.confirmations)
+            let pk = response.tx.latticePK.pk3
+            let pkB = Buffer.from(pk.toString(), 'hex')
+            eccrypto.encrypt(pkB, Buffer.from(string)).then(function (encrypted) {
+              // console.log( JSON.stringify(encrypted)  )
+              const encJson = ['[', JSON.stringify(encrypted), ']'].join('')
+              fs.writeFileSync('encrypted.txt', encJson)
+              spinner.succeed('DONE')
+            })
+          }
+        )
+      }
     })
   }
 }
@@ -180,27 +220,28 @@ Encrypt.args = [
   {
     name: 'address',
     description: 'QRL wallet address to send message to',
-    required: true,
+    required: false,
   },
   {
     name: 'item_per_page',
     description: 'number of items to show per page',
-    required: true,
+    required: false,
   },
   {
     name: 'page_number',
     description: 'page number to retrieve',
-    required: true,
+    required: false,
   },
   {
     name: 'message',
     description: 'message to encrypt',
-    required: true,
+    required: false,
   },
-
 ]
 
 Encrypt.flags = {
+  txhash: flags.string({char: 'h', default: false, description: 'tx hash of lattice transaction'}),
+  string: flags.string({char: 's', default: false, description: 'message to encrypt'}),
   testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
