@@ -25,7 +25,6 @@ const addressForAPI = (address) => { // eslint-disable-line
 
 class Balance extends Command {
   async run() {
-
     const {args, flags} = this.parse(Balance)
     let address = args.address
     let exitCode = null
@@ -76,7 +75,7 @@ class Balance extends Command {
         this.exit(1)
       }
     }
-    let grpcEndpoint = 'mainnet-2.automated.theqrl.org:19009'
+    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
     let network = 'Mainnet'
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
@@ -91,7 +90,7 @@ class Balance extends Command {
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-2.automated.theqrl.org:19009'
+      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
