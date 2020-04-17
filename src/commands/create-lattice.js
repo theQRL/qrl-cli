@@ -351,7 +351,7 @@ class EphemeralKeys extends Command {
               pk1: kyberPK,
               pk2: dilithiumPK,
               pk3: ecdsaPK,
-              pk4: ecdsaPK,
+              // pk4: ecdsaPK,
               fee: thisTxnFee,
               // eslint-disable-next-line camelcase
               xmss_pk: xmssPK,
@@ -372,7 +372,7 @@ class EphemeralKeys extends Command {
                 toBigendianUint64BytesUnsigned(thisTxnFee), // fee
                 kyberPK,
                 dilithiumPK,
-                ecdsaPK,
+                // ecdsaPK,
                 ecdsaPK // pk4 should be ECIES, but using the same as pk3
               )
 
@@ -398,7 +398,7 @@ class EphemeralKeys extends Command {
                 pk1: kyberPK,
                 pk2: dilithiumPK,
                 pk3: ecdsaPK,
-                pk4: ecdsaPK,
+                // pk4: ecdsaPK,
               }
 
               // spinner.succeed(`TXN HASH: ${txnHash}`)
