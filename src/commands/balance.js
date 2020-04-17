@@ -1,6 +1,6 @@
 /* eslint new-cap: 0, max-depth: 0 */
 const {Command, flags} = require('@oclif/command')
-const {red, green, white} = require('kleur')
+const {red, white} = require('kleur')
 let {qrlClient,
   checkProtoHash,
   loadGrpcBaseProto,
@@ -19,7 +19,7 @@ const openWalletFile = function (path) {
   return JSON.parse(contents)[0]
 }
 
-const addressForAPI = (address) => { // eslint-disable-line
+const addressForAPI = address => {
   return Buffer.from(address.substring(1), 'hex')
 }
 
@@ -27,7 +27,7 @@ class Balance extends Command {
   async run() {
     const {args, flags} = this.parse(Balance)
     let address = args.address
-    let exitCode = null
+    let exitCode = null // eslint-disable-line no-unused-vars
     if (!validateQrlAddress.hexString(address).result) {
       // not a valid address - is it a file?
       let isFile = false

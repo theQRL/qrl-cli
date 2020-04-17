@@ -21,7 +21,7 @@ class OTSKey extends Command {
   async run() {
     const {args, flags} = this.parse(OTSKey)
     let address = args.address
-    let exitCode = 1
+    let exitCode = 1 // eslint-disable-line no-unused-vars
     if (!validateQrlAddress.hexString(address).result) {
       // not a valid address - is it a file?
       let isFile = false
