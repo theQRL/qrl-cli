@@ -2,7 +2,7 @@
 const {Command, flags} = require('@oclif/command')
 const {red, white} = require('kleur')
 const ora = require('ora')
-const grpc = require('grpc')
+const grpc = require('@grpc/grpc-js')
 const tmp = require('tmp')
 const fs = require('fs')
 const util = require('util')

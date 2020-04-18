@@ -2,8 +2,8 @@
 
 /* GRPC functions */
 
-const grpc = require('grpc')
-const {createClient} = require('grpc-kit')
+const grpc = require('@grpc/grpc-js')
+const {createClient} = require('grpc-js-kit')
 const tmp = require('tmp')
 const CryptoJS = require('crypto-js')
 const {QRLPROTO_SHA256} = require('@theqrl/qrl-proto-sha256')
