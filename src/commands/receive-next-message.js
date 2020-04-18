@@ -32,7 +32,7 @@ class ReceiveNextMessage extends Command {
   }
 }
 
-ReceiveNextMessage.description = `Send initial message for channel opening
+ReceiveNextMessage.description = `Receive next message for channel opening
 `
 
 ReceiveNextMessage.args = [
@@ -44,9 +44,9 @@ ReceiveNextMessage.args = [
 ]
 
 ReceiveNextMessage.flags = {
-  testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
-  mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
-  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
+  testnet: flags.boolean({char: 't', default: false, description: 'uses testnet for this function'}),
+  mainnet: flags.boolean({char: 'm', default: false, description: 'uses mainnet for this function'}),
+  grpc: flags.string({char: 'g', required: false, description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)'}),
 }
 
 module.exports = {ReceiveNextMessage}
