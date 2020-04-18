@@ -355,7 +355,7 @@ class ReceiveInitialMessage extends Command {
   }
 }
 
-ReceiveInitialMessage.description = `Send initial message for channel opening
+ReceiveInitialMessage.description = `Receive initial message for channel opening
 `
 
 ReceiveInitialMessage.args = [
@@ -369,8 +369,8 @@ ReceiveInitialMessage.args = [
 ReceiveInitialMessage.flags = {
   txhash: flags.string({char: 'h', default: false, description: 'tx hash of lattice transaction'}),
   string: flags.string({char: 's', default: false, description: 'message to encrypt'}),
-  testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
-  mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
+  testnet: flags.boolean({char: 't', default: false, description: 'uses testnet for this function'}),
+  mainnet: flags.boolean({char: 'm', default: false, description: 'uses mainnet for this function'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
   password: flags.string({char: 'p', required: false, description: 'EMS file password'}),
 }
