@@ -1,18 +1,101 @@
 /* eslint new-cap: 0, max-depth: 0, complexity: 0 */
+/* global QRLLIB */
 const {Command, flags} = require('@oclif/command')
 const {red, white} = require('kleur')
-// const ora = require('ora')
+const ora = require('ora')
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const aes256 = require('aes256')
 const {cli} = require('cli-ux')
+const {QRLLIBmodule} = require('qrllib/build/offline-libjsqrl') // eslint-disable-line no-unused-vars
+const {BigNumber} = require('bignumber.js')
+const helpers = require('@theqrl/explorer-helpers')
+let QRLLIBLoaded = false
+let qrlClient = null
+const waitForQRLLIB = callBack => {
+  setTimeout(() => {
+    // Test the QRLLIB object has the str2bin function.
+    // This is sufficient to tell us QRLLIB has loaded.
+    if (typeof QRLLIB.str2bin === 'function' && QRLLIBLoaded === true) {
+      callBack()
+    } else {
+      QRLLIBLoaded = true
+      return waitForQRLLIB(callBack)
+    }
+    return false
+  }, 50)
+}
 
-/* const {qrlClient,
-  checkProtoHash,
+const {checkProtoHash,
   loadGrpcBaseProto,
-  loadGrpcProto} = require('../functions/grpc') */
+  loadGrpcProto} = require('../functions/grpc')
 
 const shorPerQuanta = 10 ** 9
+
+const toUint8Vector = arr => {
+  const vec = new QRLLIB.Uint8Vector()
+  for (let i = 0; i < arr.length; i += 1) {
+    vec.push_back(arr[i])
+  }
+  return vec
+}
+
+// Convert bytes to hex
+function bytesToHex(byteArray) {
+  return [...byteArray].map(function (byte) {
+    return ('00' + (byte & 0xFF).toString(16)).slice(-2) // eslint-disable-line no-bitwise
+  }).join('')
+}
+
+// Concatenates multiple typed arrays into one.
+function concatenateTypedArrays(resultConstructor, ...arrays) {
+  let totalLength = 0
+  for (let arr of arrays) {
+    totalLength += arr.length
+    // console.log("TOTALLENGTH ", arr.length)
+  }
+  const result = new resultConstructor(totalLength)
+  let offset = 0
+  for (let arr of arrays) {
+    result.set(arr, offset)
+    offset += arr.length
+  }
+  // console.log( "RESULT ", result)
+  return result
+}
+
+// Take input and convert to unsigned uint64 bigendian bytes
+function toBigendianUint64BytesUnsigned(input, bufferResponse = false) {
+  if (!Number.isInteger(input)) {
+    input = parseInt(input, 10)
+  }
+
+  const byteArray = [0, 0, 0, 0, 0, 0, 0, 0]
+
+  for (let index = 0; index < byteArray.length; index += 1) {
+    const byte = input & 0xFF // eslint-disable-line no-bitwise
+    byteArray[index] = byte
+    input = (input - byte) / 256
+  }
+
+  byteArray.reverse()
+
+  if (bufferResponse === true) {
+    const result = Buffer.from(byteArray)
+    return result
+  }
+  const result = new Uint8Array(byteArray)
+  return result
+}
+
+// Convert Binary object to Bytes
+function binaryToBytes(convertMe) {
+  const thisBytes = new Uint8Array(convertMe.size())
+  for (let i = 0; i < convertMe.size(); i += 1) {
+    thisBytes[i] = convertMe.get(i)
+  }
+  return thisBytes
+}
 
 const openWalletFile = function (path) {
   const contents = fs.readFileSync(path)
@@ -129,12 +212,14 @@ class Send extends Command {
           shor: args.quantity,
         })
       } else {
+        const convertAmountToBigNumber = new BigNumber(args.quantity)
         output.tx.push({
           to: flags.recipient,
-          shor: args.quantity * shorPerQuanta, // going to need to do BigNumber here
+          shor: convertAmountToBigNumber.times(shorPerQuanta).toNumber(),
         })
       }
     }
+    let hexseed = ''
     if (flags.wallet) {
       let isValidFile = false
       let address = ''
@@ -143,6 +228,7 @@ class Send extends Command {
         if (walletJson.encrypted === false) {
           isValidFile = true
           address = walletJson.address
+          hexseed = walletJson.hexseed
         }
         if (walletJson.encrypted === true) {
           let password = ''
@@ -152,6 +238,7 @@ class Send extends Command {
             password = await cli.prompt('Enter password for wallet file', {type: 'hide'})
           }
           address = aes256.decrypt(password, walletJson.address)
+          hexseed = aes256.decrypt(password, walletJson.hexseed)
           if (validateQrlAddress.hexString(address).result) {
             isValidFile = true
           } else {
@@ -171,11 +258,148 @@ class Send extends Command {
     // open from hexseed here
     if (flags.hexseed) {
       // reconstruct XMSS from hexseed
+      hexseed = flags.hexseed
     }
+    let fee = 100 // default fee 100 Shor
+    if (flags.fee) {
+      const passedFee = parseInt(flags.fee, 10)
+      if (passedFee) {
+        fee = passedFee
+      } else {
+        this.log(`${red('⨉')} Fee is invalid`)
+        this.exit(1)
+      }
+    }
+    const thisAddressesTo = []
+    const thisAmounts = []
     this.log('Transaction outputs:')
     output.tx.forEach(o => {
       this.log('address to: ' + o.to)
       this.log('amount in shor: ' + o.shor)
+      thisAddressesTo.push(helpers.hexAddressToRawAddress(o.to))
+      thisAmounts.push(o.shor)
+    })
+    this.log('Fee: ', fee)
+    const spinner = ora({text: 'Sending unsigned transaction to node...'}).start()
+    waitForQRLLIB(async _ => {
+      const XMSS_OBJECT = await new QRLLIB.Xmss.fromHexSeed(hexseed)
+      const xmssPK = Buffer.from(XMSS_OBJECT.getPK(), 'hex')
+
+      // prepare transaction to send to node
+      const proto = await loadGrpcBaseProto(grpcEndpoint)
+      checkProtoHash(proto).then(async protoHash => {
+        if (!protoHash) {
+          this.log(`${red('⨉')} Unable to validate .proto file from node`)
+          this.exit(1)
+        }
+        // next load GRPC object and check hash of that too
+        qrlClient = await loadGrpcProto(proto, grpcEndpoint)
+        const request = {
+          addresses_to: thisAddressesTo, // eslint-disable-line camelcase
+          amounts: thisAmounts,
+          fee: fee,
+          xmss_pk: xmssPK,  // eslint-disable-line camelcase
+        }
+        await qrlClient.transferCoins(request, async (error, response) => {
+          const tx = response
+          if (error) {
+            this.log(`${red('⨉')} Unable send transaction`)
+            this.exit(1)
+          }
+          spinner.succeed('Node correctly returned transaction for signing')
+          const spinner2 = ora({text: 'Signing transaction...'}).start()
+
+          let concatenatedArrays = concatenateTypedArrays(
+            Uint8Array,
+            toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee)
+          )
+
+          // Now append all recipient (outputs) to concatenatedArrays
+          const addrsToRaw = tx.extended_transaction_unsigned.tx.transfer.addrs_to
+          const amountsRaw = tx.extended_transaction_unsigned.tx.transfer.amounts
+          const destAddr = []
+          const destAmount = []
+          for (let i = 0; i < addrsToRaw.length; i += 1) {
+            // Add address
+            concatenatedArrays = concatenateTypedArrays(
+              Uint8Array,
+              concatenatedArrays,
+              addrsToRaw[i]
+            )
+
+            // Add amount
+            concatenatedArrays = concatenateTypedArrays(
+              Uint8Array,
+              concatenatedArrays,
+              toBigendianUint64BytesUnsigned(amountsRaw[i])
+            )
+
+            // Add to array for Ledger Transactions
+            destAddr.push(Buffer.from(addrsToRaw[i]))
+            destAmount.push(toBigendianUint64BytesUnsigned(amountsRaw[i], true))
+          }
+
+          // Convert Uint8Array to VectorUChar
+          const hashableBytes = toUint8Vector(concatenatedArrays)
+
+          // Create sha256 sum of concatenatedarray
+          const shaSum = QRLLIB.sha2_256(hashableBytes)
+
+          XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
+          const signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+          // Calculate transaction hash
+          const txnHashConcat = concatenateTypedArrays(
+            Uint8Array,
+            binaryToBytes(shaSum),
+            signature,
+            xmssPK
+          )
+
+          const txnHashableBytes = toUint8Vector(txnHashConcat)
+
+          const txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+
+          spinner2.succeed(`Transaction signed with OTS key ${flags.otsindex}. (nodes will reject this transaction if key reuse is detected)`)
+          const spinner3 = ora({text: 'Pushing transaction to node...'}).start()
+
+          tx.extended_transaction_unsigned.tx.signature = Buffer.from(signature)
+          tx.extended_transaction_unsigned.tx.public_key = Buffer.from(xmssPK) // eslint-disable-line camelcase
+
+          const addrsTo = tx.extended_transaction_unsigned.tx.transfer.addrs_to
+          const addrsToFormatted = []
+
+          addrsTo.forEach(item => {
+            const bufItem = Buffer.from(item)
+            addrsToFormatted.push(bufItem)
+          })
+          tx.extended_transaction_unsigned.tx.transfer.addrs_to = addrsToFormatted // eslint-disable-line camelcase
+
+          const pushTransactionReq = {
+            transaction_signed: tx.extended_transaction_unsigned.tx, // eslint-disable-line camelcase
+          }
+          await qrlClient.PushTransaction(pushTransactionReq, async (error, response) => {
+            if ((error || response.error_code) && response.error_code !== 'SUBMITTED') {
+              let errorMessage = 'unknown error'
+              if (response.error_code) {
+                errorMessage = `Unable send push transaction [error: ${response.error_description}`
+              } else {
+                errorMessage = `Node rejected signed message: has OTS key ${flags.otsindex} been reused?`
+              }
+              spinner3.fail(`${errorMessage}]`)
+              this.exit(1)
+            }
+            const pushTransactionRes = JSON.stringify(response.tx_hash)
+            const txhash = JSON.parse(pushTransactionRes)
+            if (txnHash === bytesToHex(txhash.data)) {
+              spinner3.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
+              this.exit(0)
+            } else {
+              spinner3.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
+              this.exit(1)
+            }
+          })
+        })
+      })
     })
   }
 }
@@ -201,7 +425,9 @@ Send.flags = {
   password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
   shor: flags.boolean({char: 's', default: false, description: 'Send in Shor'}),
   jsonObject: flags.string({char: 'j', required: false, description: 'Pass a JSON object of recipients/quantities for multi-output transactions'}),
-  file: flags.string({char: 'f', required: false, description: 'JSON file of recipients'}),
+  fee: flags.string({char: 'f', required: false, description: 'Fee for transaction in Shor (defaults to 100 Shor)'}),
+  file: flags.string({char: 'r', required: false, description: 'JSON file of recipients'}),
+  otsindex: flags.string({char: 'i', required: true, description: 'OTS key index'}),
   wallet: flags.string({char: 'w', required: false, description: 'json file of wallet from where funds should be sent'}),
   hexseed: flags.string({char: 'h', required: false, description: 'hexseed/mnemonic of wallet from where funds should be sent'}),
 }
