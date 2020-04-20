@@ -78,6 +78,7 @@
     "test-ots": "nyc mocha --forbid-only -t 50000 \"test/commands/ots.test.js\"",
     "test-balance": "nyc mocha --forbid-only -t 50000 \"test/commands/balance.test.js\"",
     "test-send": "nyc mocha --forbid-only -t 50000 \"test/commands/send.test.js\"",
+    "test-status": "nyc mocha --forbid-only -t 50000 \"test/commands/status.test.js\"",
     "version": "oclif-dev readme && git add README.md",
     "cov": "nyc report --reporter=text-lcov > coverage.lcov && ./node_modules/.bin/codecov -t $CODECOV_TOKEN",
     "make-binaries": "pkg . -t node12-macos-x64 -o dist/macos/qrl-cli && pkg . -t node12-win-x64 -o dist/win/qrl-cli && pkg . -t node12-linux-x64 -o dist/linux/qrl-cli"
