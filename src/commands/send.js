@@ -259,6 +259,27 @@ class Send extends Command {
     if (flags.hexseed) {
       // reconstruct XMSS from hexseed
       hexseed = flags.hexseed
+      // sanity checks on this parameter
+      if (hexseed.match(' ') === null) {
+        // hexseed: correct length?
+        if (hexseed.length !== 102) {
+          this.log(`${red('⨉')} Hexseed invalid: too short`)
+          this.exit(1)
+        }
+      } else {
+        // mnemonic: correct number of words?
+        if (hexseed.split(' ').length !== 34) { // eslint-disable-line no-lonely-if
+          this.log(`${red('⨉')} Mnemonic phrase invalid: too short`)
+          this.exit(1)
+        }
+      }
+    }
+    if (flags.otsindex) {
+      const passedOts = parseInt(flags.otsindex, 10)
+      if (!passedOts && passedOts !== 0) {
+        this.log(`${red('⨉')} OTS key is invalid`)
+        this.exit(1)
+      }
     }
     let fee = 100 // default fee 100 Shor
     if (flags.fee) {
@@ -279,10 +300,15 @@ class Send extends Command {
       thisAddressesTo.push(helpers.hexAddressToRawAddress(o.to))
       thisAmounts.push(o.shor)
     })
-    this.log('Fee: ', fee)
+    this.log(`Fee: ${fee} Shor`)
     const spinner = ora({text: 'Sending unsigned transaction to node...'}).start()
     waitForQRLLIB(async _ => {
-      const XMSS_OBJECT = await new QRLLIB.Xmss.fromHexSeed(hexseed)
+      let XMSS_OBJECT
+      if (hexseed.match(' ') === null) {
+        XMSS_OBJECT = await new QRLLIB.Xmss.fromHexSeed(hexseed)
+      } else {
+        XMSS_OBJECT = await new QRLLIB.Xmss.fromMnemonic(hexseed)
+      }
       const xmssPK = Buffer.from(XMSS_OBJECT.getPK(), 'hex')
 
       // prepare transaction to send to node

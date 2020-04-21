@@ -1,6 +1,6 @@
 /* eslint new-cap: 0, max-depth: 0 */
 const {Command, flags} = require('@oclif/command')
-const {red, white} = require('kleur')
+const {red, white, black} = require('kleur')
 let {qrlClient,
   checkProtoHash,
   loadGrpcBaseProto,
@@ -69,6 +69,7 @@ class Balance extends Command {
         } catch (error) {
           this.exit(1)
         }
+        this.log(`${black().bgWhite(address)}`)
       }
       if (isValidFile === false) {
         this.log(`${red('⨉')} Unable to get a balance: invalid QRL address/wallet file`)

@@ -1,3 +1,8 @@
 {
-  "extends": "oclif"
+  "extends": "oclif",
+  "rules": {
+    "object-curly-spacing": "off",
+    "require-atomic-updates": "off",
+    "comma-dangle": "off"
+  }
 }
