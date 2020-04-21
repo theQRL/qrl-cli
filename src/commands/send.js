@@ -260,6 +260,13 @@ class Send extends Command {
       // reconstruct XMSS from hexseed
       hexseed = flags.hexseed
     }
+    if (flags.otsindex) {
+      const passedOts = parseInt(flags.otsindex, 10)
+      if (!passedOts) {
+        this.log(`${red('⨉')} OTS key is invalid`)
+        this.exit(1)
+      }
+    }
     let fee = 100 // default fee 100 Shor
     if (flags.fee) {
       const passedFee = parseInt(flags.fee, 10)
