@@ -2,7 +2,7 @@
 const { Command, flags } = require('@oclif/command')
 const { red, white, black } = require('kleur')
 const ora = require('ora')
-const moment = require('moment')
+// const moment = require('moment')
 
 let {
   qrlClient,
@@ -11,7 +11,7 @@ let {
   loadGrpcProto,
 } = require('../functions/grpc')
 
-const shorPerQuanta = 10 ** 9
+// const shorPerQuanta = 10 ** 9
 
 const identifySearch = str => {
   const type = { parameter: str, type: 'Undetermined' }
@@ -72,6 +72,18 @@ class Search extends Command {
     }
     const searchString = args.search
     this.log(white().bgBlue(network))
+    switch (identifySearch(searchString).method) {
+    case 'tx':
+      this.log(`${black().bgWhite('Txhash')} ${searchString}`)
+      break
+    case 'address':
+      this.log(`${black().bgWhite('Address')} ${searchString}`)
+      break
+    case 'block':
+      this.log(`${black().bgWhite('Block')} ${searchString}`)
+      break
+    }
+
     const spinner = ora({ text: 'Fetching status from node...' }).start()
     const proto = await loadGrpcBaseProto(grpcEndpoint)
     checkProtoHash(proto).then(async protoHash => {
@@ -98,13 +110,47 @@ class Search extends Command {
           }
         )
       }
+      if (identifySearch(searchString).method === 'block') {
+        await qrlClient.GetObject(
+          { query: Buffer.from(parseInt(searchString, 10).toString()) },
+          async (error, response) => {
+            if (error) {
+              this.log(`${red('⨉')} Unable to read block data`)
+            }
+            if (response.found === false) {
+              spinner.fail('Unable to find block')
+              this.exit(1)
+            } else {
+              spinner.succeed('Block found')
+              this.log(response)
+            }
+          }
+        )
+      }
+      if (identifySearch(searchString).method === 'address') {
+        await qrlClient.GetOptimizedAddressState(
+          { address: Buffer.from(searchString.substring(1), 'hex') },
+          async (error, response) => {
+            if (error) {
+              this.log(`${red('⨉')} Unable to read address data`)
+            }
+            if (response.found === false) {
+              spinner.fail('Unable to find address')
+              this.exit(1)
+            } else {
+              spinner.succeed('Address found')
+              this.log(response)
+            }
+          }
+        )
+      }
     })
   }
 }
 
 Search.description = `Gets the network status
 
-Reports network status from the node queried. You can select either (-m) mainnet or (-t) testnet
+Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet or (-d) devnet. 
 Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 `
 
