@@ -300,7 +300,7 @@ class Send extends Command {
       thisAddressesTo.push(helpers.hexAddressToRawAddress(o.to))
       thisAmounts.push(o.shor)
     })
-    this.log('Fee: ', fee)
+    this.log(`Fee: ${fee} Shor`)
     const spinner = ora({text: 'Sending unsigned transaction to node...'}).start()
     waitForQRLLIB(async _ => {
       let XMSS_OBJECT
