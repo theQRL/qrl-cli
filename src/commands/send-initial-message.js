@@ -179,8 +179,8 @@ class SendInitialMessage extends Command {
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
     if (flags.devnet) {
-      grpcEndpoint = flags.devnet
-      network='devnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
+      network='devnet'
     }
     if (flags.testnet) {
       grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
