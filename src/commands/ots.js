@@ -156,11 +156,17 @@ class OTSKey extends Command {
         this.exit(1)
       }
     }
+
+    // set the network to use. Default to testnet
     let grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
     let network = 'Testnet'
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
+    }
+    if (flags.devnet) {
+      grpcEndpoint = flags.devnet
+      network='devnet-1.automated.theqrl.org:19009'
     }
     if (flags.testnet) {
       grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
@@ -170,6 +176,7 @@ class OTSKey extends Command {
       grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
+
     this.log(white().bgBlue(network))
     const spinner = ora({text: 'Fetching OTS from API...'}).start()
     const proto = await loadGrpcBaseProto(grpcEndpoint)
@@ -210,9 +217,10 @@ OTSKey.args = [
 ]
 
 OTSKey.flags = {
-  testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
-  mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
-  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
+  devnet: flags.boolean({char: 'd', default: false, description: 'Queries the devnet network for the next OTS available for the given address'}),
+  testnet: flags.boolean({char: 't', default: false, description: 'Queries the testnet network for the next OTS available for the given address'}),
+  mainnet: flags.boolean({char: 'm', default: false, description: 'Queries the mainnet network for the next OTS available for the given address'}),
+  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments). Queries the grpc edpoint given for for the next OTS available for the given address'}),
   password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
 }
 

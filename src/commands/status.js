@@ -109,6 +109,10 @@ class Status extends Command {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
+    if (flags.devnet) {
+      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
+      network='devnet'
+    }
     if (flags.testnet) {
       grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
       network = 'Testnet'
@@ -167,9 +171,10 @@ Advanced: you can use a custom defined node to query for status. Use the (-g) gr
 // ]
 
 Status.flags = {
-  testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
-  mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
-  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
+  devnet: flags.boolean({char: 'd', default: false, description: 'Returns status of the devnet network'}),
+  testnet: flags.boolean({char: 't', default: false, description: 'Returns status of the testnet network'}),
+  mainnet: flags.boolean({char: 'm', default: false, description: 'Returns status of the mainnet network'}),
+  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments) returns node status for endpoint given'}),
 }
 
 module.exports = {Status}

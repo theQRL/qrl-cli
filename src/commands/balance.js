@@ -75,7 +75,27 @@ class Balance extends Command {
         this.exit(1)
       }
     }
+    let grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+    let network = 'Testnet'
+    if (flags.grpc) {
+      grpcEndpoint = flags.grpc
+      network = `Custom GRPC endpoint: [${flags.grpc}]`
+    }
+    if (flags.devnet) {
+      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
+      network='devnet'
+    }
+    if (flags.testnet) {
+      grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+      network = 'Testnet'
+    }
+    if (flags.mainnet) {
+      grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
+      network = 'Mainnet'
+    }
+
     this.log(white().bgBlack(address))
+    this.log(white().bgBlue(network))
     const spinner = ora({text: 'Fetching balance from API...'}).start()
     let api = ''
     if (flags.api) {
@@ -119,7 +139,10 @@ Balance.args = [
 Balance.flags = {
   shor: flags.boolean({char: 's', default: false, description: 'reports the balance in Shor'}),
   quanta: flags.boolean({char: 'q', default: false, description: 'reports the balance in Quanta'}),
-  api: flags.string({char: 'a', required: false, description: 'api endpoint (for custom QRL network deployments)'}),
+  devnet: flags.boolean({char: 'd', default: false, description: 'Returns balance of given address on the devnet network'}),
+  testnet: flags.boolean({char: 't', default: false, description: 'Returns balance of given address on the testnet network'}),
+  mainnet: flags.boolean({char: 'm', default: false, description: 'Returns balance of given address on the mainnet network'}),
+  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments) returns balance of given address on the node given'}),
   password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
 }
 

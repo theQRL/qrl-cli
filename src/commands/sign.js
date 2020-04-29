@@ -123,8 +123,26 @@ class Sign extends Command {
       this.exit(1)
     }
 
-    let grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-    let network = 'Devnet'
+    // set the network to use. Default to testnet
+    let grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+    let network = 'Testnet'
+    if (flags.grpc) {
+      grpcEndpoint = flags.grpc
+      network = `Custom GRPC endpoint: [${flags.grpc}]`
+    }
+    if (flags.devnet) {
+      grpcEndpoint = flags.devnet
+      network='devnet-1.automated.theqrl.org:19009'
+    }
+    if (flags.testnet) {
+      grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+      network = 'Testnet'
+    }
+    if (flags.mainnet) {
+      grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
+      network = 'Mainnet'
+    }
+
 
     this.log(white().bgBlue(network))
     const spinner = ora({
@@ -157,9 +175,10 @@ Sign.flags = {
   file: flags.string({char: 'f', required: true, description: 'ephemeral file containing the private keys to use'}),
   password: flags.string({char: 'p', required: false, description: 'ephemeral file password'}),
   message: flags.string({char: 's', required: true, description: 'message to sign'}),
-  testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
-  mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
-  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
+  devnet: flags.boolean({char: 'd', default: false, description: 'Uses the devnet network'}),
+  testnet: flags.boolean({char: 't', default: false, description: 'Uses the testnet network'}),
+  mainnet: flags.boolean({char: 'm', default: false, description: 'Uses the mainnet network'}),
+  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments).'}),
 }
 
 module.exports = {Sign}

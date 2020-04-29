@@ -2,6 +2,7 @@
 const {Command, flags} = require('@oclif/command')
 const {red, white} = require('kleur')
 const ora = require('ora')
+const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const grpc = require('grpc')
 const {createClient} = require('grpc-kit')
 const tmp = require('tmp')
@@ -24,6 +25,11 @@ const clientGetNodeInfo = client => {
       resolve(response)
     })
   })
+}
+
+const openWalletFile = function (path) {
+  const contents = fs.readFileSync(path)
+  return JSON.parse(contents)[0]
 }
 
 let qrlClient = null
@@ -120,13 +126,80 @@ async function loadGrpcProto(protofile, endpoint) {
 
 class EphemeralKeys extends Command {
   async run() {
-    const {args} = this.parse(EphemeralKeys)
+    const {args, flags} = this.parse(EphemeralKeys)
 
     let address = args.address
+
+    if (!validateQrlAddress.hexString(address).result) {
+      // not a valid address - is it a file?
+      let isFile = false
+      let isValidFile = false
+      const path = address
+      try {
+        if (fs.existsSync(path)) {
+          isFile = true
+        }
+      } catch (error) {
+        this.log(`${red('⨉')} Unable to get keys: invalid QRL address/wallet file`)
+        this.exit(1)
+      }
+      if (isFile === false) {
+        this.log(`${red('⨉')} Unable to get keys: invalid QRL address/wallet file`)
+        this.exit(1)
+      } else {
+        const walletJson = openWalletFile(path)
+        try {
+          if (walletJson.encrypted === false) {
+            isValidFile = true
+            address = walletJson.address
+          }
+          if (walletJson.encrypted === true) {
+            let password = ''
+            if (flags.password) {
+              password = flags.password
+            } else {
+              password = await cli.prompt('Enter password for wallet file', {type: 'hide'})
+            }
+            address = aes256.decrypt(password, walletJson.address)
+            if (validateQrlAddress.hexString(address).result) {
+              isValidFile = true
+            } else {
+              this.log(`${red('⨉')} Unable to open wallet file: invalid password`)
+              this.exit(1)
+            }
+          }
+        } catch (error) {
+          this.exit(1)
+        }
+      }
+      if (isValidFile === false) {
+        this.log(`${red('⨉')} Unable to get keys: invalid QRL address/wallet file`)
+        this.exit(1)
+      }
+    }
+
     let itemPerPage = args.item_per_page
     let pageNumber = args.page_number
-    let grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-    let network = 'Devnet'
+    
+    // set the network to use. Default to testnet
+    let grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+    let network = 'Testnet'
+    if (flags.grpc) {
+      grpcEndpoint = flags.grpc
+      network = `Custom GRPC endpoint: [${flags.grpc}]`
+    }
+    if (flags.devnet) {
+      grpcEndpoint = flags.devnet
+      network='devnet-1.automated.theqrl.org:19009'
+    }
+    if (flags.testnet) {
+      grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+      network = 'Testnet'
+    }
+    if (flags.mainnet) {
+      grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
+      network = 'Mainnet'
+    }
 
     this.log(white().bgBlue(network))
     const spinner = ora({
@@ -176,6 +249,7 @@ class EphemeralKeys extends Command {
             this.log(`${red('⨉')} Unable to get Lattice transaction list`)
           }
           // let pk3st = Buffer.from( response.lattice_pks_detail[0].pk2, 'hex' )
+
           spinner.succeed(`RESPONSE: ${response.lattice_pks_detail}`)
           spinner.succeed('DONE')
         }
@@ -205,28 +279,12 @@ EphemeralKeys.args = [
   },
 ]
 
-EphemeralKeys.flags = {
-  testnet: flags.boolean({
-    char: 't',
-    default: false,
-    description: 'queries testnet for the OTS state',
-  }),
-  mainnet: flags.boolean({
-    char: 'm',
-    default: false,
-    description: 'queries mainnet for the OTS state',
-  }),
-  grpc: flags.string({
-    char: 'g',
-    required: false,
-    description:
-      'advanced: grcp endpoint (for devnet/custom QRL network deployments)',
-  }),
-  password: flags.string({
-    char: 'p',
-    required: false,
-    description: 'wallet file password',
-  }),
+EphemeralKeys.flags = {  
+  devnet: flags.boolean({char: 'd', default: false, description: 'Queries the devnet network for the given addresses lattice keys'}),
+  testnet: flags.boolean({char: 't', default: false, description: 'Queries the testnet network for the given addresses lattice keys'}),
+  mainnet: flags.boolean({char: 'm', default: false, description: 'Queries the mainnet network for the  given addresses lattice keys'}),
+  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments). Queries the grpc edpoint given for the given addresses lattice keys'}),
+  password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
 }
 
 module.exports = {EphemeralKeys}

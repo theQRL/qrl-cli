@@ -11,8 +11,27 @@ class ReceiveNextMessage extends Command {
     const {args} = this.parse(ReceiveNextMessage)
     const index = args.index
     // const address = args.address
-    let network = 'Devnet'
 
+    // set the network to use. Default to testnet
+    let grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+    let network = 'Testnet'
+    if (flags.grpc) {
+      grpcEndpoint = flags.grpc
+      network = `Custom GRPC endpoint: [${flags.grpc}]`
+    }
+    if (flags.devnet) {
+      grpcEndpoint = flags.devnet
+      network='devnet-1.automated.theqrl.org:19009'
+    }
+    if (flags.testnet) {
+      grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+      network = 'Testnet'
+    }
+    if (flags.mainnet) {
+      grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
+      network = 'Mainnet'
+    }
+    
     this.log(white().bgBlue(network))
     const spinner = ora({
       text: 'Fetching Ephemeral keys from API...\n',
@@ -32,7 +51,7 @@ class ReceiveNextMessage extends Command {
   }
 }
 
-ReceiveNextMessage.description = `Send initial message for channel opening
+ReceiveNextMessage.description = `Recieve next message for channel
 `
 
 ReceiveNextMessage.args = [

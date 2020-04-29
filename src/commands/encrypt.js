@@ -130,8 +130,26 @@ class Encrypt extends Command {
     // let txhash = args.txhash
     const txhash = flags.txhash
     const string = flags.string
-    let grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-    let network = 'Devnet'
+
+    // set the network to use. Default to testnet
+    let grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+    let network = 'Testnet'
+    if (flags.grpc) {
+      grpcEndpoint = flags.grpc
+      network = `Custom GRPC endpoint: [${flags.grpc}]`
+    }
+    if (flags.devnet) {
+      grpcEndpoint = flags.devnet
+      network='devnet-1.automated.theqrl.org:19009'
+    }
+    if (flags.testnet) {
+      grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+      network = 'Testnet'
+    }
+    if (flags.mainnet) {
+      grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
+      network = 'Mainnet'
+    }
 
     this.log(white().bgBlue(network))
     const spinner = ora({
@@ -214,6 +232,8 @@ class Encrypt extends Command {
 }
 
 Encrypt.description = `Encrypt message using recipient public keys
+
+Curently hardcoded to output a file named 'encrypted.txt' which must be sent to the recipient
 `
 
 Encrypt.args = [
@@ -242,9 +262,10 @@ Encrypt.args = [
 Encrypt.flags = {
   txhash: flags.string({char: 'h', default: false, description: 'tx hash of lattice transaction'}),
   string: flags.string({char: 's', default: false, description: 'message to encrypt'}),
-  testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
-  mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
-  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
+  devnet: flags.boolean({char: 'd', default: false, description: 'Queries the devnet network for the recipient public key to encrypt the message with'}),
+  testnet: flags.boolean({char: 't', default: false, description: 'Queries the testnet network for the recipient public key to encrypt the message with'}),
+  mainnet: flags.boolean({char: 'm', default: false, description: 'Queries the mainnet network for the recipient public key to encrypt the message with'}),
+  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments). Queries the grpc edpoint given for the recipient public key to encrypt the message with'}),
 }
 
 module.exports = {Encrypt}

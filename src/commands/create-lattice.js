@@ -117,7 +117,7 @@ async function checkProtoHash(file) {
   return readFile(file).then(async contents => {
     const protoFileWordArray = CryptoJS.lib.WordArray.create(contents)
     const calculatedProtoHash = CryptoJS.SHA256(protoFileWordArray).toString(CryptoJS.enc.Hex)
-    // console.log('protoSha256 ', calculatedProtoHash)
+    console.log('protoSha256 ', calculatedProtoHash)
     let verified = false
     QRLPROTO_SHA256.forEach(value => {
       if (value.protoSha256 === calculatedProtoHash) {
@@ -162,7 +162,7 @@ async function loadGrpcProto(protofile, endpoint) {
 
   let verified = false
   QRLPROTO_SHA256.forEach(value => {
-    // console.log('objectSha256 ', calculatedObjectHash)
+    console.log('objectSha256 ', calculatedObjectHash)
     if (value.objectSha256 === calculatedObjectHash) {
       verified = true
     }
@@ -239,9 +239,25 @@ class EphemeralKeys extends Command {
       this.log(`${red('⨉')} Unable to get the hexseed: invalid QRL wallet file`)
       this.exit(1)
     }
-
-    let grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-    let network = 'Devnet'
+// set the network to use. Default to testnet
+    let grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+    let network = 'Testnet'
+    if (flags.grpc) {
+      grpcEndpoint = flags.grpc
+      network = `Custom GRPC endpoint: [${flags.grpc}]`
+    }
+    if (flags.devnet) {
+      grpcEndpoint = flags.devnet
+      network='devnet-1.automated.theqrl.org:19009'
+    }
+    if (flags.testnet) {
+      grpcEndpoint = 'testnet-4.automated.theqrl.org:19009'
+      network = 'Testnet'
+    }
+    if (flags.mainnet) {
+      grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
+      network = 'Mainnet'
+    }
 
     this.log(white().bgBlue(network))
     const spinner = ora({text: 'Generating Ephemeral keys...\n'}).start()
@@ -486,9 +502,10 @@ EphemeralKeys.flags = {
   ephemeralPwd: flags.string({char: 's', required: false, description: 'ephemeral file password'}),
   output: flags.boolean({char: 'o', default: false, description: 'output file to save lattice private keys'}),
   otsindex: flags.string({char: 'i', required: true, description: 'OTS key index'}),
-  testnet: flags.boolean({char: 't', default: false, description: 'sends Lattice transaction to testnet'}),
-  mainnet: flags.boolean({char: 'm', default: false, description: 'sends Lattice transaction to mainnet'}),
-  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
+  devnet: flags.boolean({char: 'd', default: false, description: 'Lattice keys are broadcast to the devnet network'}),
+  testnet: flags.boolean({char: 't', default: false, description: 'Lattice keys are broadcast to the testnet network'}),
+  mainnet: flags.boolean({char: 'm', default: false, description: 'Lattice keys are broadcast to the mainnet network'}),
+  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments). Lattice keys are broadcast through the node given'}),
   password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
 }
 
