@@ -174,7 +174,7 @@ class Decrypt extends Command {
 
 Decrypt.description = `Decrypt message using senders public keys. 
 
-Curently this is hardcoded to decrypt a file named 'encrypted.txt' which must be in teh same directory`
+Curently this is hardcoded to decrypt a file named 'encrypted.txt' which must be in the same directory`
 
 Decrypt.flags = {
   devnet: flags.boolean({char: 'd', default: false, description: 'Queries the devnet network for the senders public key to decrypt the message with'}),
