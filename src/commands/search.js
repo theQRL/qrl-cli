@@ -2,6 +2,7 @@
 const { Command, flags } = require('@oclif/command')
 const { red, white, black } = require('kleur')
 const ora = require('ora')
+const helpers = require('@theqrl/explorer-helpers')
 // const moment = require('moment')
 
 let {
@@ -105,7 +106,7 @@ class Search extends Command {
               this.exit(1)
             } else {
               spinner.succeed('Transaction found')
-              this.log(response)
+              console.dir(helpers.tx(response), { depth: null }) // eslint-disable-line no-console
             }
           }
         )
@@ -122,7 +123,7 @@ class Search extends Command {
               this.exit(1)
             } else {
               spinner.succeed('Block found')
-              this.log(response)
+              console.dir(helpers.block(response), { depth: null }) // eslint-disable-line no-console
             }
           }
         )
@@ -139,7 +140,7 @@ class Search extends Command {
               this.exit(1)
             } else {
               spinner.succeed('Address found')
-              this.log(response)
+              console.dir(helpers.a(response), { depth: null }) // eslint-disable-line no-console
             }
           }
         )
