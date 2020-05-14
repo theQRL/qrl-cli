@@ -22,7 +22,7 @@ $ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-@theqrl/cli/1.5.1 darwin-x64 node-v12.3.1
+@theqrl/cli/1.5.1 linux-x64 node-v12.3.1
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND
@@ -42,6 +42,7 @@ USAGE
 * [`qrl-cli receive ADDRESS`](#qrl-cli-receive-address)
 * [`qrl-cli receive-initial-message FILE`](#qrl-cli-receive-initial-message-file)
 * [`qrl-cli receive-next-message INDEX`](#qrl-cli-receive-next-message-index)
+* [`qrl-cli search SEARCH`](#qrl-cli-search-search)
 * [`qrl-cli send QUANTITY`](#qrl-cli-send-quantity)
 * [`qrl-cli send-initial-message FILE`](#qrl-cli-send-initial-message-file)
 * [`qrl-cli send-next-message INDEX MESSAGE`](#qrl-cli-send-next-message-index-message)
@@ -210,7 +211,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.0/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
 
 ## `qrl-cli ots ADDRESS`
 
@@ -300,6 +301,31 @@ OPTIONS
 ```
 
 _See code: [src/commands/receive-next-message.js](https://github.com/theqrl/qrl-cli/blob/v1.5.1/src/commands/receive-next-message.js)_
+
+## `qrl-cli search SEARCH`
+
+Gets the network status
+
+```
+USAGE
+  $ qrl-cli search SEARCH
+
+ARGUMENTS
+  SEARCH  a search term: address/txhash/block to query API for
+
+OPTIONS
+  -d, --devnet     queries devnet for the OTS state
+  -g, --grpc=grpc  advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -m, --mainnet    queries mainnet for the OTS state
+  -t, --testnet    queries testnet for the OTS state
+
+DESCRIPTION
+  Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, 
+  (-t) testnet or (-d) devnet. 
+  Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
+```
+
+_See code: [src/commands/search.js](https://github.com/theqrl/qrl-cli/blob/v1.5.1/src/commands/search.js)_
 
 ## `qrl-cli send QUANTITY`
 
