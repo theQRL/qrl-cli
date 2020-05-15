@@ -1,7 +1,7 @@
 {
   "name": "@theqrl/cli",
   "description": "QRL CLI functions",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "author": "JP Lomas <jp@theqrl.org>, The QRL Foundation",
   "bin": {
     "qrl-cli": "./bin/run"
@@ -13,7 +13,7 @@
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^2",
-    "@theqrl/explorer-helpers": "^0.2.5",
+    "@theqrl/explorer-helpers": "^2.0.0",
     "@theqrl/qrl-proto-sha256": "^2.0.3",
     "@theqrl/validate-qrl-address": "^1.1.0",
     "acorn": "^7.2.0",
