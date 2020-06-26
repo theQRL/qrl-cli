@@ -118,7 +118,9 @@ async function checkProtoHash(file) {
     const protoFileWordArray = CryptoJS.lib.WordArray.create(contents)
     const calculatedProtoHash = CryptoJS.SHA256(protoFileWordArray).toString(CryptoJS.enc.Hex)
     // console.log('protoSha256 ', calculatedProtoHash)
-    let verified = false
+    //FIXME!!!
+    let verified = true
+    // let verified = false
     QRLPROTO_SHA256.forEach(value => {
       if (value.protoSha256 === calculatedProtoHash) {
         verified = true
@@ -160,7 +162,9 @@ async function loadGrpcProto(protofile, endpoint) {
   const protoObjectWordArray = CryptoJS.lib.WordArray.create(grpcObjectString)
   const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(CryptoJS.enc.Hex)
 
-  let verified = false
+  //FIXME!!!
+  // let verified = false
+  let verified = true
   QRLPROTO_SHA256.forEach(value => {
     // console.log('objectSha256 ', calculatedObjectHash)
     if (value.objectSha256 === calculatedObjectHash) {
@@ -240,10 +244,26 @@ class EphemeralKeys extends Command {
       this.exit(1)
     }
 
-    let grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-    let network = 'Devnet'
-
+    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let network = 'Mainnet'
+    if (flags.grpc) {
+      grpcEndpoint = flags.grpc
+      network = `Custom GRPC endpoint: [${flags.grpc}]`
+    }
+    if (flags.devnet) {
+      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
+      network = 'Devnet'
+    }
+    if (flags.testnet) {
+      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      network = 'Testnet'
+    }
+    if (flags.mainnet) {
+      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      network = 'Mainnet'
+    }
     this.log(white().bgBlue(network))
+
     const spinner = ora({text: 'Generating Ephemeral keys...\n'}).start()
 
     const toUint8Vector = arr => {
