@@ -10,3 +10,4 @@ oclif.manifest.json
 .vscode/*
 wallet*
 src/commands/create-initial-msg.js
+**/fr1t2
