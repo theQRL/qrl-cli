@@ -43,7 +43,6 @@ class Status extends Command {
       // next load GRPC object and check hash of that too
       qrlClient = await loadGrpcProto(proto, grpcEndpoint)
       const request = {}
-
       qrlClient.GetStats(request, (error, response) => {
         if (error) {
           this.log(`${red('⨉')} Unable to read status`)

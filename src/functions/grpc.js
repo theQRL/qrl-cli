@@ -32,10 +32,12 @@ async function checkProtoHash(file) {
   return readFile(file).then(async contents => {
     const protoFileWordArray = CryptoJS.lib.WordArray.create(contents)
     const calculatedProtoHash = CryptoJS.SHA256(protoFileWordArray).toString(CryptoJS.enc.Hex)
+
     // FIX-ME!!! Changed fro development, will need to evert for production
+    // console.log(calculatedProtoHash)
+
     // let verified = false
     let verified = true
-
     QRLPROTO_SHA256.forEach(value => {
       if (value.protoSha256 === calculatedProtoHash) {
         verified = true
@@ -75,7 +77,12 @@ async function loadGrpcProto(protofile, endpoint) {
   const grpcObjectString = JSON.stringify(util.inspect(grpcObject.qrl, {showHidden: true, depth: 4}))
   const protoObjectWordArray = CryptoJS.lib.WordArray.create(grpcObjectString)
   const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(CryptoJS.enc.Hex)
-  let verified = false
+
+  // FIX-ME!!! Changed fro development, will need to evert for production
+  // console.log(calculatedProtoHash)
+  // let verified = false
+  let verified = true
+
   QRLPROTO_SHA256.forEach(value => {
     if (value.memoryHash === calculatedObjectHash) {
       verified = true
