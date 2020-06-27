@@ -7,18 +7,25 @@
 const {Command, flags} = require('@oclif/command')
 const {red, white} = require('kleur')
 const ora = require('ora')
+
+let {qrlClient,
+  checkProtoHash,
+  loadGrpcBaseProto,
+  loadGrpcProto} = require('../functions/grpc')
+
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
-const grpc = require('@grpc/grpc-js')
-const {createClient} = require('grpc-js-kit')
-const tmp = require('tmp')
+
+// const grpc = require('@grpc/grpc-js')
+// const {createClient} = require('grpc-js-kit')
+// const tmp = require('tmp')
 const fs = require('fs')
-const util = require('util')
-const CryptoJS = require('crypto-js')
+// const util = require('util')
+// const CryptoJS = require('crypto-js')
 const aes256 = require('aes256')
 const {cli} = require('cli-ux')
-const {QRLPROTO_SHA256} = require('@theqrl/qrl-proto-sha256')
-const protoLoader = require('@grpc/proto-loader')
-const PROTO_PATH = `${__dirname}/../../src/qrlbase.proto`
+// const {QRLPROTO_SHA256} = require('@theqrl/qrl-proto-sha256')
+// const protoLoader = require('@grpc/proto-loader')
+// const PROTO_PATH = `${__dirname}/../../src/qrlbase.proto`
 // eslint-disable-next-line no-unused-vars
 const {QRLLIBmodule} = require('qrllib/build/offline-libjsqrl')
 // eslint-disable-next-line no-unused-vars
@@ -32,10 +39,10 @@ let KYBLIBLoaded = false
 var eccrypto = require('eccrypto')
 const {BigNumber} = require('bignumber.js')
 
-const readFile = util.promisify(fs.readFile)
-const writeFile = util.promisify(fs.writeFile)
+// const readFile = util.promisify(fs.readFile)
+// const writeFile = util.promisify(fs.writeFile)
 
-const clientGetNodeInfo = client => {
+/*
   return new Promise((resolve, reject) => {
     client.getNodeInfo({}, (error, response) => {
       if (error) {
@@ -45,6 +52,7 @@ const clientGetNodeInfo = client => {
     })
   })
 }
+*/
 
 const openWalletFile = function (path) {
   const contents = fs.readFileSync(path)
@@ -111,8 +119,8 @@ function bytesToHex(byteArray) {
   }).join('')
 }
 
-let qrlClient = null
-
+// let qrlClient = null
+/*
 async function checkProtoHash(file) {
   return readFile(file).then(async contents => {
     const protoFileWordArray = CryptoJS.lib.WordArray.create(contents)
@@ -131,7 +139,9 @@ async function checkProtoHash(file) {
     throw new Error(error)
   })
 }
+*/
 
+/*
 async function loadGrpcBaseProto(grpcEndpoint) {
   return protoLoader.load(PROTO_PATH, {}).then(async packageDefinition => {
     const packageObject = grpc.loadPackageDefinition(packageDefinition)
@@ -147,7 +157,9 @@ async function loadGrpcBaseProto(grpcEndpoint) {
     return qrlProtoFilePath
   })
 }
+*/
 
+/*
 async function loadGrpcProto(protofile, endpoint) {
   const options = {
     keepCase: true,
@@ -189,6 +201,7 @@ async function loadGrpcProto(protofile, endpoint) {
     throw new Error('Unable to verify proto file')
   }
 }
+*/
 
 class EphemeralKeys extends Command {
   async run() {
@@ -244,6 +257,7 @@ class EphemeralKeys extends Command {
       this.exit(1)
     }
 
+    // Select network based on flags set by user. If none given, default to mainnet
     let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
     let network = 'Mainnet'
     if (flags.grpc) {
@@ -376,7 +390,7 @@ class EphemeralKeys extends Command {
               // eslint-disable-next-line camelcase
               xmss_pk: xmssPK,
             }
-
+// console.log(latticeTxnReq)
             // eslint-disable-next-line no-unused-vars
             await qrlClient.GetLatticeTxn(latticeTxnReq, async (error, response) => {
               if (error) {
@@ -399,7 +413,7 @@ class EphemeralKeys extends Command {
               // Convert Uint8Array to VectorUChar
               const hashableBytes = toUint8Vector(concatenatedArrays)
               const shaSum = QRLLIB.sha2_256(hashableBytes)
-              // spinner.succeed(`SHASUM: ${QRLLIB.bin2hstr(shaSum)}`)
+              spinner.succeed(`SHASUM: ${QRLLIB.bin2hstr(shaSum)}`)
 
               XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
               const signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))

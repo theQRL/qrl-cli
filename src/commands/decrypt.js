@@ -17,6 +17,8 @@ var eccrypto = require('eccrypto')
 const readFile = util.promisify(fs.readFile)
 const writeFile = util.promisify(fs.writeFile)
 
+// FIX-ME Use teh functions/grpc.js method to get this done!
+
 const clientGetNodeInfo = client => {
   return new Promise((resolve, reject) => {
     client.getNodeInfo({}, (error, response) => {
@@ -26,11 +28,6 @@ const clientGetNodeInfo = client => {
       resolve(response)
     })
   })
-}
-
-const openEphemeralFile = function (path) {
-  const contents = fs.readFileSync(path)
-  return JSON.parse(contents)[0]
 }
 
 async function checkProtoHash(file) {
@@ -76,17 +73,48 @@ async function loadGrpcBaseProto(grpcEndpoint) {
   })
 }
 
+// FIX-ME!! Should this can be seperated into another functions file?
+const openEphemeralFile = function (path) {
+  const contents = fs.readFileSync(path)
+  return JSON.parse(contents)[0]
+}
+
 class Decrypt extends Command {
   async run() {
     // const {args} = this.parse(Decrypt)
+    const {flags} = this.parse(Decrypt)
+
+    // Select network based on flags set by user. If none given, default to mainnet
+    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let network = 'Mainnet'
+    if (flags.grpc) {
+      grpcEndpoint = flags.grpc
+      network = `Custom GRPC endpoint: [${flags.grpc}]`
+    }
+    if (flags.devnet) {
+      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
+      network = 'Devnet'
+    }
+    if (flags.testnet) {
+      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      network = 'Testnet'
+    }
+    if (flags.mainnet) {
+      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      network = 'Mainnet'
+    }
+    this.log(white().bgBlue(network))
 
     // Retrieving ecdsaSK from wallet file
     let isFile = false
     let isValidFile = false
     let ecdsaSK
     let encryptedMsg
+    // add a user flag to point to a file
     const path = 'ephemeral.json'
+    // add a user flag to supply the encrypted file
     const encPath = 'encrypted.txt'
+
     try {
       if (fs.existsSync(path)) {
         isFile = true
@@ -126,10 +154,6 @@ class Decrypt extends Command {
       this.exit(1)
     }
 
-    let grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-    let network = 'Devnet'
-
-    this.log(white().bgBlue(network))
     const spinner = ora({
       text: 'Fetching Ephemeral keys from API...\n',
     }).start()
@@ -155,12 +179,13 @@ class Decrypt extends Command {
   }
 }
 
-Decrypt.description = `Encrypt message using recipient public keys
+Decrypt.description = `Decrypt message using recipient public keys
 `
 
 Decrypt.flags = {
   testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
+  devnet: flags.boolean({char: 'd', default: false, description: 'queries devnet for the OTS state'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
 }
 

@@ -16,6 +16,8 @@ var eccrypto = require('eccrypto')
 const readFile = util.promisify(fs.readFile)
 const writeFile = util.promisify(fs.writeFile)
 
+// FIX-ME!!! Use the functions/grpc.js file to get this done
+
 const clientGetNodeInfo = client => {
   return new Promise((resolve, reject) => {
     client.getNodeInfo({}, (error, response) => {
@@ -119,6 +121,8 @@ async function loadGrpcProto(protofile, endpoint) {
   }
 }
 
+// use function/grpc.js ^^
+
 class Encrypt extends Command {
   async run() {
     const {args, flags} = this.parse(Encrypt)
@@ -128,12 +132,39 @@ class Encrypt extends Command {
     // let pageNumber = args.page_number
     // let message = args.message
     // let txhash = args.txhash
-    const txhash = flags.txhash
-    const string = flags.string
-    let grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-    let network = 'Devnet'
 
+    // FEATURE ADD!!! Add function to lookup txhash from chain
+    //   - check address for lattice tx from HF block forward
+    //   - index all found
+    //   - select by index, tx hash, block/address etc.
+
+    // txhash fom the user flag
+    const txhash = flags.txhash
+
+    // Data to encrypt
+    const string = flags.string
+
+    // Select network based on flags set by user. If none given, default to mainnet
+    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let network = 'Mainnet'
+    if (flags.grpc) {
+      grpcEndpoint = flags.grpc
+      network = `Custom GRPC endpoint: [${flags.grpc}]`
+    }
+    if (flags.devnet) {
+      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
+      network = 'Devnet'
+    }
+    if (flags.testnet) {
+      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      network = 'Testnet'
+    }
+    if (flags.mainnet) {
+      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      network = 'Mainnet'
+    }
     this.log(white().bgBlue(network))
+
     const spinner = ora({
       text: 'Fetching Ephemeral keys from API...\n',
     }).start()
@@ -147,6 +178,7 @@ class Encrypt extends Command {
 
       // spinner.succeed(txhash)
       // let address = args.address
+
       // eslint-disable-next-line no-negated-condition
       if (!txhash) {
         let itemPerPage = args.item_per_page
@@ -244,6 +276,7 @@ Encrypt.flags = {
   string: flags.string({char: 's', default: false, description: 'message to encrypt'}),
   testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
+  devnet: flags.boolean({char: 'd', default: false, description: 'queries devnet for the OTS state'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
 }
 

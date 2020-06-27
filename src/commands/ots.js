@@ -22,6 +22,7 @@ class OTSKey extends Command {
     const {args, flags} = this.parse(OTSKey)
     let address = args.address
     let exitCode = 1 // eslint-disable-line no-unused-vars
+    const spinner = ora({text: 'Reading Address...'}).start()
     if (!validateQrlAddress.hexString(address).result) {
       // not a valid address - is it a file?
       let isFile = false
@@ -32,11 +33,11 @@ class OTSKey extends Command {
           isFile = true
         }
       } catch (error) {
-        this.log(`${red('⨉')} Unable to get OTS: invalid QRL address/wallet file`)
+        spinner.fail(`${red('⨉')} Error: Unable to get OTS: invalid QRL address/wallet file`)
         this.exit(1)
       }
       if (isFile === false) {
-        this.log(`${red('⨉')} Unable to get OTS: invalid QRL address/wallet file`)
+        spinner.fail(`${red('⨉')} Unable to get OTS: invalid QRL address/wallet file`)
         this.exit(1)
       } else {
         const walletJson = openWalletFile(path)
@@ -88,7 +89,7 @@ class OTSKey extends Command {
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
-    const spinner = ora({text: 'Fetching OTS from API...'}).start()
+    spinner.start('Fetching OTS from API...')
     const proto = await loadGrpcBaseProto(grpcEndpoint)
     await checkProtoHash(proto).then(async protoHash => {
       if (!protoHash) {

@@ -27,6 +27,7 @@ class CreateWallet extends Command {
     function b32Encode(input) {
       return bech32.encode('q', bech32.toWords(input))
     }
+
     const binaryToBytes = convertMe => {
       const thisBytes = new Uint8Array(convertMe.size())
       for (let i = 0; i < convertMe.size(); i += 1) {
@@ -40,6 +41,7 @@ class CreateWallet extends Command {
       for (let arr of arrays) {
         totalLength += arr.length
       }
+
       const result = new resultConstructor(totalLength)
       let offset = 0
       for (let arr of arrays) {

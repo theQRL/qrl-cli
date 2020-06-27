@@ -14,6 +14,8 @@ const shorPerQuanta = 10 ** 9
 class Status extends Command {
   async run() {
     const {flags} = this.parse(Status)
+
+    // Select network based on flags set by user. If none given, default to mainnet
     let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
     let network = 'Mainnet'
     if (flags.grpc) {
@@ -33,6 +35,7 @@ class Status extends Command {
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
+
     const spinner = ora({text: 'Fetching status from node...'}).start()
     const proto = await loadGrpcBaseProto(grpcEndpoint)
     checkProtoHash(proto).then(async protoHash => {
