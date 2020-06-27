@@ -7,7 +7,6 @@ const aes256 = require('aes256')
 const fs = require('fs')
 const {cli} = require('cli-ux')
 
-
 let {qrlClient,
   checkProtoHash,
   loadGrpcBaseProto,
