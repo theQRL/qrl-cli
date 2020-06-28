@@ -36,7 +36,7 @@ USAGE
 * [`qrl-cli create-wallet`](#qrl-cli-create-wallet)
 * [`qrl-cli decrypt`](#qrl-cli-decrypt)
 * [`qrl-cli encrypt [ADDRESS] [ITEM_PER_PAGE] [PAGE_NUMBER] [MESSAGE]`](#qrl-cli-encrypt-address-item_per_page-page_number-message)
-* [`qrl-cli get-keys ADDRESS ITEM_PER_PAGE PAGE_NUMBER`](#qrl-cli-get-keys-address-item_per_page-page_number)
+* [`qrl-cli get-lattice-keys ADDRESS ITEM_PER_PAGE PAGE_NUMBER`](#qrl-cli-get-lattice-keys-address-item_per_page-page_number)
 * [`qrl-cli help [COMMAND]`](#qrl-cli-help-command)
 * [`qrl-cli ots ADDRESS`](#qrl-cli-ots-address)
 * [`qrl-cli receive ADDRESS`](#qrl-cli-receive-address)
@@ -174,13 +174,13 @@ OPTIONS
 
 _See code: [src/commands/encrypt.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/encrypt.js)_
 
-## `qrl-cli get-keys ADDRESS ITEM_PER_PAGE PAGE_NUMBER`
+## `qrl-cli get-lattice-keys ADDRESS ITEM_PER_PAGE PAGE_NUMBER`
 
 Get Ephemeral keys associated to a QRL address
 
 ```
 USAGE
-  $ qrl-cli get-keys ADDRESS ITEM_PER_PAGE PAGE_NUMBER
+  $ qrl-cli get-lattice-keys ADDRESS ITEM_PER_PAGE PAGE_NUMBER
 
 ARGUMENTS
   ADDRESS        address to return OTS state for
@@ -194,7 +194,7 @@ OPTIONS
   -t, --testnet            queries testnet for the OTS state
 ```
 
-_See code: [src/commands/get-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/get-keys.js)_
+_See code: [src/commands/get-lattice-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/get-lattice-keys.js)_
 
 ## `qrl-cli help [COMMAND]`
 

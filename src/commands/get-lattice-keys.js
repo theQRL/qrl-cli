@@ -21,9 +21,16 @@ const openWalletFile = function (path) {
 class EphemeralKeys extends Command {
   async run() {
     const {args, flags} = this.parse(EphemeralKeys)
-    const spinner = ora({
-      text: 'Fetching Ephemeral keys from API...\n',
-    }).start()
+    let spinner
+
+    if (flags.json) {
+      // do nothing
+    } else {
+      spinner = ora({
+        text: 'Fetching Ephemeral keys from API...\n',
+      }).start()
+    //  return spinner
+    }
 
     let address = args.address
 
@@ -37,11 +44,11 @@ class EphemeralKeys extends Command {
           isFile = true
         }
       } catch (error) {
-        spinner.fail(`${red('⨉')} Error: Unable to get Ephemeral Public Keys: invalid QRL address/wallet file`)
+        this.log(`${red('⨉')} Error: Unable to get Ephemeral Public Keys: invalid QRL address/wallet file`)
         this.exit(1)
       }
       if (isFile === false) {
-        spinner.fail(`${red('⨉')} Unable to get Ephemeral Public Keys: invalid QRL address/wallet file`)
+        this.log(`${red('⨉')} Unable to get Ephemeral Public Keys: invalid QRL address/wallet file`)
         this.exit(1)
       } else {
         const walletJson = openWalletFile(path)
@@ -78,8 +85,10 @@ class EphemeralKeys extends Command {
     let itemPerPage = args.item_per_page
     let pageNumber = args.page_number
 
-    let grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
     let network = 'Mainnet'
+    let explorerEndpoint = 'https://explorer.theqrl.org'
+
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
@@ -87,27 +96,38 @@ class EphemeralKeys extends Command {
     if (flags.devnet) {
       grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
       network = 'Devnet'
+      explorerEndpoint = 'https://devnet-explorer.theqrl.org'
     }
     if (flags.testnet) {
       grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
       network = 'Testnet'
+      explorerEndpoint = 'https://testnet-explorer.theqrl.org'
     }
     if (flags.mainnet) {
       grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
       network = 'Mainnet'
+      explorerEndpoint = 'https://devnet-explorer.theqrl.org'
+    }
+    if (flags.json) {
+      // do nothing
+    } else {
+      spinner.succeed(cyan('Using Network: ') + bgWhite().black(network))
+      spinner.succeed(cyan('Endpoint: ') + bgWhite().black(grpcEndpoint))
+      spinner.start(`Validating ${cyan('ProtoHash')} with node`)
     }
 
-    spinner.succeed(cyan('Using Network: ') + bgWhite().black(network))
-    spinner.succeed(cyan('Endpoint: ') + bgWhite().black(grpcEndpoint))
-
-    spinner.start(`Validating ${cyan('ProtoHash')} with node`)
     const proto = await loadGrpcBaseProto(grpcEndpoint)
     checkProtoHash(proto).then(async protoHash => {
       if (!protoHash) {
         this.log(`${red('⨉')} Unable to validate .proto file from node`)
         this.exit(1)
       }
-      spinner.succeed(`${cyan('ProtoHash: ')}${bgWhite().black('Validated!')}`)
+      if (flags.json) {
+      // do nothing
+      } else {
+        spinner.succeed(`${cyan('ProtoHash: ')}${bgWhite().black('Validated!')}`)
+        spinner.start('Getting keys for address')
+      }
 
       // next load GRPC object and check hash of that too
       qrlClient = await loadGrpcProto(proto, grpcEndpoint)
@@ -126,31 +146,50 @@ class EphemeralKeys extends Command {
           if (error) {
             this.log(`${red('⨉')} Unable to get Lattice transaction list`)
           }
-          let pk1 = Buffer.from(response.lattice_pks_detail[0].pk1, 'hex').toString('hex')
-          let pk2 = Buffer.from(response.lattice_pks_detail[0].pk2, 'hex').toString('hex')
-          let pk3 = Buffer.from(response.lattice_pks_detail[0].pk3, 'hex').toString('hex')
-          let txHash = Buffer.from(response.lattice_pks_detail[0].tx_hash, 'hex').toString('hex')
+          let jsonResults = []
+          let pk1 = ''
+          let pk2 = ''
+          let pk3 = ''
+          let txHash = ''
 
-          let jsonResults = {
-            pk1: pk1,
-            pk2: pk2,
-            pk3: pk3,
-            txHash: txHash,
-          }
+          if (response.lattice_pks_detail) {
+            pk1 = Buffer.from(response.lattice_pks_detail[0].pk1, 'hex').toString('hex')
+            pk2 = Buffer.from(response.lattice_pks_detail[0].pk2, 'hex').toString('hex')
+            pk3 = Buffer.from(response.lattice_pks_detail[0].pk3, 'hex').toString('hex')
+            txHash = Buffer.from(response.lattice_pks_detail[0].tx_hash, 'hex').toString('hex')
 
-          if (flags.json) {
-            spinner.succeed(cyan('Lattice Keys Found!!'))
-            this.log('\n' + JSON.stringify(jsonResults))
-            if (flags.file) {
-              fs.writeFileSync(flags.file, JSON.stringify(jsonResults))
-              spinner.succeed(`Lattice pk's written to ${flags.file}`)
+            jsonResults = {
+              pk1: pk1,
+              pk2: pk2,
+              pk3: pk3,
+              txHash: txHash,
+            }
+            // get the data in json format
+            if (flags.json) {
+              this.log(JSON.stringify(jsonResults))
+              if (flags.file) {
+                fs.writeFileSync(flags.file, JSON.stringify(jsonResults))
+              }
+            } else {
+              // print data to cli
+              spinner.succeed(cyan(`${explorerEndpoint}/tx/${txHash}\n`))
+              this.log(cyan('Lattice Keys:'))
+              spinner.succeed(cyan('pk1: ') + bgWhite().black(pk1))
+              spinner.succeed(cyan('pk2: ') + bgWhite().black(pk2))
+              spinner.succeed(cyan('pk3: ') + bgWhite().black(pk3))
+              spinner.succeed(cyan('Transaction ID: ') + bgWhite().black(txHash))
+              // if file flag, wite non-json data to file
+              if (flags.file) {
+                let textResponce = 'QRL Lattice Keys\n\nQRL Address: ' + address + '\n' +  explorerEndpoint + '/tx/' + txHash + '\n\nLattice Keys:\n\npk1: ' + pk1 + '\n\npk2: ' + pk2 + '\n\npk3: ' + pk3 + '\n\nTransaction ID: ' + txHash
+                fs.writeFileSync(flags.file, textResponce)
+              }
+              spinner.succeed(cyan('Lattice Keys Found!!'))
             }
           } else {
-            spinner.succeed(cyan('Lattice Keys Found!!'))
-            spinner.succeed(cyan('pk1: ') + bgWhite().black(pk1))
-            spinner.succeed(cyan('pk2: ') + bgWhite().black(pk2))
-            spinner.succeed(cyan('pk3: ') + bgWhite().black(pk3))
-            spinner.succeed(cyan('Transaction ID: ') + bgWhite().black(txHash))
+            this.log('No Keys Found at his address...')
+            if (flags.json) {
+              this.log({error: 'No Keys Found', })
+            }
           }
           // spinner.succeed('RESPONSE:' + JSON.stringify(response.lattice_pks_detail))
         }
