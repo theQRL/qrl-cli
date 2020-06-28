@@ -70,7 +70,11 @@ class Balance extends Command {
         } catch (error) {
           this.exit(1)
         }
-        this.log(`${black().bgWhite(address)}`)
+        if (flags.json) {
+          // do nothing here
+        } else {
+          this.log(`${black().bgWhite(address)}`)
+        }
       }
       if (isValidFile === false) {
         this.log(`${red('⨉')} Unable to get a balance: invalid QRL address/wallet file`)
@@ -122,7 +126,7 @@ class Balance extends Command {
         let balance = new BigNumber(parseInt(response.state.balance, 10))
         if (flags.shor) {
           if (flags.json) {
-            let balanceJson = { balance: balance.toString() }
+            let balanceJson = { balance: balance.toString(), address: address }
             this.log(JSON.stringify(balanceJson))
           } else {
             spinner.succeed(`Balance: ${balance} Shor`)
@@ -132,7 +136,7 @@ class Balance extends Command {
         if (flags.quanta || !flags.shor) {
           if (flags.json) {
             let balanceShore = balance / shorPerQuanta
-            let balanceJson = { balance: balanceShore.toString() }
+            let balanceJson = { balance: balanceShore.toString(), address: address }
             this.log(JSON.stringify(balanceJson))
           } else {
             spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
@@ -163,9 +167,9 @@ Balance.flags = {
   testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the balance'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the balance'}),
   devnet: flags.boolean({char: 'd', default: false, description: 'queries devnet for the balance'}),
+  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
   shor: flags.boolean({char: 's', default: false, description: 'reports the balance in Shor'}),
   quanta: flags.boolean({char: 'q', default: false, description: 'reports the balance in Quanta'}),
-  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
   password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
   json: flags.boolean({char: 'j', default: false, description: 'queries testnet for the balance'}),
 }
