@@ -26,6 +26,7 @@ const addressForAPI = address => {
 class Balance extends Command {
   async run() {
     const {args, flags} = this.parse(Balance)
+    let spinner
     let address = args.address
     let exitCode = null // eslint-disable-line no-unused-vars
     if (!validateQrlAddress.hexString(address).result) {
@@ -94,8 +95,14 @@ class Balance extends Command {
       grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
-    this.log(white().bgBlue(network))
-    const spinner = ora({text: 'Fetching balance from node...'}).start()
+
+    if (flags.json) {
+      // do nothing
+    } else {
+      this.log(white().bgBlue(network))
+      spinner = ora({text: 'Fetching balance from node...'}).start()
+    }
+
     const proto = await loadGrpcBaseProto(grpcEndpoint)
     checkProtoHash(proto).then(async protoHash => {
       if (!protoHash) {
@@ -107,40 +114,35 @@ class Balance extends Command {
       const request = {
         address: addressForAPI(address),
       }
-      if (network === 'Testnet') {
+
+ //     if (network === 'Testnet') {
+
         qrlClient.GetOptimizedAddressState(request, (error, response) => {
           if (error) {
             this.log(`${red('⨉')} Unable to read status`)
             this.exit(1)
           }
           let balance = new BigNumber(parseInt(response.state.balance, 10))
+
           if (flags.shor) {
-            spinner.succeed(`Balance: ${balance} Shor`)
+            if (flags.json) {
+              let balanceJson = { balance: balance.toString() }
+              this.log(JSON.stringify(balanceJson))
+            } else {
+              spinner.succeed(`Balance: ${balance} Shor`)
+            }
           }
+          // default to showing balance in Quanta if no flags
           if (flags.quanta || !flags.shor) {
-            // default to showing balance in Quanta if no flags
-            spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
+            if (flags.json) {
+              let balanceShore = balance / shorPerQuanta
+              let balanceJson = { balance: balanceShore.toString() }
+              this.log(JSON.stringify(balanceJson))
+            } else {
+              spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
+            }
           }
         })
-      } else {
-        await qrlClient.GetAddressState(request, (error, response) => {
-          if (error) {
-            this.log(`${red('⨉')} Unable to read status`)
-            exitCode = 1
-            return
-          }
-          let balance = new BigNumber(parseInt(response.state.balance, 10))
-          if (flags.shor) {
-            spinner.succeed(`Balance: ${balance} Shor`)
-            exitCode = 0
-          }
-          if (flags.quanta || !flags.shor) {
-            // default to showing balance in Quanta if no flags
-            spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
-            exitCode = 0
-          }
-        })
-      }
     })
   }
 }
@@ -169,6 +171,7 @@ Balance.flags = {
   quanta: flags.boolean({char: 'q', default: false, description: 'reports the balance in Quanta'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
   password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
+  json: flags.boolean({char: 'j', default: false, description: 'queries testnet for the balance'}),
 }
 
 module.exports = {Balance}
