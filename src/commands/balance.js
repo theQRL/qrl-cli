@@ -114,35 +114,31 @@ class Balance extends Command {
       const request = {
         address: addressForAPI(address),
       }
-
- //     if (network === 'Testnet') {
-
-        qrlClient.GetOptimizedAddressState(request, (error, response) => {
-          if (error) {
-            this.log(`${red('⨉')} Unable to read status`)
-            this.exit(1)
+      qrlClient.GetOptimizedAddressState(request, (error, response) => {
+        if (error) {
+          this.log(`${red('⨉')} Unable to read status`)
+          this.exit(1)
+        }
+        let balance = new BigNumber(parseInt(response.state.balance, 10))
+        if (flags.shor) {
+          if (flags.json) {
+            let balanceJson = { balance: balance.toString() }
+            this.log(JSON.stringify(balanceJson))
+          } else {
+            spinner.succeed(`Balance: ${balance} Shor`)
           }
-          let balance = new BigNumber(parseInt(response.state.balance, 10))
-
-          if (flags.shor) {
-            if (flags.json) {
-              let balanceJson = { balance: balance.toString() }
-              this.log(JSON.stringify(balanceJson))
-            } else {
-              spinner.succeed(`Balance: ${balance} Shor`)
-            }
+        }
+        // default to showing balance in Quanta if no flags
+        if (flags.quanta || !flags.shor) {
+          if (flags.json) {
+            let balanceShore = balance / shorPerQuanta
+            let balanceJson = { balance: balanceShore.toString() }
+            this.log(JSON.stringify(balanceJson))
+          } else {
+            spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
           }
-          // default to showing balance in Quanta if no flags
-          if (flags.quanta || !flags.shor) {
-            if (flags.json) {
-              let balanceShore = balance / shorPerQuanta
-              let balanceJson = { balance: balanceShore.toString() }
-              this.log(JSON.stringify(balanceJson))
-            } else {
-              spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
-            }
-          }
-        })
+        }
+      })
     })
   }
 }
