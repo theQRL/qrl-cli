@@ -5,27 +5,12 @@
 /* eslint new-cap: 0, max-depth: 0 */
 /* eslint-disable node/no-unpublished-require */
 const {Command, flags} = require('@oclif/command')
-const {red, white} = require('kleur')
+const {red, white, yellow} = require('kleur')
 const ora = require('ora')
-
-let {qrlClient,
-  checkProtoHash,
-  loadGrpcBaseProto,
-  loadGrpcProto} = require('../functions/grpc')
-
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
-
-// const grpc = require('@grpc/grpc-js')
-// const {createClient} = require('grpc-js-kit')
-// const tmp = require('tmp')
-const fs = require('fs')
-// const util = require('util')
-// const CryptoJS = require('crypto-js')
 const aes256 = require('aes256')
+const fs = require('fs')
 const {cli} = require('cli-ux')
-// const {QRLPROTO_SHA256} = require('@theqrl/qrl-proto-sha256')
-// const protoLoader = require('@grpc/proto-loader')
-// const PROTO_PATH = `${__dirname}/../../src/qrlbase.proto`
 // eslint-disable-next-line no-unused-vars
 const {QRLLIBmodule} = require('qrllib/build/offline-libjsqrl')
 // eslint-disable-next-line no-unused-vars
@@ -33,30 +18,24 @@ const {DILLIBmodule} = require('qrllib/build/offline-libjsdilithium')
 // eslint-disable-next-line no-unused-vars
 const {KYBLIBmodule} = require('qrllib/build/offline-libjskyber')
 
+let {qrlClient,
+  checkProtoHash,
+  loadGrpcBaseProto,
+  loadGrpcProto} = require('../functions/grpc')
+
 let QRLLIBLoaded = false
 let DILLIBLoaded = false
 let KYBLIBLoaded = false
 var eccrypto = require('eccrypto')
 const {BigNumber} = require('bignumber.js')
 
-// const readFile = util.promisify(fs.readFile)
-// const writeFile = util.promisify(fs.writeFile)
-
-/*
-  return new Promise((resolve, reject) => {
-    client.getNodeInfo({}, (error, response) => {
-      if (error) {
-        reject(error)
-      }
-      resolve(response)
-    })
-  })
-}
-*/
-
 const openWalletFile = function (path) {
   const contents = fs.readFileSync(path)
   return JSON.parse(contents)[0]
+}
+
+const addressForAPI = address => {
+  return Buffer.from(address.substring(1), 'hex')
 }
 
 // Define amount of SHOR contained per QUANTA (10^9)
@@ -119,144 +98,65 @@ function bytesToHex(byteArray) {
   }).join('')
 }
 
-// let qrlClient = null
-/*
-async function checkProtoHash(file) {
-  return readFile(file).then(async contents => {
-    const protoFileWordArray = CryptoJS.lib.WordArray.create(contents)
-    const calculatedProtoHash = CryptoJS.SHA256(protoFileWordArray).toString(CryptoJS.enc.Hex)
-    // console.log('protoSha256 ', calculatedProtoHash)
-    //FIXME!!!
-    let verified = true
-    // let verified = false
-    QRLPROTO_SHA256.forEach(value => {
-      if (value.protoSha256 === calculatedProtoHash) {
-        verified = true
-      }
-    })
-    return verified
-  }).catch(error => {
-    throw new Error(error)
-  })
-}
-*/
-
-/*
-async function loadGrpcBaseProto(grpcEndpoint) {
-  return protoLoader.load(PROTO_PATH, {}).then(async packageDefinition => {
-    const packageObject = grpc.loadPackageDefinition(packageDefinition)
-    const client = await new packageObject.qrl.Base(grpcEndpoint, grpc.credentials.createInsecure())
-    const res = await clientGetNodeInfo(client)
-    const qrlProtoFilePath = tmp.fileSync({mode: '0644', prefix: 'qrl-', postfix: '.proto'}).name
-    await writeFile(qrlProtoFilePath, res.grpcProto).then(fsErr => {
-      if (fsErr) {
-        throw new Error('tmp filesystem error')
-      }
-    })
-    // console.log(qrlProtoFilePath)
-    return qrlProtoFilePath
-  })
-}
-*/
-
-/*
-async function loadGrpcProto(protofile, endpoint) {
-  const options = {
-    keepCase: true,
-    longs: String,
-    enums: String,
-    defaults: true,
-    oneofs: true,
-  }
-  const packageDefinition = await protoLoader.load(protofile, options)
-  const grpcObject = await grpc.loadPackageDefinition(packageDefinition)
-  const grpcObjectString = JSON.stringify(util.inspect(grpcObject.qrl, {showHidden: true, depth: 4}))
-  const protoObjectWordArray = CryptoJS.lib.WordArray.create(grpcObjectString)
-  const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(CryptoJS.enc.Hex)
-
-  //FIXME!!!
-  // let verified = false
-  let verified = true
-  QRLPROTO_SHA256.forEach(value => {
-    // console.log('objectSha256 ', calculatedObjectHash)
-    if (value.objectSha256 === calculatedObjectHash) {
-      verified = true
-    }
-  })
-  // If the grpc object shasum matches, establish the grpc connection.
-  if (verified) {
-    qrlClient = createClient({
-      protoPath: protofile,
-      packageName: 'qrl',
-      serviceName: 'PublicAPI',
-      options: {
-        keepCase: true,
-        longs: String,
-        enums: String,
-        defaults: true,
-        oneofs: true,
-      },
-    }, endpoint)
-  } else {
-    throw new Error('Unable to verify proto file')
-  }
-}
-*/
-
 class EphemeralKeys extends Command {
   async run() {
     const {flags} = this.parse(EphemeralKeys)
-
-    // Retrieving the hexseed from wallet file
-    let isFile = false
-    let isValidFile = false
+    const spinner = ora({text: 'Create Lattice Called...\n'}).start()
+    let address = flags.address
     let hexseed
-    let address
-    const path = flags.file
-    try {
-      if (fs.existsSync(path)) {
-        isFile = true
-      }
-    } catch (error) {
-      this.log(`${red('⨉')} Unable to get hexseed: invalid QRL wallet file`)
-      this.exit(1)
-    }
-    if (isFile === false) {
-      this.log(`${red('⨉')} Unable to get hexseed: invalid QRL wallet file`)
-      this.exit(1)
-    } else {
-      const walletJson = openWalletFile(path)
+
+    // if not an address string, it may be a file...
+    if (!validateQrlAddress.hexString(address).result) {
+      let isFile = false
+      let isValidFile = false
+
+      const path = address
       try {
-        if (walletJson.encrypted === false) {
-          isValidFile = true
-          hexseed = walletJson.hexseed
-          address = walletJson.address
-        }
-        if (walletJson.encrypted === true) {
-          let password = ''
-          if (flags.password) {
-            password = flags.password
-          } else {
-            password = await cli.prompt('Enter password for wallet file', {type: 'hide'})
-          }
-          hexseed = aes256.decrypt(password, walletJson.hexseed)
-          address = aes256.decrypt(password, walletJson.address)
-          if (validateQrlAddress.hexString(address).result) {
-            isValidFile = true
-          } else {
-            this.log(`${red('⨉')} Unable to open wallet file: invalid password`)
-            this.exit(1)
-          }
+        if (fs.existsSync(path)) {
+          isFile = true
         }
       } catch (error) {
+        this.log(`${red('⨉')} Unable to get hexseed: invalid QRL wallet file`)
+        this.exit(1)
+      }
+      if (isFile === false) {
+        this.log(`${red('⨉')} Unable to get hexseed: invalid QRL wallet file`)
+        this.exit(1)
+      } else {
+        const walletJson = openWalletFile(path)
+        try {
+          if (walletJson.encrypted === false) {
+            isValidFile = true
+            hexseed = walletJson.hexseed
+            address = walletJson.address
+          }
+          if (walletJson.encrypted === true) {
+            let password = ''
+            if (flags.password) {
+              password = flags.password
+            } else {
+              password = await cli.prompt('Enter password for wallet file', {type: 'hide'})
+            }
+            hexseed = aes256.decrypt(password, walletJson.hexseed)
+            address = aes256.decrypt(password, walletJson.address)
+            if (validateQrlAddress.hexString(address).result) {
+              isValidFile = true
+            } else {
+              this.log(`${red('⨉')} Unable to open wallet file: invalid password`)
+              this.exit(1)
+            }
+          }
+        } catch (error) {
+          this.exit(1)
+        }
+      }
+      if (isValidFile === false) {
+        this.log(`${red('⨉')} Unable to get the hexseed: invalid QRL wallet file`)
         this.exit(1)
       }
     }
-    if (isValidFile === false) {
-      this.log(`${red('⨉')} Unable to get the hexseed: invalid QRL wallet file`)
-      this.exit(1)
-    }
-
+    // this.log(hexseed)
+    // this.log(address)
     // Select network based on flags set by user. If none given, default to mainnet
     let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
     let network = 'Mainnet'
@@ -276,9 +176,9 @@ class EphemeralKeys extends Command {
       grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
-    this.log(white().bgBlue(network))
+    spinner.succeed(white().bgBlue(network))
 
-    const spinner = ora({text: 'Generating Ephemeral keys...\n'}).start()
+    spinner.start('Loading Cryptographic Libraries...')
 
     const toUint8Vector = arr => {
       const vec = new QRLLIB.Uint8Vector()
@@ -329,7 +229,8 @@ class EphemeralKeys extends Command {
         return false
       }, 50)
     }
-
+    spinner.succeed('Cryptographic Libraries Loaded!')
+    spinner.start('Generating Lattice Keys...')
     waitForQRLLIB(async _ => {
       // let xmssHeight = 10
       // let hashFunction = QRLLIB.eHashFunction.SHA2_256
@@ -337,6 +238,7 @@ class EphemeralKeys extends Command {
       // const randomSeed = toUint8Vector(Crypto.randomBytes(48))
 
       const XMSS_OBJECT = await new QRLLIB.Xmss.fromHexSeed(hexseed)
+
       const xmssPK = Buffer.from(XMSS_OBJECT.getPK(), 'hex')
 
       // const address = XMSS_OBJECT.getAddress()
@@ -347,20 +249,23 @@ class EphemeralKeys extends Command {
         const kyberSK = Buffer.from(KYB_OBJECT.getSK(), 'hex')
         // const kyberSK = Buffer.from(KYB_OBJECT.getSK(), 'hex')
         spinner.succeed('Kyber PK created')
+
         waitForDILLIB(async _ => {
           const DIL_OBJECT = await new DILLIB.Dilithium.empty()
           const dilithiumPK = Buffer.from(DIL_OBJECT.getPK(), 'hex')
           const dilithiumSK = Buffer.from(DIL_OBJECT.getSK(), 'hex')
           // const dilithiumSK = Buffer.from(DIL_OBJECT.getSK(), 'hex')
           spinner.succeed('Dilithium PK created')
+
           // A new random 32-byte private key.
           var privateKey = eccrypto.generatePrivate()
           var publicKey = eccrypto.getPublic(privateKey)
           // const ecdsaPK = QRLLIB.hstr2bin(Buffer.from(publicKey.toString('hex')))
           const ecdsaPK = Buffer.from(publicKey)
-          spinner.succeed('ECDSA PK created')
-          spinner.succeed(publicKey.toString('hex'))
 
+          spinner.succeed('ECDSA PK created')
+          spinner.succeed('ECDSA: ' + publicKey.toString('hex'))
+          spinner.start('Sending transaction to the QRL Network')
           const proto = await loadGrpcBaseProto(grpcEndpoint)
           checkProtoHash(proto).then(async protoHash => {
             if (!protoHash) {
@@ -368,127 +273,199 @@ class EphemeralKeys extends Command {
               this.exit(1)
             }
             // next load GRPC object and check hash of that too
-            await loadGrpcProto(proto, grpcEndpoint)
+            qrlClient = await loadGrpcProto(proto, grpcEndpoint)
 
-            // nonce
-            const nonce = new BigNumber(1).toNumber()
-
-            // Calculate txn fee
-            const convertFeeToBigNumber = new BigNumber(0)
-            const thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).toNumber()
-
-            // Prepare LatticeTxnReq
-            const latticeTxnReq = {
-              // master_addr: Buffer.from(address.substring(1), 'hex'),
-              // eslint-disable-next-line camelcase
-              master_addr: Buffer.from('', 'hex'),
-              pk1: kyberPK,
-              pk2: dilithiumPK,
-              pk3: ecdsaPK,
-              // pk4: ecdsaPK,
-              fee: thisTxnFee,
-              // eslint-disable-next-line camelcase
-              xmss_pk: xmssPK,
+            // Get OTS for address
+            const request = {
+              address: addressForAPI(address),
             }
-// console.log(latticeTxnReq)
-            // eslint-disable-next-line no-unused-vars
-            await qrlClient.GetLatticeTxn(latticeTxnReq, async (error, response) => {
+
+            // make the OTS key request
+            await qrlClient.GetOptimizedAddressState(request, async (error, response) => {
               if (error) {
-                this.log(`${red('⨉')} Unable send Lattice transaction`)
+                this.log(`${red('⨉')} Unable to read status`)
+                this.exit(1)
+              }
+              /*
+                ots Key Tracking system:
+                  Using the OTS response from the node we can track the key usage. So if you
+                  skip around the next key may not be what is selected. The node tracks the count of used OTS, not the position of the key.
+                  
+                  Some important info:
+                    - if the user designates an OTS key ahead of the current key
+                      the system will no longer track correctly as another key has been used.
+                    - When the key that was used in the future is reached the system will 
+                      attempt to re-use the key as it thinks that is the next logical key.
+
+                  To avoid any issues with key reuse or sorting out mis-used keys do not pass the ots key. 
+                  Let the system track the OTS keys.
+
+                  FIX-ME!!! Check for the address tree height, and if within the last 10 keys fail with warning
+
+              */
+              // set the default value to the next auto detected OTS key
+              let otsindex = new BigNumber(parseInt(response.state.used_ots_key_count, 10))
+              if (flags.otsindex) {
+                const passedOtsIndex = parseInt(flags.otsindex, 10)
+                if (passedOtsIndex) {
+                  // otsindex = passedOtsIndex
+                  // this.log(`\n\n${yellow('ℹ')} User key passed: ${red(passedOtsIndex)} passed by user`)
+                  // this.log(`${yellow('ℹ')} Next unused key: ${red(otsindex)} detected on chain`)
+                } else {
+                  this.log(`${red('⨉')} OTS is invalid`)
+                  this.exit(1)
+                }
+                // check that the user flag is not different to the recommended
+                let overrideOTS = false
+                // flags.otsindex is less than detected OTS index
+                if (passedOtsIndex < otsindex) {
+                  spinner.stop('')
+                  this.log(`\n${red('#################################')}`)
+                  this.log(`${red('# Potential Key Reuse Detected! #')}`)
+                  this.log(`${red('#################################\n')}`)
+                  this.log(`${yellow('ℹ')} Next OTS Detected Available:\t${red(otsindex)}`)
+                  this.log(`${yellow('ℹ')} User OTS Index Defined:\t${red(passedOtsIndex)}`)
+                  this.log(`${yellow('ℹ')} AN XMSS tree is considered compromised if any OTS key is exposed more than ONE time!`)
+                  this.log(`${yellow('ℹ')} Make sure you are not reusing this key!!\n`)
+                  overrideOTS = await cli.confirm('Override OTS key tracking, using custom key index? y/n')
+                  // this.log('Using next detected OTS key...')
+                }
+                // flags.otsindex given is larger, ask if user wants to proceed...
+                if (passedOtsIndex > otsindex) {
+                  spinner.stop()
+                  this.log(`\n\n${yellow('ℹ')} User key passed: ${red(passedOtsIndex)} passed by user`)
+                  this.log(`${yellow('ℹ')} Next unused key: ${red(otsindex)} detected on chain`)
+                  this.log(`${yellow('ℹ')} By overriding the default key, you will need to track the OTS key usage manually...\n`)
+                  overrideOTS = await cli.confirm('Override OTS key tracking, using custom key index? y/n')
+                }
+                if (passedOtsIndex == otsindex) {
+                  this.error('Same OTS key given as detected from chain' + otsindex + '\nUser Key:' + passedOtsIndex)
+                }
+                // if the user gave Y to prompt, then user their key index.
+                if (overrideOTS) {
+                  this.log(`${yellow('ℹ')} Using custom OTS key...`)
+                  otsindex = passedOtsIndex
+                } else {
+                  this.log('Using automatic OTS tracking system...')
+                }
               }
 
-              // var latticePKres = JSON.stringify(response.extended_transaction_unsigned.latticePK)
-              // var latticejson = JSON.parse(latticePKres)
+              // nonce
+              const nonce = new BigNumber(1).toNumber()
+              // calculate the fees to pay
+              let thisTxnFee = 0
+              if (flags.fee) {
+                thisTxnFee = flags.fee * SHOR_PER_QUANTA
+              } else {
+                // default fee
+                const convertFeeToBigNumber = new BigNumber(0)
+                thisTxnFee = convertFeeToBigNumber.times(SHOR_PER_QUANTA).toNumber()
+              }
 
-              let concatenatedArrays = concatenateTypedArrays(
-                Uint8Array,
-                Buffer.from('', 'hex'), // master_address
-                toBigendianUint64BytesUnsigned(thisTxnFee), // fee
-                kyberPK,
-                dilithiumPK,
-                // ecdsaPK,
-                ecdsaPK // pk4 should be ECIES, but using the same as pk3
-              )
-
-              // Convert Uint8Array to VectorUChar
-              const hashableBytes = toUint8Vector(concatenatedArrays)
-              const shaSum = QRLLIB.sha2_256(hashableBytes)
-              spinner.succeed(`SHASUM: ${QRLLIB.bin2hstr(shaSum)}`)
-
-              XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
-              const signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
-
-              const txnHashConcat = concatenateTypedArrays(
-                Uint8Array,
-                binaryToBytes(shaSum),
-                signature,
-                xmssPK
-              )
-              const txnHashableBytes = toUint8Vector(txnHashConcat)
-              const txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
-
-              // Create LatticePK
-              const latticePk = {
+              // Prepare LatticeTxnReq
+              const latticeTxnReq = {
+                // eslint-disable-next-line camelcase
+                master_addr: Buffer.from('', 'hex'),
                 pk1: kyberPK,
                 pk2: dilithiumPK,
                 pk3: ecdsaPK,
-                // pk4: ecdsaPK,
-              }
-
-              // spinner.succeed(`TXN HASH: ${txnHash}`)
-
-              const transaction = {
-                // eslint-disable-next-line camelcase
-                master_addr: Buffer.from('', 'hex'),
                 fee: thisTxnFee,
                 // eslint-disable-next-line camelcase
-                public_key: xmssPK,
-                signature: signature,
-                nonce: nonce,
-                // eslint-disable-next-line camelcase
-                transaction_hash: Buffer.from(txnHash, 'hex'),
-                latticePK: latticePk,
+                xmss_pk: xmssPK,
               }
-
-              const pushTransactionReq = {
-                // eslint-disable-next-line camelcase
-                transaction_signed: transaction,
-              }
-
-              await qrlClient.PushTransaction(pushTransactionReq, async (error, response) => {
+              // eslint-disable-next-line no-unused-vars
+              await qrlClient.GetLatticeTxn(latticeTxnReq, async (error, response) => {
                 if (error) {
-                  this.log(`${red('⨉')} Unable send push transaction`)
-                }
-                // spinner.succeed(`RESPONSE: ${JSON.stringify(response)}`)
-                var pushTransactionRes = JSON.stringify(response.tx_hash)
-                var txhash = JSON.parse(pushTransactionRes)
-                // spinner.succeed(`RESPONSE: ${txhash.data}`)
-                spinner.succeed('Transaction created')
-                spinner.succeed(`Transaction ID: ${bytesToHex(txhash.data)}`)
-
-                // save private keys to encrypted file
-                const ephemeralDetail = {
-                  encrypted: false,
-                  kyberSK: kyberSK.toString('hex'),
-                  dilithiumSK: dilithiumSK.toString('hex'),
-                  ecdsaSK: privateKey.toString('hex'),
-                  eciesSK: privateKey.toString('hex'),
-                  txHash: bytesToHex(txhash.data),
+                  this.log(`${red('⨉')} Unable send Lattice transaction`)
                 }
 
-                if (flags.ephemeralPwd) {
-                  const passphrase = flags.ephemeralPwd
-                  ephemeralDetail.encrypted = true
-                  ephemeralDetail.kyberSK = aes256.encrypt(passphrase, ephemeralDetail.kyberPK)
-                  ephemeralDetail.dilithiumSK = aes256.encrypt(passphrase, ephemeralDetail.dilithiumPK)
-                  ephemeralDetail.ecdsaSK = aes256.encrypt(passphrase, ephemeralDetail.ecdsaSK)
-                  ephemeralDetail.eciesSK = aes256.encrypt(passphrase, ephemeralDetail.eciesSK)
-                  ephemeralDetail.txHash = aes256.encrypt(passphrase, ephemeralDetail.txHash)
+                let concatenatedArrays = concatenateTypedArrays(
+                  Uint8Array,
+                  Buffer.from('', 'hex'), // master_address
+                  toBigendianUint64BytesUnsigned(thisTxnFee), // fee
+                  kyberPK,
+                  dilithiumPK,
+                  ecdsaPK
+                )
+                // Convert Uint8Array to VectorUChar
+                const hashableBytes = toUint8Vector(concatenatedArrays)
+                const shaSum = QRLLIB.sha2_256(hashableBytes)
+                spinner.succeed(`SHASUM: ${QRLLIB.bin2hstr(shaSum)}`)
+
+                this.log('otsindex used: ' + otsindex)
+
+                XMSS_OBJECT.setIndex(parseInt(otsindex, 10))
+                const signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+
+                const txnHashConcat = concatenateTypedArrays(
+                  Uint8Array,
+                  binaryToBytes(shaSum),
+                  signature,
+                  xmssPK
+                )
+                const txnHashableBytes = toUint8Vector(txnHashConcat)
+                const txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+                // spinner.succeed(`TXN HASH: ${txnHash}`)
+
+                // Create LatticePK
+                const latticePk = {
+                  pk1: kyberPK,
+                  pk2: dilithiumPK,
+                  pk3: ecdsaPK,
                 }
 
-                const ephemeralJson = ['[', JSON.stringify(ephemeralDetail), ']'].join('')
-                fs.writeFileSync(flags.ephemeralFile, ephemeralJson)
-                spinner.succeed(`Ephemeral private keys written to ${flags.ephemeralFile}`)
+                const transaction = {
+                // eslint-disable-next-line camelcase
+                  master_addr: Buffer.from('', 'hex'),
+                  fee: thisTxnFee,
+                  // eslint-disable-next-line camelcase
+                  public_key: xmssPK,
+                  signature: signature,
+                  nonce: nonce,
+                  // eslint-disable-next-line camelcase
+                  transaction_hash: Buffer.from(txnHash, 'hex'),
+                  latticePK: latticePk,
+                }
+
+                const pushTransactionReq = {
+                // eslint-disable-next-line camelcase
+                  transaction_signed: transaction,
+                }
+
+                await qrlClient.PushTransaction(pushTransactionReq, async (error, response) => {
+                  if (error) {
+                    this.log(`${red('⨉')} Unable send push transaction`)
+                  }
+                  spinner.succeed(`RESPONSE: ${JSON.stringify(response)}`)
+                  var pushTransactionRes = JSON.stringify(response.tx_hash)
+                  var txhash = JSON.parse(pushTransactionRes)
+                  // spinner.succeed(`RESPONSE: ${txhash.data}`)
+                  spinner.succeed('Transaction created')
+                  spinner.succeed(`Transaction ID: ${bytesToHex(txhash.data)}`)
+                  // save private keys to encrypted file
+                  const ephemeralDetail = {
+                    encrypted: false,
+                    kyberSK: kyberSK.toString('hex'),
+                    dilithiumSK: dilithiumSK.toString('hex'),
+                    ecdsaSK: privateKey.toString('hex'),
+                    eciesSK: privateKey.toString('hex'),
+                    txHash: bytesToHex(txhash.data),
+                  }
+                  // if password given, encrypt the file
+                  if (flags.ephemeralPwd) {
+                    const passphrase = flags.ephemeralPwd
+                    ephemeralDetail.encrypted = true
+                    ephemeralDetail.kyberSK = aes256.encrypt(passphrase, ephemeralDetail.kyberPK)
+                    ephemeralDetail.dilithiumSK = aes256.encrypt(passphrase, ephemeralDetail.dilithiumPK)
+                    ephemeralDetail.ecdsaSK = aes256.encrypt(passphrase, ephemeralDetail.ecdsaSK)
+                    ephemeralDetail.eciesSK = aes256.encrypt(passphrase, ephemeralDetail.eciesSK)
+                    ephemeralDetail.txHash = aes256.encrypt(passphrase, ephemeralDetail.txHash)
+                  }
+                  // wrap each line into an array
+                  const ephemeralJson = ['[', JSON.stringify(ephemeralDetail), ']'].join('')
+                  fs.writeFileSync(flags.ephemeralFile, ephemeralJson)
+                  spinner.succeed(`Ephemeral private keys written to ${flags.ephemeralFile}`)
+                })
               })
             })
           })
@@ -515,13 +492,17 @@ Documentation at https://docs.theqrl.org/developers/qrl-cli
 // ]
 
 EphemeralKeys.flags = {
-  file: flags.string({char: 'f', required: true, description: 'wallet json file'}),
+  address: flags.string({char: 'a', required: true, description: 'wallet address or file to generate the keys with'}),
   ephemeralFile: flags.string({char: 'e', required: true, description: 'file to export ephemeral private keys'}),
   ephemeralPwd: flags.string({char: 's', required: false, description: 'ephemeral file password'}),
+
   output: flags.boolean({char: 'o', default: false, description: 'output file to save lattice private keys'}),
-  otsindex: flags.string({char: 'i', required: true, description: 'OTS key index'}),
-  testnet: flags.boolean({char: 't', default: false, description: 'sends Lattice transaction to testnet'}),
+  fee: flags.string({char: 'f', required: false, description: 'Fee to send transaction onto network, defaults to 0.00001'}),
+  otsindex: flags.string({char: 'i', required: false, description: 'OTS key index'}),
+
   mainnet: flags.boolean({char: 'm', default: false, description: 'sends Lattice transaction to mainnet'}),
+  testnet: flags.boolean({char: 't', default: false, description: 'sends Lattice transaction to testnet'}),
+  devnet: flags.boolean({char: 'd', default: false, description: 'sends Lattice transaction to devnet'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
   password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
 }

@@ -29,6 +29,7 @@ class Balance extends Command {
     let spinner
     let address = args.address
     let exitCode = null // eslint-disable-line no-unused-vars
+
     if (!validateQrlAddress.hexString(address).result) {
       // not a valid address - is it a file?
       let isFile = false
@@ -123,6 +124,7 @@ class Balance extends Command {
           this.log(`${red('⨉')} Unable to read status`)
           this.exit(1)
         }
+        this.log(response)
         let balance = new BigNumber(parseInt(response.state.balance, 10))
         if (flags.shor) {
           if (flags.json) {

@@ -109,6 +109,7 @@ class OTSKey extends Command {
           spinner.fail(`${red('⨉')} Unable to read next unused OTS key`)
           exitCode = 1
         }
+        this.log(JSON.stringify(response))
         if (response.unused_ots_index_found) {
           spinner.succeed(cyan('Unused OTS keys Found!!'))
         } else {
