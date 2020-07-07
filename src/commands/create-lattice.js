@@ -290,14 +290,13 @@ class EphemeralKeys extends Command {
                 ots Key Tracking system:
                   Using the OTS response from the node we can track the key usage. So if you
                   skip around the next key may not be what is selected. The node tracks the count of used OTS, not the position of the key.
-                  
                   Some important info:
                     - if the user designates an OTS key ahead of the current key
                       the system will no longer track correctly as another key has been used.
-                    - When the key that was used in the future is reached the system will 
+                    - When the key that was used in the future is reached the system will
                       attempt to re-use the key as it thinks that is the next logical key.
 
-                  To avoid any issues with key reuse or sorting out mis-used keys do not pass the ots key. 
+                  To avoid any issues with key reuse or sorting out mis-used keys do not pass the ots key.
                   Let the system track the OTS keys.
 
                   FIX-ME!!! Check for the address tree height, and if within the last 10 keys fail with warning
@@ -338,7 +337,7 @@ class EphemeralKeys extends Command {
                   this.log(`${yellow('ℹ')} By overriding the default key, you will need to track the OTS key usage manually...\n`)
                   overrideOTS = await cli.confirm('Override OTS key tracking, using custom key index? y/n')
                 }
-                if (passedOtsIndex == otsindex) {
+                if (passedOtsIndex === otsindex) {
                   this.error('Same OTS key given as detected from chain' + otsindex + '\nUser Key:' + passedOtsIndex)
                 }
                 // if the user gave Y to prompt, then user their key index.
@@ -436,7 +435,7 @@ class EphemeralKeys extends Command {
                   if (error) {
                     this.log(`${red('⨉')} Unable send push transaction`)
                   }
-                  spinner.succeed(`RESPONSE: ${JSON.stringify(response)}`)
+                  // spinner.succeed(`RESPONSE: ${JSON.stringify(response)}`)
                   var pushTransactionRes = JSON.stringify(response.tx_hash)
                   var txhash = JSON.parse(pushTransactionRes)
                   // spinner.succeed(`RESPONSE: ${txhash.data}`)

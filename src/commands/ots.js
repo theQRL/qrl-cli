@@ -1,6 +1,6 @@
 /* eslint new-cap: 0, max-depth: 0 */
 const {Command, flags} = require('@oclif/command')
-const {red, cyan, bgWhite, black} = require('kleur')
+const {red, cyan, bgWhite} = require('kleur')
 const ora = require('ora')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const fs = require('fs')
