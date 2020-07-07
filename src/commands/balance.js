@@ -124,7 +124,7 @@ class Balance extends Command {
           this.log(`${red('⨉')} Unable to read status`)
           this.exit(1)
         }
-        this.log(response)
+        // this.log(response)
         let balance = new BigNumber(parseInt(response.state.balance, 10))
         if (flags.shor) {
           if (flags.json) {
