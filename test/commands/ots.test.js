@@ -1,6 +1,5 @@
-/* global before */
 const assert = require('assert')
-const spawn = require('child_process').spawn
+const { spawn } = require('child_process')
 
 const processFlags = {
   detached: true,
@@ -8,12 +7,12 @@ const processFlags = {
 }
 
 describe('ots #1', () => {
-  let args = [
+  const args = [
     'ots',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -25,13 +24,13 @@ describe('ots #1', () => {
 })
 
 describe('ots #2', () => {
-  let args = [
+  const args = [
     'ots',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -43,13 +42,13 @@ describe('ots #2', () => {
 })
 
 describe('ots #3', () => {
-  let args = [
+  const args = [
     'ots',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -61,14 +60,14 @@ describe('ots #3', () => {
 })
 
 describe('ots #4', () => {
-  let args = [
+  const args = [
     'ots',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
     '-m',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -80,14 +79,14 @@ describe('ots #4', () => {
 })
 
 describe('ots #5', () => {
-  let args = [
+  const args = [
     'ots',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
     '-t',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -99,7 +98,7 @@ describe('ots #5', () => {
 })
 
 describe('ots #6', () => {
-  let args = [
+  const args = [
     'ots',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
     '-g',
@@ -107,7 +106,7 @@ describe('ots #6', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()

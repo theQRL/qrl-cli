@@ -19,7 +19,7 @@ const overall = flag => {
 class Validate extends Command {
   async run() {
     const {args, flags} = this.parse(Validate)
-    const address = args.address
+    const {address} = args
     const result = validateQrlAddress.hexString(address)
     if (flags.quiet !== true) {
       this.log(black().bgWhite(` ${address} `))

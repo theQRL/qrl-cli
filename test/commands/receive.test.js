@@ -1,6 +1,5 @@
-/* global before */
 const assert = require('assert')
-const spawn = require('child_process').spawn
+const {spawn} = require('child_process')
 
 const processFlags = {
   detached: true,
@@ -8,12 +7,12 @@ const processFlags = {
 }
 
 describe('receive', () => {
-  let args = [
+  const args = [
     'receive',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -25,13 +24,13 @@ describe('receive', () => {
 })
 
 describe('receive', () => {
-  let args = [
+  const args = [
     'receive',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -43,13 +42,13 @@ describe('receive', () => {
 })
 
 describe('receive', () => {
-  let args = [
+  const args = [
     'receive',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()

@@ -1,21 +1,25 @@
 /* eslint new-cap: 0 */
-const { Command, flags } = require('@oclif/command')
-const { red, white, black } = require('kleur')
+const {
+  Command,
+  flags
+} = require('@oclif/command')
+const {
+  white,
+  black
+} = require('kleur')
 const ora = require('ora')
 const helpers = require('@theqrl/explorer-helpers')
 // const moment = require('moment')
 
-let {
-  qrlClient,
-  checkProtoHash,
-  loadGrpcBaseProto,
-  loadGrpcProto,
-} = require('../functions/grpc')
+const Qrlnode = require('../functions/grpc')
 
 // const shorPerQuanta = 10 ** 9
 
 const identifySearch = str => {
-  const type = { parameter: str, type: 'Undetermined' }
+  const type = {
+    parameter: str,
+    type: 'Undetermined'
+  }
   // if 3 chars or more, assume search token data
   if (str.length > 2) {
     type.type = 'Token'
@@ -47,8 +51,12 @@ const identifySearch = str => {
 
 class Search extends Command {
   async run() {
-    const { flags } = this.parse(Search)
-    const { args } = this.parse(Search)
+    const {
+      flags
+    } = this.parse(Search)
+    const {
+      args
+    } = this.parse(Search)
     let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
     let network = 'Mainnet'
     if (flags.grpc) {
@@ -74,78 +82,75 @@ class Search extends Command {
     const searchString = args.search
     this.log(white().bgBlue(network))
     switch (identifySearch(searchString).method) {
-    case 'tx':
-      this.log(`${black().bgWhite('Txhash')} ${searchString}`)
-      break
-    case 'address':
-      this.log(`${black().bgWhite('Address')} ${searchString}`)
-      break
-    case 'block':
-      this.log(`${black().bgWhite('Block')} ${searchString}`)
-      break
-    }
-
-    const spinner = ora({ text: 'Fetching status from node...' }).start()
-    const proto = await loadGrpcBaseProto(grpcEndpoint)
-    checkProtoHash(proto).then(async protoHash => {
-      if (!protoHash) {
-        this.log(`${red('⨉')} Unable to validate .proto file from node`)
+      case 'tx':
+        this.log(`${black().bgWhite('Txhash')} ${searchString}`)
+        break
+      case 'address':
+        this.log(`${black().bgWhite('Address')} ${searchString}`)
+        break
+      case 'block':
+        this.log(`${black().bgWhite('Block')} ${searchString}`)
+        break
+      default: {
+        this.log('No search string')
         this.exit(1)
       }
-      // next load GRPC object and check hash of that too
-      qrlClient = await loadGrpcProto(proto, grpcEndpoint)
-      if (identifySearch(searchString).method === 'tx') {
-        await qrlClient.GetObject(
-          { query: Buffer.from(searchString, 'hex') },
-          async (error, response) => {
-            if (error) {
-              this.log(`${red('⨉')} Unable to read txhash data`)
-            }
-            if (response.found === false) {
-              spinner.fail('Unable to find transaction')
-              this.exit(1)
-            } else {
-              spinner.succeed('Transaction found')
-              console.dir(helpers.tx(response), { depth: null }) // eslint-disable-line no-console
-            }
-          }
-        )
+    }
+
+    const spinner = ora({
+      text: 'Fetching status from node...'
+    }).start()
+
+    const Qrlnetwork = await new Qrlnode(grpcEndpoint)
+    await Qrlnetwork.connect()
+
+    if (identifySearch(searchString).method === 'tx') {
+      const response = await Qrlnetwork.api('GetObject', {
+        query: Buffer.from(searchString, 'hex')
+      })
+      if (response.found === false) {
+        spinner.fail('Unable to find transaction')
+        this.exit(1)
+      } else {
+        spinner.succeed('Transaction found')
+        // eslint-disable-next-line no-console
+        console.dir(helpers.tx(response), {
+          depth: null,
+        })
       }
-      if (identifySearch(searchString).method === 'block') {
-        await qrlClient.GetObject(
-          { query: Buffer.from(parseInt(searchString, 10).toString()) },
-          async (error, response) => {
-            if (error) {
-              this.log(`${red('⨉')} Unable to read block data`)
-            }
-            if (response.found === false) {
-              spinner.fail('Unable to find block')
-              this.exit(1)
-            } else {
-              spinner.succeed('Block found')
-              console.dir(helpers.block(response), { depth: null }) // eslint-disable-line no-console
-            }
-          }
-        )
+    }
+
+    if (identifySearch(searchString).method === 'block') {
+      const response = await Qrlnetwork.api('GetObject', {
+        query: Buffer.from(parseInt(searchString, 10).toString())
+      })
+      if (response.found === false) {
+        spinner.fail('Unable to find block')
+        this.exit(1)
+      } else {
+        spinner.succeed('Block found')
+        // eslint-disable-next-line no-console
+        console.dir(helpers.block(response), {
+          depth: null,
+        })
       }
-      if (identifySearch(searchString).method === 'address') {
-        await qrlClient.GetOptimizedAddressState(
-          { address: Buffer.from(searchString.substring(1), 'hex') },
-          async (error, response) => {
-            if (error) {
-              this.log(`${red('⨉')} Unable to read address data`)
-            }
-            if (response.found === false) {
-              spinner.fail('Unable to find address')
-              this.exit(1)
-            } else {
-              spinner.succeed('Address found')
-              console.dir(helpers.a(response), { depth: null }) // eslint-disable-line no-console
-            }
-          }
-        )
+    }
+
+    if (identifySearch(searchString).method === 'address') {
+      const response = await Qrlnetwork.api('GetOptimizedAddressState', {
+        address: Buffer.from(searchString.substring(1), 'hex')
+      })
+      if (response.found === false) {
+        spinner.fail('Unable to find address')
+        this.exit(1)
+      } else {
+        spinner.succeed('Address found')
+        // eslint-disable-next-line no-console
+        console.dir(helpers.a(response), {
+          depth: null,
+        })
       }
-    })
+    }
   }
 }
 
@@ -182,9 +187,10 @@ Search.flags = {
   grpc: flags.string({
     char: 'g',
     required: false,
-    description:
-      'advanced: grcp endpoint (for devnet/custom QRL network deployments)',
+    description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)',
   }),
 }
 
-module.exports = { Search }
+module.exports = {
+  Search
+}

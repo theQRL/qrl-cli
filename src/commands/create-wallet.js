@@ -9,6 +9,7 @@ const bech32 = require('bech32')
 const ora = require('ora')
 const fs = require('fs')
 const aes256 = require('aes256')
+
 let QRLLIBLoaded = false
 
 class CreateWallet extends Command {
@@ -37,6 +38,7 @@ class CreateWallet extends Command {
 
     const concatenateTypedArrays = (resultConstructor, ...arrays) => {
       let totalLength = 0
+      /* eslint-disable */
       for (let arr of arrays) {
         totalLength += arr.length
       }
@@ -46,6 +48,7 @@ class CreateWallet extends Command {
         result.set(arr, offset)
         offset += arr.length
       }
+      /* eslint-enable */
       return result
     }
 
@@ -70,14 +73,14 @@ class CreateWallet extends Command {
       }, 50)
     }
 
-    waitForQRLLIB(async _ => {
+    waitForQRLLIB(async () => {
       // default to a tree height of 10 unless passed via CLI
       let xmssHeight = 10
       if (flags.height) {
         let valid = true
         let reason = ''
         const h = parseInt(flags.height, 10)
-        if ((h & 1) === 1) {
+        if ((h & 1) === 1) { // eslint-disable-line no-bitwise
           valid = false
           reason = 'Height must be an even number'
         }

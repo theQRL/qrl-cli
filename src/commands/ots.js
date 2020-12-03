@@ -7,12 +7,9 @@ const fs = require('fs')
 const aes256 = require('aes256')
 const {cli} = require('cli-ux')
 
-let {qrlClient,
-  checkProtoHash,
-  loadGrpcBaseProto,
-  loadGrpcProto} = require('../functions/grpc')
+const Qrlnode = require('../functions/grpc')
 
-const openWalletFile = function (path) {
+const openWalletFile = (path) => {
   const contents = fs.readFileSync(path)
   return JSON.parse(contents)[0]
 }
@@ -20,8 +17,8 @@ const openWalletFile = function (path) {
 class OTSKey extends Command {
   async run() {
     const {args, flags} = this.parse(OTSKey)
-    let address = args.address
-    let exitCode = 1 // eslint-disable-line no-unused-vars
+    let { address}  = args
+    let exitCode = 1 // eslint-disable-line
     if (!validateQrlAddress.hexString(address).result) {
       // not a valid address - is it a file?
       let isFile = false
@@ -89,32 +86,23 @@ class OTSKey extends Command {
     }
     this.log(white().bgBlue(network))
     const spinner = ora({text: 'Fetching OTS from API...'}).start()
-    const proto = await loadGrpcBaseProto(grpcEndpoint)
-    await checkProtoHash(proto).then(async protoHash => {
-      if (!protoHash) {
-        spinner.fail(`${red('⨉')} Unable to validate .proto file from node`)
-        exitCode = 1
-      }
-      // next load GRPC object and check hash of that too
-      qrlClient = await loadGrpcProto(proto, grpcEndpoint)
-      const request = {
-        address: Buffer.from(address.substring(1), 'hex'),
-      }
-      await qrlClient.GetOTS(request, (error, response) => {
-        if (error) {
-          spinner.fail(`${red('⨉')} Unable to read next unused OTS key`)
-          exitCode = 1
-        }
-        spinner.succeed(`Next unused OTS key: ${response.next_unused_ots_index}`)
-        exitCode = 0
-      })
-    })
+    const Qrlnetwork = await new Qrlnode(grpcEndpoint)
+    await Qrlnetwork.connect()
+    const request = { address: Buffer.from(address.substring(1), 'hex') }
+    const response = await Qrlnetwork.api('GetOTS', request)
+    if (response.unused_ots_index_found) {
+      spinner.succeed(`Next unused OTS key: ${response.next_unused_ots_index}`)
+      this.exit(0)
+    } else {
+        this.log(`${red('⨉')} Unable to fetch an OTS key`)
+        this.exit(1)
+    }
   }
 }
 
 OTSKey.description = `Get a address's OTS state from the network
 
-Reports the next unused availabel OTS key. Pass either an address starting with 
+Reports the next unused available OTS key. Pass either an address starting with 
 QQ0004 or a wallet.json file to se the next OTS. You can set the network flag with either (-t) testnet or (-m) mainnet
 
 If the wallet file is encrypted use the -p flag to pass the wallet file encryption password.
@@ -132,7 +120,7 @@ OTSKey.flags = {
   testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
   devnet: flags.boolean({char: 'd', default: false, description: 'queries devnet for the OTS state'}),
-  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
+  grpc: flags.string({char: 'g', required: false, description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)'}),
   password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
 }
 
