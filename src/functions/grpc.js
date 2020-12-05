@@ -95,15 +95,16 @@ async function loadGrpcProto(protofile, endpoint) {
   }
   const packageDefinition = await protoLoader.load(protofile, options)
   const grpcObject = grpc.loadPackageDefinition(packageDefinition)
-  const grpcObjectString = JSON.stringify(grpcObject.qrl)
-  const protoObjectWordArray = CryptoJS.lib.WordArray.create(grpcObjectString)
+  // console.log(packageDefinition)
+  const grpcObjectString = JSON.stringify(grpcObject)
+  const protoObjectWordArray = CryptoJS.lib.WordArray.create(readFile(protofile))
   const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(
     CryptoJS.enc.Hex
   )
   let verified = false
   QRLPROTO_SHA256.forEach((value) => {
-    if (value.objectHash) {
-      if (value.objectHash === calculatedObjectHash) {
+    if (value.cliProto) {
+      if (value.cliProto === calculatedObjectHash) {
         verified = true
       }
     }
