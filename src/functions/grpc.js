@@ -67,7 +67,6 @@ function loadGrpcBaseProto(grpcEndpoint) {
         grpcEndpoint,
         grpc.credentials.createInsecure()
       )
-      // console.log(client)
       const res = await clientGetNodeInfo(client)
       const qrlProtoFilePath = tmp.fileSync({
         mode: '0644',
@@ -95,8 +94,6 @@ async function loadGrpcProto(protofile, endpoint) {
   }
   const packageDefinition = await protoLoader.load(protofile, options)
   const grpcObject = grpc.loadPackageDefinition(packageDefinition)
-  // console.log(packageDefinition)
-  const grpcObjectString = JSON.stringify(grpcObject)
   const protoObjectWordArray = CryptoJS.lib.WordArray.create(readFile(protofile))
   const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(
     CryptoJS.enc.Hex

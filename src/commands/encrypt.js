@@ -1,4 +1,5 @@
 /* eslint new-cap: 0, max-depth: 0 */
+/* eslint-disable */
 const {Command, flags} = require('@oclif/command')
 const {red, white} = require('kleur')
 const ora = require('ora')

@@ -1,3 +1,4 @@
+/* eslint-disable */
 /* global QRLLIB */
 /* global DILLIB */
 /* global KYBLIB */
