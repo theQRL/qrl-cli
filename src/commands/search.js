@@ -154,7 +154,7 @@ class Search extends Command {
   }
 }
 
-Search.description = `Gets the network status
+Search.description = `Searches for a transaction, block or address
 
 Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet or (-d) devnet. 
 Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
@@ -172,17 +172,17 @@ Search.flags = {
   testnet: flags.boolean({
     char: 't',
     default: false,
-    description: 'queries testnet for the OTS state',
+    description: 'queries testnet for the address/txhash/block',
   }),
   mainnet: flags.boolean({
     char: 'm',
     default: false,
-    description: 'queries mainnet for the OTS state',
+    description: 'queries mainnet for the address/txhash/block',
   }),
   devnet: flags.boolean({
     char: 'd',
     default: false,
-    description: 'queries devnet for the OTS state',
+    description: 'queries devnet for the address/txhash/block',
   }),
   grpc: flags.string({
     char: 'g',

@@ -22,7 +22,7 @@ $ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-@theqrl/cli/1.7.1 darwin-x64 node-v12.3.1
+@theqrl/cli/1.7.2 darwin-x64 node-v10.16.3
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND
@@ -78,7 +78,7 @@ DESCRIPTION
   See the documentation at https://docs.theqrl.org/developers/qrl-cli
 ```
 
-_See code: [src/commands/balance.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/balance.js)_
+_See code: [src/commands/balance.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/balance.js)_
 
 ## `qrl-cli create-lattice`
 
@@ -107,7 +107,7 @@ DESCRIPTION
   Documentation at https://docs.theqrl.org/developers/qrl-cli
 ```
 
-_See code: [src/commands/create-lattice.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/create-lattice.js)_
+_See code: [src/commands/create-lattice.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/create-lattice.js)_
 
 ## `qrl-cli create-wallet`
 
@@ -132,7 +132,7 @@ DESCRIPTION
   Documentation at https://docs.theqrl.org/developers/qrl-cli
 ```
 
-_See code: [src/commands/create-wallet.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/create-wallet.js)_
+_See code: [src/commands/create-wallet.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/create-wallet.js)_
 
 ## `qrl-cli decrypt`
 
@@ -148,7 +148,7 @@ OPTIONS
   -t, --testnet    queries testnet for the OTS state
 ```
 
-_See code: [src/commands/decrypt.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/decrypt.js)_
+_See code: [src/commands/decrypt.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/decrypt.js)_
 
 ## `qrl-cli encrypt [ADDRESS] [ITEM_PER_PAGE] [PAGE_NUMBER] [MESSAGE]`
 
@@ -172,7 +172,7 @@ OPTIONS
   -t, --testnet        queries testnet for the OTS state
 ```
 
-_See code: [src/commands/encrypt.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/encrypt.js)_
+_See code: [src/commands/encrypt.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/encrypt.js)_
 
 ## `qrl-cli get-keys ADDRESS ITEM_PER_PAGE PAGE_NUMBER`
 
@@ -194,7 +194,7 @@ OPTIONS
   -t, --testnet            queries testnet for the OTS state
 ```
 
-_See code: [src/commands/get-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/get-keys.js)_
+_See code: [src/commands/get-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/get-keys.js)_
 
 ## `qrl-cli help [COMMAND]`
 
@@ -226,19 +226,19 @@ ARGUMENTS
 
 OPTIONS
   -d, --devnet             queries devnet for the OTS state
-  -g, --grpc=grpc          advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc          advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -m, --mainnet            queries mainnet for the OTS state
   -p, --password=password  wallet file password
   -t, --testnet            queries testnet for the OTS state
 
 DESCRIPTION
-  Reports the next unused availabel OTS key. Pass either an address starting with 
+  Reports the next unused available OTS key. Pass either an address starting with 
   QQ0004 or a wallet.json file to se the next OTS. You can set the network flag with either (-t) testnet or (-m) mainnet
 
   If the wallet file is encrypted use the -p flag to pass the wallet file encryption password.
 ```
 
-_See code: [src/commands/ots.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/ots.js)_
+_See code: [src/commands/ots.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/ots.js)_
 
 ## `qrl-cli receive ADDRESS`
 
@@ -259,7 +259,7 @@ DESCRIPTION
   If using an encrypted wallet file pass the encryption password with the (-p) flag.
 ```
 
-_See code: [src/commands/receive.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/receive.js)_
+_See code: [src/commands/receive.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/receive.js)_
 
 ## `qrl-cli receive-initial-message FILE`
 
@@ -281,7 +281,7 @@ OPTIONS
   -t, --testnet            uses testnet for this function
 ```
 
-_See code: [src/commands/receive-initial-message.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/receive-initial-message.js)_
+_See code: [src/commands/receive-initial-message.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/receive-initial-message.js)_
 
 ## `qrl-cli receive-next-message INDEX`
 
@@ -300,11 +300,11 @@ OPTIONS
   -t, --testnet    uses testnet for this function
 ```
 
-_See code: [src/commands/receive-next-message.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/receive-next-message.js)_
+_See code: [src/commands/receive-next-message.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/receive-next-message.js)_
 
 ## `qrl-cli search SEARCH`
 
-Gets the network status
+Searches for a transaction, block or address
 
 ```
 USAGE
@@ -314,10 +314,10 @@ ARGUMENTS
   SEARCH  a search term: address/txhash/block to query API for
 
 OPTIONS
-  -d, --devnet     queries devnet for the OTS state
-  -g, --grpc=grpc  advanced: grcp endpoint (for devnet/custom QRL network deployments)
-  -m, --mainnet    queries mainnet for the OTS state
-  -t, --testnet    queries testnet for the OTS state
+  -d, --devnet     queries devnet for the address/txhash/block
+  -g, --grpc=grpc  advanced: grpc endpoint (for devnet/custom QRL network deployments)
+  -m, --mainnet    queries mainnet for the address/txhash/block
+  -t, --testnet    queries testnet for the address/txhash/block
 
 DESCRIPTION
   Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, 
@@ -325,7 +325,7 @@ DESCRIPTION
   Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 ```
 
-_See code: [src/commands/search.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/search.js)_
+_See code: [src/commands/search.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/search.js)_
 
 ## `qrl-cli send QUANTITY`
 
@@ -340,7 +340,7 @@ ARGUMENTS
 
 OPTIONS
   -f, --fee=fee                Fee for transaction in Shor (defaults to 100 Shor)
-  -g, --grpc=grpc              advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc              advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -h, --hexseed=hexseed        hexseed/mnemonic of wallet from where funds should be sent
   -i, --otsindex=otsindex      (required) OTS key index
   -j, --jsonObject=jsonObject  Pass a JSON object of recipients/quantities for multi-output transactions
@@ -357,7 +357,7 @@ DESCRIPTION
   TODO
 ```
 
-_See code: [src/commands/send.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/send.js)_
+_See code: [src/commands/send.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/send.js)_
 
 ## `qrl-cli send-initial-message FILE`
 
@@ -379,7 +379,7 @@ OPTIONS
   -t, --testnet            queries testnet for the OTS state
 ```
 
-_See code: [src/commands/send-initial-message.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/send-initial-message.js)_
+_See code: [src/commands/send-initial-message.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/send-initial-message.js)_
 
 ## `qrl-cli send-next-message INDEX MESSAGE`
 
@@ -399,7 +399,7 @@ OPTIONS
   -t, --testnet    queries testnet for the OTS state
 ```
 
-_See code: [src/commands/send-next-message.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/send-next-message.js)_
+_See code: [src/commands/send-next-message.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/send-next-message.js)_
 
 ## `qrl-cli sign`
 
@@ -418,7 +418,7 @@ OPTIONS
   -t, --testnet            queries testnet for the OTS state
 ```
 
-_See code: [src/commands/sign.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/sign.js)_
+_See code: [src/commands/sign.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/sign.js)_
 
 ## `qrl-cli status`
 
@@ -430,7 +430,7 @@ USAGE
 
 OPTIONS
   -d, --devnet     queries devnet for the OTS state
-  -g, --grpc=grpc  advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc  advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -m, --mainnet    queries mainnet for the OTS state
   -t, --testnet    queries testnet for the OTS state
 
@@ -439,7 +439,7 @@ DESCRIPTION
   Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 ```
 
-_See code: [src/commands/status.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/status.js)_
+_See code: [src/commands/status.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/status.js)_
 
 ## `qrl-cli validate ADDRESS`
 
@@ -460,7 +460,7 @@ DESCRIPTION
   when passed a QRL address in hexstring (preceded by 'Q'), will return details about the addresses validity.
 ```
 
-_See code: [src/commands/validate.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/validate.js)_
+_See code: [src/commands/validate.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/validate.js)_
 
 ## `qrl-cli verify ADDRESS ITEM_PER_PAGE PAGE_NUMBER`
 
@@ -481,5 +481,5 @@ OPTIONS
   -t, --testnet    queries testnet for the OTS state
 ```
 
-_See code: [src/commands/verify.js](https://github.com/theqrl/qrl-cli/blob/v1.7.1/src/commands/verify.js)_
+_See code: [src/commands/verify.js](https://github.com/theqrl/qrl-cli/blob/v1.7.2/src/commands/verify.js)_
 <!-- commandsstop -->

@@ -1,19 +1,19 @@
 {
   "name": "@theqrl/cli",
   "description": "QRL CLI functions",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "author": "JP Lomas <jp@theqrl.org>, The QRL Foundation",
   "bin": {
     "qrl-cli": "./bin/run"
   },
   "bugs": "https://github.com/theqrl/qrl-cli/issues",
   "dependencies": {
-    "@grpc/grpc-js": "^0.8.1",
+    "@grpc/grpc-js": "0.8.1",
     "@grpc/proto-loader": "^0.5.1",
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^2",
-    "@theqrl/explorer-helpers": "^2.0.0",
+    "@theqrl/explorer-helpers": "2.0.0",
     "@theqrl/qrl-proto-sha256": "^3.3.0",
     "@theqrl/qrlbase.proto": "^1.1.0",
     "@theqrl/validate-qrl-address": "^1.1.0",
@@ -25,7 +25,7 @@
     "bignumber.js": "^9.0.0",
     "cli-ux": "^5.3.1",
     "crypto": "^1.0.1",
-    "crypto-js": "^3.1.9-1",
+    "crypto-js": "3.1.9-1",
     "eccrypto": "^1.1.5",
     "google-proto-files": "^2.3.0",
     "grpc-js-kit": "^0.1.0",
@@ -92,7 +92,11 @@
     "make-binaries": "pkg . -t node10-macos-x64 -o dist/macos/qrl-cli && pkg . -t node10-win-x64 -o dist/win/qrl-cli && pkg . -t node10-linux-x64 -o dist/linux/qrl-cli && cp ./assets/macos/ecdh.node dist/macos && cp ./assets/linux/ecdh.node dist/linux && cp ./assets/win/ecdh.node dist/win"
   },
   "pkg": {
-    "scripts": [ "src/**" ],
-    "assets": [ "node_modules/@theqrl/qrlbase.proto/**" ]
+    "scripts": [
+      "src/**"
+    ],
+    "assets": [
+      "node_modules/@theqrl/qrlbase.proto/**"
+    ]
   }
 }
