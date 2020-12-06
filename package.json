@@ -1,7 +1,7 @@
 {
   "name": "@theqrl/cli",
   "description": "QRL CLI functions",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "author": "JP Lomas <jp@theqrl.org>, The QRL Foundation",
   "bin": {
     "qrl-cli": "./bin/run"
@@ -13,6 +13,7 @@
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^2",
+    "@semantic-release/git": "^9.0.0",
     "@theqrl/explorer-helpers": "2.0.0",
     "@theqrl/qrl-proto-sha256": "^3.3.0",
     "@theqrl/qrlbase.proto": "^1.1.0",
