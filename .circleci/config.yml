@@ -41,6 +41,9 @@ jobs:
       - run: zip -r qrl-cli-win.zip dist/win
       - run: zip -r qrl-cli-linux.zip dist/linux
       - run:
+          name: "Update docs"
+          command: "yarn run prepack"
+      - run:
           name: "Publish Release on GitHub"
           command: nvm use v12 && npx semantic-release
 
