@@ -22,7 +22,7 @@ $ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-@theqrl/cli/1.7.1 darwin-x64 node-v12.3.1
+@theqrl/cli/1.7.1 darwin-x64 node-v10.16.3
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND
@@ -226,13 +226,13 @@ ARGUMENTS
 
 OPTIONS
   -d, --devnet             queries devnet for the OTS state
-  -g, --grpc=grpc          advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc          advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -m, --mainnet            queries mainnet for the OTS state
   -p, --password=password  wallet file password
   -t, --testnet            queries testnet for the OTS state
 
 DESCRIPTION
-  Reports the next unused availabel OTS key. Pass either an address starting with 
+  Reports the next unused available OTS key. Pass either an address starting with 
   QQ0004 or a wallet.json file to se the next OTS. You can set the network flag with either (-t) testnet or (-m) mainnet
 
   If the wallet file is encrypted use the -p flag to pass the wallet file encryption password.
@@ -304,7 +304,7 @@ _See code: [src/commands/receive-next-message.js](https://github.com/theqrl/qrl-
 
 ## `qrl-cli search SEARCH`
 
-Gets the network status
+Searches for a transaction, block or address
 
 ```
 USAGE
@@ -314,10 +314,10 @@ ARGUMENTS
   SEARCH  a search term: address/txhash/block to query API for
 
 OPTIONS
-  -d, --devnet     queries devnet for the OTS state
-  -g, --grpc=grpc  advanced: grcp endpoint (for devnet/custom QRL network deployments)
-  -m, --mainnet    queries mainnet for the OTS state
-  -t, --testnet    queries testnet for the OTS state
+  -d, --devnet     queries devnet for the address/txhash/block
+  -g, --grpc=grpc  advanced: grpc endpoint (for devnet/custom QRL network deployments)
+  -m, --mainnet    queries mainnet for the address/txhash/block
+  -t, --testnet    queries testnet for the address/txhash/block
 
 DESCRIPTION
   Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, 
@@ -340,7 +340,7 @@ ARGUMENTS
 
 OPTIONS
   -f, --fee=fee                Fee for transaction in Shor (defaults to 100 Shor)
-  -g, --grpc=grpc              advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc              advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -h, --hexseed=hexseed        hexseed/mnemonic of wallet from where funds should be sent
   -i, --otsindex=otsindex      (required) OTS key index
   -j, --jsonObject=jsonObject  Pass a JSON object of recipients/quantities for multi-output transactions
@@ -430,7 +430,7 @@ USAGE
 
 OPTIONS
   -d, --devnet     queries devnet for the OTS state
-  -g, --grpc=grpc  advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc  advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -m, --mainnet    queries mainnet for the OTS state
   -t, --testnet    queries testnet for the OTS state
 
