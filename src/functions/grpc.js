@@ -17,8 +17,7 @@ const writeFile = util.promisify(fs.writeFile)
 
 const PROTO_PATH = QRLPROTOPATH
 
-const GOOGLE_PATH = path.dirname(QRLPROTOPATH)
-
+const GOOGLE_PATH = `${path.dirname(QRLPROTOPATH)}/`
 
 function clientGetNodeInfo(client) {
     return new Promise((resolve, reject) => {
@@ -59,7 +58,7 @@ function loadGrpcBaseProto(grpcEndpoint) {
       enums: String,
       defaults: true,
       oneofs: true,
-      includeDirs: [GOOGLE_PATH],
+      includeDirs: [GOOGLE_PATH, '/snapshot/qrl-cli/node_modules/@theqrl/qrlbase.proto/'],
     }
   return protoLoader.load(PROTO_PATH, options).then(async (packageDefinition) => {
       const packageObject = await grpc.loadPackageDefinition(packageDefinition)
@@ -168,9 +167,12 @@ class QrlNode {
     }
   }
 
-  async api(apiCall, request = {}) {
+  api(apiCall, request = {}) {
       return new Promise((resolve, reject) => {
-        const { client } = this
+        let { client } = this
+        if (this.connection === false) {
+          client = this.connect()
+        }
         client[apiCall](request, (error, response) => {
           if (error) {
             reject(error)
