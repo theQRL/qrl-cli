@@ -3,7 +3,7 @@ version: 2
 jobs:
   node-latest: &test
     docker:
-      - image: circleci/node:10.16.3
+      - image: circleci/python:3.7-node
     working_directory: ~/cli
     steps:
       - checkout
@@ -12,10 +12,9 @@ jobs:
             - v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
             - v1-npm-{{checksum ".circleci/config.yml"}}
       - run: |
-          set +e
-          wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.1/install.sh | bash
-          export NVM_DIR="/opt/circleci/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.1/install.sh | bash
+          echo 'export NVM_DIR=$HOME/.nvm' >> $BASH_ENV
+          echo 'source $NVM_DIR/nvm.sh' >> $BASH_ENV
       - run: |
           node -v
       - run: |
