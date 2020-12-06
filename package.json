@@ -1,7 +1,7 @@
 {
   "name": "@theqrl/cli",
   "description": "QRL CLI functions",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "author": "JP Lomas <jp@theqrl.org>, The QRL Foundation",
   "bin": {
     "qrl-cli": "./bin/run"
@@ -41,6 +41,7 @@
   "devDependencies": {
     "@oclif/dev-cli": "^1",
     "@oclif/test": "^1",
+    "@semantic-release/git": "^9.0.0",
     "babel-eslint": "^10.1.0",
     "chai": "^4",
     "codecov": "^3.6.5",
@@ -92,7 +93,11 @@
     "make-binaries": "pkg . -t node10-macos-x64 -o dist/macos/qrl-cli && pkg . -t node10-win-x64 -o dist/win/qrl-cli && pkg . -t node10-linux-x64 -o dist/linux/qrl-cli && cp ./assets/macos/ecdh.node dist/macos && cp ./assets/linux/ecdh.node dist/linux && cp ./assets/win/ecdh.node dist/win"
   },
   "pkg": {
-    "scripts": [ "src/**" ],
-    "assets": [ "node_modules/@theqrl/qrlbase.proto/**" ]
+    "scripts": [
+      "src/**"
+    ],
+    "assets": [
+      "node_modules/@theqrl/qrlbase.proto/**"
+    ]
   }
 }
