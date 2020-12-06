@@ -46,7 +46,7 @@ jobs:
       - run: yarn run postpack
       - run:
           name: "Publish Release on GitHub"
-          command: nvm use v12 && npx semantic-release
+          command: nvm use v12 && yarn add @semantic-release/git && npx semantic-release
 
   cache:
     <<: *test
