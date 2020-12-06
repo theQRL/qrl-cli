@@ -11,6 +11,18 @@ jobs:
           keys:
             - v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
             - v1-npm-{{checksum ".circleci/config.yml"}}
+      - run: |
+          set +e
+          wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.1/install.sh | bash
+          export NVM_DIR="/opt/circleci/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+      - run: |
+          node -v
+      - run: |
+          nvm install v12
+          nvm install v10.16.3
+          node -v
+          nvm alias default v10.16.3
       - run:
           name: Install dependencies
           command: yarn
@@ -31,7 +43,7 @@ jobs:
       - run: zip -r qrl-cli-linux.zip dist/linux
       - run:
           name: "Publish Release on GitHub"
-          command: npx semantic-release
+          command: nvm use v12 && npx semantic-release
 
   cache:
     <<: *test
