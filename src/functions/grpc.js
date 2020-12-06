@@ -171,7 +171,7 @@ class QrlNode {
   async api(apiCall, request = {}) {
       return new Promise((resolve, reject) => {
         const { client } = this
-        client[apiCall](request, async (error, response) => {
+        client[apiCall](request, (error, response) => {
           if (error) {
             reject(error)
           }
