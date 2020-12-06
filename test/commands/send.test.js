@@ -1,6 +1,5 @@
-/* global before */
 const assert = require('assert')
-const spawn = require('child_process').spawn
+const {spawn} = require('child_process')
 
 const processFlags = {
   detached: true,
@@ -8,12 +7,12 @@ const processFlags = {
 }
 
 describe('send #1', () => {
-  let args = [
+  const args = [
     'send',
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -25,7 +24,7 @@ describe('send #1', () => {
 })
 
 describe('send #2a', () => {
-  let args = [
+  const args = [
     'send',
     '10',
     '-f',
@@ -37,7 +36,7 @@ describe('send #2a', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -49,7 +48,7 @@ describe('send #2a', () => {
 })
 
 describe('send #2b', () => {
-  let args = [
+  const args = [
     'send',
     '10',
     '-j',
@@ -61,7 +60,7 @@ describe('send #2b', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -73,7 +72,7 @@ describe('send #2b', () => {
 })
 
 describe('send #3', () => {
-  let args = [
+  const args = [
     'send',
     '10',
     '-h',
@@ -83,7 +82,7 @@ describe('send #3', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -95,7 +94,7 @@ describe('send #3', () => {
 })
 
 describe('send #4a', () => {
-  let args = [
+  const args = [
     'send',
     '10',
     '-j',
@@ -106,7 +105,7 @@ describe('send #4a', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -118,7 +117,7 @@ describe('send #4a', () => {
 })
 
 describe('send #4b', () => {
-  let args = [
+  const args = [
     'send',
     '10',
     '-f',
@@ -129,7 +128,7 @@ describe('send #4b', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()

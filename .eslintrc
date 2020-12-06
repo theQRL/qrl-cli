@@ -1,8 +1,15 @@
 {
-  "extends": "oclif",
+  "extends": ["airbnb-base", "prettier"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "mocha": true
+  },
   "rules": {
     "object-curly-spacing": "off",
     "require-atomic-updates": "off",
-    "comma-dangle": "off"
+    "comma-dangle": "off",
+    "no-shadow": "off",
+    "no-extra-semi": "error"
   }
 }

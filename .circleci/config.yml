@@ -3,7 +3,7 @@ version: 2
 jobs:
   node-latest: &test
     docker:
-      - image: circleci/node:12.3.1
+      - image: circleci/python:3.7-node
     working_directory: ~/cli
     steps:
       - checkout
@@ -11,6 +11,17 @@ jobs:
           keys:
             - v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
             - v1-npm-{{checksum ".circleci/config.yml"}}
+      - run: |
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.1/install.sh | bash
+          echo 'export NVM_DIR=$HOME/.nvm' >> $BASH_ENV
+          echo 'source $NVM_DIR/nvm.sh' >> $BASH_ENV
+      - run: |
+          node -v
+      - run: |
+          nvm install v12
+          nvm install v10.16.3
+          node -v
+          nvm alias default v10.16.3
       - run:
           name: Install dependencies
           command: yarn
@@ -26,17 +37,13 @@ jobs:
           name: Build binaries
           command: yarn run make-binaries
       - run: cd dist && find . -type f -print0 | xargs -0 shasum -a 256 > ../shasum.256.asc && cd .. && cp shasum.256.asc dist/
-      - run: sudo npm install -g semantic-release
       - run: zip -r qrl-cli-macos.zip dist/macos
       - run: zip -r qrl-cli-win.zip dist/win
       - run: zip -r qrl-cli-linux.zip dist/linux
       - run:
           name: "Publish Release on GitHub"
-          command: semantic-release
-  node-12:
-    <<: *test
-    docker:
-      - image: node:12
+          command: nvm use v12 && npx semantic-release
+
   cache:
     <<: *test
     steps:

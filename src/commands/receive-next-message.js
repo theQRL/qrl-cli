@@ -1,3 +1,4 @@
+/* eslint-disable */
 /* eslint-disable max-nested-callbacks */
 /* eslint new-cap: 0, max-depth: 0 */
 const {Command, flags} = require('@oclif/command')

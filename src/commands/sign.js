@@ -1,3 +1,4 @@
+/* eslint-disable */
 /* eslint new-cap: 0, max-depth: 0 */
 const {Command, flags} = require('@oclif/command')
 const {red, white} = require('kleur')

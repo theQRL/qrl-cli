@@ -1,6 +1,5 @@
-/* global before */
 const assert = require('assert')
-const spawn = require('child_process').spawn
+const {spawn} = require('child_process')
 
 const processFlags = {
   detached: true,
@@ -8,10 +7,10 @@ const processFlags = {
 }
 
 describe('status #1', () => {
-  let args = ['status']
+  const args = ['status']
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -23,10 +22,10 @@ describe('status #1', () => {
 })
 
 describe('status #2', () => {
-  let args = ['status', '-m']
+  const args = ['status', '-m']
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -38,10 +37,10 @@ describe('status #2', () => {
 })
 
 describe('status #3', () => {
-  let args = ['status', '-t']
+  const args = ['status', '-t']
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -52,26 +51,27 @@ describe('status #3', () => {
   })
 })
 
-describe('status #4', () => {
-  let args = ['status', '-d']
-  let exitCode
-  before(done => {
-    let process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with -t devnet flag', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
+//  devnet is Zond...
+// describe('status #4', () => {
+//   const args = ['status', '-d']
+//   let exitCode
+//   before(done => {
+//     const process = spawn('./bin/run', args, processFlags)
+//     process.on('exit', code => {
+//       exitCode = code
+//       done()
+//     })
+//   })
+//   it('exit code should be 0 if passed with -d devnet flag', () => {
+//     assert.strictEqual(exitCode, 0)
+//   })
+// })
 
 describe('status #5', () => {
-  let args = ['status', '-g', 'mainnet-1.automated.theqrl.org:19009']
+  const args = ['status', '-g', 'mainnet-1.automated.theqrl.org:19009']
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -83,10 +83,10 @@ describe('status #5', () => {
 })
 
 describe('status #6', () => {
-  let args = ['status', '-g']
+  const args = ['status', '-g']
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -98,10 +98,10 @@ describe('status #6', () => {
 })
 
 describe('status #7', () => {
-  let args = ['status', '-g', 'invalid.theqrl.org']
+  const args = ['status', '-g', 'invalid.theqrl.org']
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()

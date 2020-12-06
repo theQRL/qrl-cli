@@ -1,33 +1,30 @@
 /* eslint new-cap: 0, max-depth: 0 */
-const {Command, flags} = require('@oclif/command')
-const {red, white, black} = require('kleur')
-let {qrlClient,
-  checkProtoHash,
-  loadGrpcBaseProto,
-  loadGrpcProto} = require('../functions/grpc')
+const { Command, flags } = require('@oclif/command')
+const { red, white, black } = require('kleur')
 const ora = require('ora')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const BigNumber = require('bignumber.js')
 const fs = require('fs')
 const aes256 = require('aes256')
-const {cli} = require('cli-ux')
+const { cli } = require('cli-ux')
+
+const Qrlnode = require('../functions/grpc')
 
 const shorPerQuanta = 10 ** 9
 
-const openWalletFile = function (path) {
+const openWalletFile = (path) => {
   const contents = fs.readFileSync(path)
   return JSON.parse(contents)[0]
 }
 
-const addressForAPI = address => {
+const addressForAPI = (address) => {
   return Buffer.from(address.substring(1), 'hex')
 }
 
 class Balance extends Command {
   async run() {
-    const {args, flags} = this.parse(Balance)
-    let address = args.address
-    let exitCode = null // eslint-disable-line no-unused-vars
+    const { args, flags } = this.parse(Balance)
+    let {address} = args
     if (!validateQrlAddress.hexString(address).result) {
       // not a valid address - is it a file?
       let isFile = false
@@ -56,7 +53,7 @@ class Balance extends Command {
             if (flags.password) {
               password = flags.password
             } else {
-              password = await cli.prompt('Enter password for wallet file', {type: 'hide'})
+              password = await cli.prompt('Enter password for wallet file', { type: 'hide' })
             }
             address = aes256.decrypt(password, walletJson.address)
             if (validateQrlAddress.hexString(address).result) {
@@ -95,53 +92,21 @@ class Balance extends Command {
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
-    const spinner = ora({text: 'Fetching balance from node...'}).start()
-    const proto = await loadGrpcBaseProto(grpcEndpoint)
-    checkProtoHash(proto).then(async protoHash => {
-      if (!protoHash) {
-        this.log(`${red('⨉')} Unable to validate .proto file from node`)
-        this.exit(1)
-      }
-      // next load GRPC object and check hash of that too
-      qrlClient = await loadGrpcProto(proto, grpcEndpoint)
-      const request = {
-        address: addressForAPI(address),
-      }
-      if (network === 'Testnet') {
-        qrlClient.GetOptimizedAddressState(request, (error, response) => {
-          if (error) {
-            this.log(`${red('⨉')} Unable to read status`)
-            this.exit(1)
-          }
-          let balance = new BigNumber(parseInt(response.state.balance, 10))
-          if (flags.shor) {
-            spinner.succeed(`Balance: ${balance} Shor`)
-          }
-          if (flags.quanta || !flags.shor) {
-            // default to showing balance in Quanta if no flags
-            spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
-          }
-        })
-      } else {
-        await qrlClient.GetAddressState(request, (error, response) => {
-          if (error) {
-            this.log(`${red('⨉')} Unable to read status`)
-            exitCode = 1
-            return
-          }
-          let balance = new BigNumber(parseInt(response.state.balance, 10))
-          if (flags.shor) {
-            spinner.succeed(`Balance: ${balance} Shor`)
-            exitCode = 0
-          }
-          if (flags.quanta || !flags.shor) {
-            // default to showing balance in Quanta if no flags
-            spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
-            exitCode = 0
-          }
-        })
-      }
-    })
+    const spinner = ora({ text: 'Fetching balance from node...' }).start()
+    const Qrlnetwork = await new Qrlnode(grpcEndpoint)
+    await Qrlnetwork.connect()
+    const request = {
+      address: addressForAPI(address),
+    }
+    const response = await Qrlnetwork.api('GetOptimizedAddressState', request)
+    const balance = new BigNumber(parseInt(response.state.balance, 10))
+    if (flags.shor) {
+      spinner.succeed(`Balance: ${balance} Shor`)
+    }
+    if (flags.quanta || !flags.shor) {
+      // default to showing balance in Quanta if no flags
+      spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
+    }
   }
 }
 
@@ -162,13 +127,17 @@ Balance.args = [
 ]
 
 Balance.flags = {
-  testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the balance'}),
-  mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the balance'}),
-  devnet: flags.boolean({char: 'd', default: false, description: 'queries devnet for the balance'}),
-  shor: flags.boolean({char: 's', default: false, description: 'reports the balance in Shor'}),
-  quanta: flags.boolean({char: 'q', default: false, description: 'reports the balance in Quanta'}),
-  grpc: flags.string({char: 'g', required: false, description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'}),
-  password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
+  testnet: flags.boolean({ char: 't', default: false, description: 'queries testnet for the balance' }),
+  mainnet: flags.boolean({ char: 'm', default: false, description: 'queries mainnet for the balance' }),
+  devnet: flags.boolean({ char: 'd', default: false, description: 'queries devnet for the balance' }),
+  shor: flags.boolean({ char: 's', default: false, description: 'reports the balance in Shor' }),
+  quanta: flags.boolean({ char: 'q', default: false, description: 'reports the balance in Quanta' }),
+  grpc: flags.string({
+    char: 'g',
+    required: false,
+    description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)',
+  }),
+  password: flags.string({ char: 'p', required: false, description: 'wallet file password' }),
 }
 
-module.exports = {Balance}
+module.exports = { Balance }

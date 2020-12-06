@@ -7,7 +7,7 @@ const aes256 = require('aes256')
 const {cli} = require('cli-ux')
 const fs = require('fs')
 
-const openWalletFile = function (path) {
+const openWalletFile = (path) => {
   const contents = fs.readFileSync(path)
   return JSON.parse(contents)[0]
 }
@@ -15,7 +15,7 @@ const openWalletFile = function (path) {
 class Receive extends Command {
   async run() {
     const {args, flags} = this.parse(Receive)
-    let address = args.address
+    let {address} = args
     if (!validateQrlAddress.hexString(address).result) {
       // not a valid address - is it a file?
       let isFile = false

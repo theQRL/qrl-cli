@@ -1,14 +1,13 @@
-/* global before */
 const assert = require('assert')
-const spawn = require('child_process').spawn
+const {spawn} = require('child_process')
 
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
 
-describe('balance', () => {
-  let args = [
+describe('balance #1', () => {
+  const args = [
     'balance',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
     '-a',
@@ -16,7 +15,7 @@ describe('balance', () => {
   ]
   let exitCode
   before(done => {
-    let process = spawn('./bin/run', args, processFlags)
+    const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
@@ -27,14 +26,12 @@ describe('balance', () => {
   })
 })
 
-describe('balance', () => {
-  let args = [
-    'balance',
-  ]
+describe('balance #2', () => {
+  const args = ['balance']
   let exitCode
-  before(done => {
-    let process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+  before((done) => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', (code) => {
       exitCode = code
       done()
     })
@@ -44,15 +41,12 @@ describe('balance', () => {
   })
 })
 
-describe('balance', () => {
-  let args = [
-    'balance',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-  ]
+describe('balance #3', () => {
+  const args = ['balance', 'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3']
   let exitCode
-  before(done => {
-    let process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+  before((done) => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', (code) => {
       exitCode = code
       done()
     })
@@ -62,16 +56,12 @@ describe('balance', () => {
   })
 })
 
-describe('balance', () => {
-  let args = [
-    'balance',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-    '-s',
-  ]
+describe('balance #4', () => {
+  const args = ['balance', 'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3', '-s']
   let exitCode
-  before(done => {
-    let process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+  before((done) => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', (code) => {
       exitCode = code
       done()
     })
@@ -81,16 +71,12 @@ describe('balance', () => {
   })
 })
 
-describe('balance', () => {
-  let args = [
-    'balance',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-    '-q',
-  ]
+describe('balance #5', () => {
+  const args = ['balance', 'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3', '-q']
   let exitCode
-  before(done => {
-    let process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+  before((done) => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', (code) => {
       exitCode = code
       done()
     })
@@ -100,17 +86,12 @@ describe('balance', () => {
   })
 })
 
-describe('balance', () => {
-  let args = [
-    'balance',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-    '-s',
-    '-q',
-  ]
+describe('balance #6', () => {
+  const args = ['balance', 'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3', '-s', '-q']
   let exitCode
-  before(done => {
-    let process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+  before((done) => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', (code) => {
       exitCode = code
       done()
     })
@@ -120,15 +101,12 @@ describe('balance', () => {
   })
 })
 
-describe('balance', () => {
-  let args = [
-    'balance',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
-  ]
+describe('balance #7', () => {
+  const args = ['balance', 'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4']
   let exitCode
-  before(done => {
-    let process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+  before((done) => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', (code) => {
       exitCode = code
       done()
     })
