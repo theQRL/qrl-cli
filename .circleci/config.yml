@@ -34,15 +34,16 @@ jobs:
           name: Upload code coverage to codecov
           command: yarn cov
       - run:
+          name: "Update docs"
+          command: "yarn run prepack"
+      - run:
           name: Build binaries
           command: yarn run make-binaries
       - run: cd dist && find . -type f -print0 | xargs -0 shasum -a 256 > ../shasum.256.asc && cd .. && cp shasum.256.asc dist/
       - run: zip -r qrl-cli-macos.zip dist/macos
       - run: zip -r qrl-cli-win.zip dist/win
       - run: zip -r qrl-cli-linux.zip dist/linux
-      - run:
-          name: "Update docs"
-          command: "yarn run prepack"
+      - run: yarn run postpack
       - run:
           name: "Publish Release on GitHub"
           command: nvm use v12 && npx semantic-release
