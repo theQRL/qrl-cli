@@ -19,9 +19,9 @@ jobs:
           node -v
       - run: |
           nvm install v12
-          nvm install v10.16.3
+          nvm install v10.18.1
           node -v
-          nvm alias default v10.16.3
+          nvm alias default v10.18.1
       - run:
           name: Install dependencies
           command: yarn
