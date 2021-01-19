@@ -88,39 +88,35 @@ DESCRIPTION
 
 _See code: [src/commands/balance.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/balance.js)_
 
-## `qrl-cli create-lattice`
+## `qrl-cli lattice`
 
 Send lattice transaction 
 
 ```
-Send lattice transaction 
-
-To create a lattice transaction you will need to have a wallet file (see create-wallet command)
-The generated private keys will be save to the file defined with the -o command using the same password as the one for the wallet
-
-Documentation at https://docs.theqrl.org/developers/qrl-cli
-
+Create crystals Kyber and Dilithium keys and broadcasts to newtwork 
 
 USAGE
-  $ qrl-cli create-lattice
+  $ qrl-cli lattice
 
 OPTIONS
-  -e, --ephemeralFile=ephemeralFile  (required) file to export ephemeral private keys
-  -f, --file=file                    (required) wallet json file
-  -g, --grpc=grpc                    advanced: grcp endpoint (for devnet/custom QRL network deployments)
-  -i, --otsindex=otsindex            (required) OTS key index
-  -m, --mainnet                      sends Lattice transaction to mainnet
-  -o, --output                       output file to save lattice private keys
-  -p, --password=password            wallet file password
-  -s, --ephemeralPwd=ephemeralPwd    ephemeral file password
-  -t, --testnet                      sends Lattice transaction to testnet
+  -b, --broadcast                          broadcast the crystals keys to the network
+  -c, --crystalsFile=crystalsFile          (c)reate crystals keys to json file
+  -e, --crystalsPassword=crystalsPassword  Password for (e)ncrypetd crystals file
+  -f, --fee=fee                            (f)ee for transaction in Shor (defaults to 100 Shor)
+  -g, --grpc=grpc                          advanced: (g)rpc endpoint (for devnet/custom QRL network deployments)
+  -i, --otsindex=otsindex                  OTS key (i)ndex
+  -j, --json                               Print the keys in json format
+  -m, --mainnet                            sends Lattice transaction to (m)ainnet
+  -p, --walletPassword=walletPassword      wallet file (p)assword
+  -s, --hexseed=hexseed                    hex(s)eed/mnemonic of wallet from where funds should be sent
+  -t, --testnet                            sends Lattice transaction to (t)estnet
+  -w, --wallet=wallet                      json file of (w)allet from where funds should be sent
 
 DESCRIPTION
-  To create a lattice transaction you will need to have a wallet file (see create-wallet command)
-  The generated private keys will be save to the file defined with the -o command using the same password as the one for 
-  the wallet
+  Requires a valid QRL wallet file or hexseed/mnemonic and will by default print Kyber and dilithium keys to the console
+  Pass the -c flag to save to a file location and the -b flag to broadcast the keys to the network.
+  Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 
-  Documentation at https://docs.theqrl.org/developers/qrl-cli
 ```
 
 _See code: [src/commands/create-lattice.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/create-lattice.js)_
