@@ -1,5 +1,7 @@
 /* eslint new-cap: 0, max-depth: 0, complexity: 0 */
 /* global QRLLIB */
+/* global DILLIB */
+/* global KYBLIB */
 const { Command, flags } = require('@oclif/command')
 const { red, white, black } = require('kleur')
 const ora = require('ora')
