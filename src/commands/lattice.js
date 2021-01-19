@@ -157,8 +157,8 @@ class Lattice extends Command {
     // check that either wallet file or hexseed/mnemonic are passed
     if (!flags.wallet && !flags.hexseed) {
       this.log(`${red('⨉')} Unable to send to the network, no wallet json file or hexseed specified`)
-      this.log(`${red('⨉')} ${red().bgWhite('Printing Keys Only')} - You will have to sign and send these later if you want to use them on-chain`)
-      // this.exit(1)
+      // this.log(`${red('⨉')} ${red().bgWhite('Printing Keys Only')} - You will have to sign and send these later if you want to use them on-chain`)
+      this.exit(1)
     }
 
     // wallet functions
@@ -238,7 +238,7 @@ class Lattice extends Command {
     }
 
     // set the fee to default or flag
-    let fee = 100 // default fee 100 Shor
+    let fee = 0 // default fee 100 Shor
     if (flags.fee) {
       const passedFee = parseInt(flags.fee, 10)
       if (passedFee) {
@@ -390,7 +390,7 @@ class Lattice extends Command {
                 errorMessage = `Node rejected signed message: has OTS key ${flags.otsindex} been reused?`
               }
               spinner3.fail(`${errorMessage}]`)
-              this.exit(1)
+              //this.exit(1)
             }
             const pushTransactionRes = JSON.stringify(response.tx_hash)
             const txhash = JSON.parse(pushTransactionRes)
@@ -399,8 +399,9 @@ class Lattice extends Command {
               this.exit(0)
             } else {
               spinner3.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
-              this.exit(1)
+              //this.exit(1)
             }
+                          this.exit(0)
           }
         })
       })
@@ -425,11 +426,13 @@ Advanced: you can use a custom defined node to query for status. Use the (-g) gr
 // ]
 
 Lattice.flags = {
+
   wallet: flags.string({
     char: 'w',
     required: false,
     description: 'json file of (w)allet from where funds should be sent',
   }),
+
   walletPassword: flags.string({
     char: 'p',
     required: false,
@@ -464,16 +467,19 @@ Lattice.flags = {
     required: false,
     description: 'Password for (e)ncrypetd crystals file'
   }),
+
   fee: flags.string({
     char: 'f',
     required: false,
     description: '(f)ee for transaction in Shor (defaults to 100 Shor)'
   }),
+
   otsindex: flags.string({ 
     char: 'i',
     required: false,
     description: 'OTS key (i)ndex' 
   }),
+
   testnet: flags.boolean({
     char: 't', 
     default: false, 
