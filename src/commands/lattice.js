@@ -390,7 +390,7 @@ class Lattice extends Command {
                 errorMessage = `Node rejected signed message: has OTS key ${flags.otsindex} been reused?`
               }
               spinner3.fail(`${errorMessage}]`)
-              //this.exit(1)
+              this.exit(1)
             }
             const pushTransactionRes = JSON.stringify(response.tx_hash)
             const txhash = JSON.parse(pushTransactionRes)
@@ -399,9 +399,8 @@ class Lattice extends Command {
               this.exit(0)
             } else {
               spinner3.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
-              //this.exit(1)
+              this.exit(1)
             }
-                          this.exit(0)
           }
         })
       })
@@ -416,14 +415,6 @@ Pass the -c flag to save to a file location and the -b flag to broadcast the key
 Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 
 `
-
-// EphemeralKeys.args = [
-//   {
-//     name: 'address',
-//     description: 'address to save the Lattice transaction to',
-//     required: false,
-//   },
-// ]
 
 Lattice.flags = {
 
