@@ -87,6 +87,7 @@
     "test-ots": "nyc mocha --forbid-only -t 50000 \"test/commands/ots.test.js\"",
     "test-balance": "nyc mocha --forbid-only -t 50000 \"test/commands/balance.test.js\"",
     "test-send": "nyc mocha --forbid-only -t 50000 \"test/commands/send.test.js\"",
+    "test-send-message": "nyc mocha --forbid-only -t 50000 \"test/commands/send-message.test.js\"",
     "test-status": "nyc mocha --forbid-only -t 50000 \"test/commands/status.test.js\"",
     "test-lattice": "nyc mocha --forbid-only -t 50000 \"test/commands/lattice.test.js\"",
     "test-get-keys": "nyc mocha --forbid-only -t 50000 \"test/commands/get-keys.test.js\"",
