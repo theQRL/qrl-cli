@@ -42,7 +42,10 @@ describe('balance #2', () => {
 })
 
 describe('balance #3', () => {
-  const args = ['balance', 'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3']
+  const args = [
+    'balance',
+    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3'
+  ]
   let exitCode
   before((done) => {
     const process = spawn('./bin/run', args, processFlags)
@@ -57,7 +60,11 @@ describe('balance #3', () => {
 })
 
 describe('balance #4', () => {
-  const args = ['balance', 'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3', '-s']
+  const args = [
+    'balance',
+    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    '-s'
+  ]
   let exitCode
   before((done) => {
     const process = spawn('./bin/run', args, processFlags)
@@ -72,7 +79,10 @@ describe('balance #4', () => {
 })
 
 describe('balance #5', () => {
-  const args = ['balance', 'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3', '-q']
+  const args = [
+    'balance', 'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    '-q',
+  ]
   let exitCode
   before((done) => {
     const process = spawn('./bin/run', args, processFlags)
@@ -87,7 +97,12 @@ describe('balance #5', () => {
 })
 
 describe('balance #6', () => {
-  const args = ['balance', 'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3', '-s', '-q']
+  const args = [
+    'balance',
+    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    '-s',
+    '-q',
+  ]
   let exitCode
   before((done) => {
     const process = spawn('./bin/run', args, processFlags)
@@ -96,8 +111,8 @@ describe('balance #6', () => {
       done()
     })
   })
-  it('exit code should be 0 if passed with a valid address, -s and -q flags', () => {
-    assert.strictEqual(exitCode, 0)
+  it('exit code should be non-0 if passed with a valid address, and both -s and -q flags', () => {
+    assert.notStrictEqual(exitCode, 0)
   })
 })
 
