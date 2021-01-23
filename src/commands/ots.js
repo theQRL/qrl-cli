@@ -72,10 +72,6 @@ class OTSKey extends Command {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
-    if (flags.devnet) {
-      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-      network = 'Devnet'
-    }
     if (flags.testnet) {
       grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
       network = 'Testnet'
@@ -119,7 +115,6 @@ OTSKey.args = [
 OTSKey.flags = {
   testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
   mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
-  devnet: flags.boolean({char: 'd', default: false, description: 'queries devnet for the OTS state'}),
   grpc: flags.string({char: 'g', required: false, description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)'}),
   password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
 }
