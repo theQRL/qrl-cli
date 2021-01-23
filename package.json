@@ -89,6 +89,7 @@
     "test-send": "nyc mocha --forbid-only -t 50000 \"test/commands/send.test.js\"",
     "test-status": "nyc mocha --forbid-only -t 50000 \"test/commands/status.test.js\"",
     "test-lattice": "nyc mocha --forbid-only -t 50000 \"test/commands/lattice.test.js\"",
+    "test-get-keys": "nyc mocha --forbid-only -t 50000 \"test/commands/get-keys.test.js\"",
     "version": "oclif-dev readme && git add README.md",
     "cov": "nyc report --reporter=text-lcov > coverage.lcov && ./node_modules/.bin/codecov -t $CODECOV_TOKEN",
     "make-binaries": "pkg . -t node10-macos-x64 -o dist/macos/qrl-cli && pkg . -t node10-win-x64 -o dist/win/qrl-cli && pkg . -t node10-linux-x64 -o dist/linux/qrl-cli && cp ./assets/macos/ecdh.node dist/macos && cp ./assets/linux/ecdh.node dist/linux && cp ./assets/win/ecdh.node dist/win"
