@@ -283,9 +283,12 @@ class Lattice extends Command {
           spinner.succeed('Dilithium Keys Created!')
 
           // no file flag given so print keys
-          if (!flags.crystalsFile) {
+          if (!flags.crystalsFile && !flags.broadcast) {
             if (flags.json) {
               const crystalsDetail = {
+                encrypted: false,
+                tx_hash: false,
+                network,
                 kyberPK: kyberPK.toString('hex'),
                 kyberSK: kyberSK.toString('hex'),
                 dilithiumPK: dilithiumPK.toString('hex'),
@@ -293,31 +296,54 @@ class Lattice extends Command {
                 ecdsaPK: publicKey.toString('hex'),
                 ecdsaSK: privateKey.toString('hex'),
               }
+              if (flags.crystalsPassword) {
+                const passphrase = flags.crystalsPassword
+                crystalsDetail.encrypted = true
+                crystalsDetail.tx_hash = aes256.encrypt(passphrase, crystalsDetail.tx_hash)
+                crystalsDetail.network = aes256.encrypt(passphrase, crystalsDetail.network)
+                crystalsDetail.kyberPK = aes256.encrypt(passphrase, crystalsDetail.kyberPK)
+                crystalsDetail.kyberSK = aes256.encrypt(passphrase, crystalsDetail.kyberSK)
+                crystalsDetail.dilithiumPK = aes256.encrypt(passphrase, crystalsDetail.dilithiumPK)
+                crystalsDetail.dilithiumSK = aes256.encrypt(passphrase, crystalsDetail.dilithiumSK)
+                crystalsDetail.ecdsaPK = aes256.encrypt(passphrase, crystalsDetail.ecdsaPK)
+                crystalsDetail.ecdsaSK = aes256.encrypt(passphrase, crystalsDetail.ecdsaSK)
+              }
               this.log(JSON.stringify(crystalsDetail))
             }
             else {
+              this.log(` ${black().bgWhite('encrypted:')}  false`)
+              this.log(` ${black().bgWhite('tx_hash:')}  false`)
+              this.log(` ${black().bgWhite('encrypted:')}  false`)
               this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
+              this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
+              this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberSK.toString('hex')}`)
               this.log(` ${black().bgWhite('Dilithium PK:')}  ${dilithiumPK.toString('hex')}`)
+              this.log(` ${black().bgWhite('Dilithium PK:')}  ${dilithiumSK.toString('hex')}`)
               this.log(` ${black().bgWhite('ECDSA PK:')}   ${publicKey.toString('hex')}`)
+              this.log(` ${black().bgWhite('ECDSA PK:')}   ${privateKey.toString('hex')}`)
             }
           }
 
           // output keys to file if flag passed
-          if (flags.crystalsFile) {
+          if (flags.crystalsFile && !flags.broadcast) {
             // output to JSON
             const crystalsDetail = {
               encrypted: false,
+              tx_hash: false,
+              network,
               kyberPK: kyberPK.toString('hex'),
               kyberSK: kyberSK.toString('hex'),
               dilithiumPK: dilithiumPK.toString('hex'),
               dilithiumSK: dilithiumSK.toString('hex'),
               ecdsaPK: publicKey.toString('hex'),
-              ecdsaSK: privateKey.toString('hex'),
+              ecdsaSK: privateKey.toString('hex'), 
             }
 
             if (flags.crystalsPassword) {
               const passphrase = flags.crystalsPassword
               crystalsDetail.encrypted = true
+              crystalsDetail.tx_hash = aes256.encrypt(passphrase, crystalsDetail.tx_hash)
+              crystalsDetail.network = aes256.encrypt(passphrase, crystalsDetail.network)
               crystalsDetail.kyberPK = aes256.encrypt(passphrase, crystalsDetail.kyberPK)
               crystalsDetail.kyberSK = aes256.encrypt(passphrase, crystalsDetail.kyberSK)
               crystalsDetail.dilithiumPK = aes256.encrypt(passphrase, crystalsDetail.dilithiumPK)
@@ -396,8 +422,85 @@ class Lattice extends Command {
             const txhash = JSON.parse(pushTransactionRes)
             if (txnHash === bytesToHex(txhash.data)) {
               spinner3.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
+              
+              if (!flags.crystalsFile) {
+
+                if (flags.json) {
+                  const crystalsDetail = {
+                    encrypted: false,
+                    tx_hash: txnHash,
+                    network,
+                    kyberPK: kyberPK.toString('hex'),
+                    kyberSK: kyberSK.toString('hex'),
+                    dilithiumPK: dilithiumPK.toString('hex'),
+                    dilithiumSK: dilithiumSK.toString('hex'),
+                    ecdsaPK: publicKey.toString('hex'),
+                    ecdsaSK: privateKey.toString('hex'),
+                  }
+                  if (flags.crystalsPassword) {
+                    const passphrase = flags.crystalsPassword
+                    crystalsDetail.encrypted = true
+                    crystalsDetail.tx_hash = aes256.encrypt(passphrase, crystalsDetail.tx_hash)
+                    crystalsDetail.network = aes256.encrypt(passphrase, crystalsDetail.network)
+                    crystalsDetail.kyberPK = aes256.encrypt(passphrase, crystalsDetail.kyberPK)
+                    crystalsDetail.kyberSK = aes256.encrypt(passphrase, crystalsDetail.kyberSK)
+                    crystalsDetail.dilithiumPK = aes256.encrypt(passphrase, crystalsDetail.dilithiumPK)
+                    crystalsDetail.dilithiumSK = aes256.encrypt(passphrase, crystalsDetail.dilithiumSK)
+                    crystalsDetail.ecdsaPK = aes256.encrypt(passphrase, crystalsDetail.ecdsaPK)
+                    crystalsDetail.ecdsaSK = aes256.encrypt(passphrase, crystalsDetail.ecdsaSK)
+                  }
+                  this.log(JSON.stringify(crystalsDetail))
+                }
+                else {
+                  this.log(` ${black().bgWhite('encrypted:')}  false`)
+                  this.log(` ${black().bgWhite('tx_hash:')}  ${txnHash}`)
+                  this.log(` ${black().bgWhite('encrypted:')}  false`)
+                  this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
+                  this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
+                  this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberSK.toString('hex')}`)
+                  this.log(` ${black().bgWhite('Dilithium PK:')}  ${dilithiumPK.toString('hex')}`)
+                  this.log(` ${black().bgWhite('Dilithium PK:')}  ${dilithiumSK.toString('hex')}`)
+                  this.log(` ${black().bgWhite('ECDSA PK:')}   ${publicKey.toString('hex')}`)
+                  this.log(` ${black().bgWhite('ECDSA PK:')}   ${privateKey.toString('hex')}`)
+                }
+              }
+
+
+
+              if (flags.crystalsFile) {
+                // output to JSON
+                const crystalsDetail = {
+                  encrypted: false,
+                  tx_hash: txnHash,
+                  network,
+                  kyberPK: kyberPK.toString('hex'),
+                  kyberSK: kyberSK.toString('hex'),
+                  dilithiumPK: dilithiumPK.toString('hex'),
+                  dilithiumSK: dilithiumSK.toString('hex'),
+                  ecdsaPK: publicKey.toString('hex'),
+                  ecdsaSK: privateKey.toString('hex'), 
+                }
+
+                if (flags.crystalsPassword) {
+                  const passphrase = flags.crystalsPassword
+                  crystalsDetail.encrypted = true
+                  crystalsDetail.tx_hash = aes256.encrypt(passphrase, crystalsDetail.tx_hash)
+                  crystalsDetail.network = aes256.encrypt(passphrase, crystalsDetail.network)
+                  crystalsDetail.kyberPK = aes256.encrypt(passphrase, crystalsDetail.kyberPK)
+                  crystalsDetail.kyberSK = aes256.encrypt(passphrase, crystalsDetail.kyberSK)
+                  crystalsDetail.dilithiumPK = aes256.encrypt(passphrase, crystalsDetail.dilithiumPK)
+                  crystalsDetail.dilithiumSK = aes256.encrypt(passphrase, crystalsDetail.dilithiumSK)
+                  crystalsDetail.ecdsaPK = aes256.encrypt(passphrase, crystalsDetail.ecdsaPK)
+                  crystalsDetail.ecdsaSK = aes256.encrypt(passphrase, crystalsDetail.ecdsaSK)
+                }
+                // write the file here
+                const crystalsJson = ['[', JSON.stringify(crystalsDetail), ']'].join('')
+                fs.writeFileSync(flags.crystalsFile, crystalsJson)
+                spinner.succeed(`Ephemeral private keys written to ${flags.crystalsFile}`)
+              }
               this.exit(0)
-            } else {
+            } 
+            else {
               spinner3.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
               this.exit(1)
             }
