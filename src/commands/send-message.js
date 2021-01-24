@@ -1,7 +1,7 @@
 /* global QRLLIB */
 /* eslint new-cap: 0 */
 const { Command, flags } = require('@oclif/command')
-const { white, black, red } = require('kleur')
+const { white, red } = require('kleur')
 const ora = require('ora')
 // const moment = require('moment')
 const fs = require('fs')
