@@ -1,24 +1,12 @@
 /* eslint-disable */
 /* eslint new-cap: 0, max-depth: 0 */
-const {
-  Command,
-  flags
-} = require('@oclif/command')
-const {
-  red,
-  white
-} = require('kleur')
+const { Command, flags } = require('@oclif/command')
+const { red, white, black } = require('kleur')
 const ora = require('ora')
-
-// pick up here adding writing to a file and testing.
-
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
-
 const helpers = require('@theqrl/explorer-helpers')
-
 const Qrlnode = require('../functions/grpc')
-
 
 // Convert bytes to hex
 function bytesToHex(byteArray) {
@@ -72,10 +60,6 @@ class keySearch extends Command {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
-    if (flags.devnet) {
-      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-      network = 'Devnet'
-    }
     if (flags.testnet) {
       grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
       network = 'Testnet'
@@ -96,21 +80,50 @@ class keySearch extends Command {
     }
     const response = await Qrlnetwork.api('GetLatticePKsByAddress', getTransactionsByAddressReq)
     if (response.lattice_pks_detail.length === 0) {
-      spinner.succeed('No keys found for address:\n' + address)
+      spinner.succeed('No keys found for address: ' + address + ' on ' + network)
       this.exit(0)
     }
 
-    let latticeKeys = []
+    let latticeKeys = [{
+      address,
+      network,
+    }]
+
     for (let i = 0; i < response.lattice_pks_detail.length; i++) {
-      latticeKeys.push({
+
+      latticeKeys.push({ 
         pk1: bytesToHex(response.lattice_pks_detail[i].pk1),
         pk2: bytesToHex(response.lattice_pks_detail[i].pk2),
         pk3: bytesToHex(response.lattice_pks_detail[i].pk3),
         txHash: bytesToHex(response.lattice_pks_detail[i].tx_hash),
       })
+
     }
-    console.log(JSON.stringify(latticeKeys))
     spinner.succeed('Total Keys Found: ' + JSON.stringify(response.lattice_pks_detail.length))
+
+    // output keys to file if flag passed
+    if (flags.pub_key_file) {
+      const PubLatticeKeysJson = [JSON.stringify(latticeKeys)].join('')
+      fs.writeFileSync(flags.pub_key_file, PubLatticeKeysJson)
+      spinner.succeed(`Ephemeral public keys written to ${flags.pub_key_file}`)
+    }
+    if (flags.json && !flags.pub_key_file) {
+      console.log(JSON.stringify(latticeKeys))
+    }
+    else {
+      this.log(` ${black().bgWhite('address:')}  ${address}`)
+      this.log(` ${black().bgWhite('network:')}  ${network}`)
+
+      for (let i = 0; i < response.lattice_pks_detail.length + 1; i++) {
+        if (i > 0) {
+          this.log(` ${black().bgWhite('key #' + i + ':')} `)
+          this.log(` ${black().bgWhite('pk1:')}  ${latticeKeys[i].pk1}`)
+          this.log(` ${black().bgWhite('pk2:')}  ${latticeKeys[i].pk2}`)
+          this.log(` ${black().bgWhite('pk3:')}  ${latticeKeys[i].pk3}`)
+          this.log(` ${black().bgWhite('txHash:')}  ${latticeKeys[i].txHash}`)
+        }
+      }
+    }
   }
 }
 
@@ -134,6 +147,11 @@ keySearch.flags = {
     description: 'which page to print: defaults to 1',
   }),
   
+  pub_key_file: flags.string({
+    char: 'f',
+    required: false,
+    description: 'create users public lattice keys to json (f)ile'
+  }),
 
   testnet: flags.boolean({
     char: 't',
@@ -152,6 +170,11 @@ keySearch.flags = {
       'advanced: grcp endpoint (for devnet/custom QRL network deployments)',
   }),
 
+  json: flags.boolean({
+    char: 'j',
+    required: false,
+    description: 'Print the public keys in json format'
+  }),
 
   // password: flags.string({
     // char: 'p',
