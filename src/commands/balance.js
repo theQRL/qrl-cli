@@ -100,12 +100,17 @@ class Balance extends Command {
     }
     const response = await Qrlnetwork.api('GetOptimizedAddressState', request)
     const balance = new BigNumber(parseInt(response.state.balance, 10))
+
     if (flags.shor) {
       spinner.succeed(`Balance: ${balance} Shor`)
     }
     if (flags.quanta || !flags.shor) {
       // default to showing balance in Quanta if no flags
       spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
+    }
+    if (flags.quanta && flags.shor) {
+      this.log(`${red('⨉')} Please enter one, shor (-s) or quanta (-q)`)
+      this.exit(1)
     }
   }
 }

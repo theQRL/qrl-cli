@@ -7,7 +7,9 @@ const processFlags = {
 }
 
 describe('status #1', () => {
-  const args = ['status']
+  const args = [
+    'status',
+  ]
   let exitCode
   before(done => {
     const process = spawn('./bin/run', args, processFlags)
@@ -22,7 +24,10 @@ describe('status #1', () => {
 })
 
 describe('status #2', () => {
-  const args = ['status', '-m']
+  const args = [
+    'status',
+    '-m',
+  ]
   let exitCode
   before(done => {
     const process = spawn('./bin/run', args, processFlags)

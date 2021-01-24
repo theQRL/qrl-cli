@@ -332,7 +332,6 @@ class SendMessage extends Command {
       const txhash = JSON.parse(pushTransactionRes)
       if (txnHash === bytesToHex(txhash.data)) {
         spinner4.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
-        this.exit(0)
       } else {
         spinner4.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
         this.exit(1)

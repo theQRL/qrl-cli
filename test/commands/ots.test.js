@@ -26,7 +26,7 @@ describe('ots #1', () => {
 describe('ots #2', () => {
   const args = [
     'ots',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    'Q000500b5ea246980f3ff4ee42f399e4a79598d6844e66373eb61ab59d1a1e6cfe8e963eb4bcd7f'
   ]
   let exitCode
   before(done => {
@@ -62,7 +62,7 @@ describe('ots #3', () => {
 describe('ots #4', () => {
   const args = [
     'ots',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
     '-m',
   ]
   let exitCode
@@ -81,7 +81,7 @@ describe('ots #4', () => {
 describe('ots #5', () => {
   const args = [
     'ots',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    'Q000500b5ea246980f3ff4ee42f399e4a79598d6844e66373eb61ab59d1a1e6cfe8e963eb4bcd7f',
     '-t',
   ]
   let exitCode
@@ -100,7 +100,7 @@ describe('ots #5', () => {
 describe('ots #6', () => {
   const args = [
     'ots',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    'Q000500b5ea246980f3ff4ee42f399e4a79598d6844e66373eb61ab59d1a1e6cfe8e963eb4bcd7f',
     '-g',
     'invalid.theqrl.org:19009',
   ]

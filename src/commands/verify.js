@@ -1,3 +1,5 @@
+// TODO Check for b32 address and validate as well
+
 /* eslint-disable */
 /* eslint new-cap: 0, max-depth: 0 */
 const {Command, flags} = require('@oclif/command')
