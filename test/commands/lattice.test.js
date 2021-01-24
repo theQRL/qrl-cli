@@ -5,9 +5,8 @@ const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
-
 // lattice command without any flags
-describe('lattice #1a', () => {
+describe('lattice #1', () => {
   const args = [
     'lattice',
   ]
@@ -25,7 +24,7 @@ describe('lattice #1a', () => {
 })
 
 // wrong grpc endpoint
-describe('lattice #1b', () => {
+describe('lattice #2', () => {
   const args = [
     'lattice',
     '-i',
@@ -50,7 +49,7 @@ describe('lattice #1b', () => {
 
 
 // incorrect seed
-describe('lattice #1c', () => {
+describe('lattice #3', () => {
   const args = [
     'lattice',
     '-i',
@@ -72,12 +71,10 @@ describe('lattice #1c', () => {
   })
 })
 
-
-
 const fs = require('fs');
 
 // incorrect data in wallet.json
-describe('lattice #1c', () => {
+describe('lattice #4', () => {
   const args = [
     'lattice',
     '-i',
@@ -89,8 +86,8 @@ describe('lattice #1c', () => {
   let exitCode
   before(done => {
   	const content = 'Some content!'
-  	const createCode =''
-	fs.writeFile('/tmp/wallet.json', content, err => {
+  	const createCode = ''
+	  fs.writeFile('/tmp/wallet.json', content, err => {
       if (err) {
         createCode(err)
       }
@@ -106,8 +103,8 @@ describe('lattice #1c', () => {
   })
 })
 
-// print keys to console if no file location given
-describe('lattice #2a', () => {
+// print keys to console if no file location given and not broadcast
+describe('lattice #5', () => {
   const args = [
     'lattice',
     '-i',
@@ -124,14 +121,63 @@ describe('lattice #2a', () => {
       done()
     })
   })
-  it('exit code should be 0 with keys printed to console', () => {
+  it('exit code should be 0 with keys printed to console and not broadcast', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
 
+// print keys to console in json if no file location given and not broadcast in json
+describe('lattice #6', () => {
+  const args = [
+    'lattice',
+    '-i',
+    '1',
+    '-s',
+    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+    '-t',
+    '-j',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 with keys printed to console in and not broadcast', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+// print keys to console in json encrypted if no file location given and not broadcast in json
+describe('lattice #7', () => {
+  const args = [
+    'lattice',
+    '-i',
+    '1',
+    '-s',
+    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+    '-t',
+    '-j',
+    '-e',
+    'testPassword',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 with keys printed to console in and not broadcast', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
 
 // print keys to file location given
-describe('lattice #2b', () => {
+describe('lattice #8', () => {
   const args = [
     'lattice',
     '-i',
@@ -154,17 +200,16 @@ describe('lattice #2b', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
 // print keys to file location given with encryption
-describe('lattice #2c', () => {
+describe('lattice #9', () => {
   const args = [
     'lattice',
     '-i',
-    '1',
+    '50',
     '-s',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+    '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc77951272709d',
     '-c',
-    '/tmp/ems.json',
+    '/tmp/ems1.json',
     '-e',
     'test',
     '-t',
@@ -183,7 +228,7 @@ describe('lattice #2c', () => {
 })
 
 // create a wallet file to use for next functions
-describe('create-wallet', () => {
+describe('lattice #10a - create-wallet', () => {
   const args = [
     'create-wallet',
     '-h',
@@ -204,10 +249,8 @@ describe('create-wallet', () => {
   })
 })
 
-
-
 // broadcast keys to testnet network and save crystals file
-describe('lattice #3a', () => {
+describe('lattice #10', () => {
   const args = [
     'lattice',
     '-i',
@@ -220,7 +263,34 @@ describe('lattice #3a', () => {
     '-b',
   ]
 
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 with keys broadcast to network and saved into temp file location', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
 
+// broadcast keys to testnet network and save crystals file encrypted
+describe('lattice #11', () => {
+  const args = [
+    'lattice',
+    '-i',
+    '1',
+    '-w',
+    '/tmp/wallet.json',
+    '-c',
+    '/tmp/ems.json',
+    '-t',
+    '-b',
+    '-e',
+    'testpassword',
+  ]
 
   let exitCode
   before(done => {
@@ -230,18 +300,17 @@ describe('lattice #3a', () => {
       done()
     })
   })
-  it('keys broadcast to network and saved into temp file location', () => {
-    assert.notStrictEqual(exitCode, 0)
+  it('exit code should be 0 with keys broadcast to network and saved into temp file location', () => {
+    assert.strictEqual(exitCode, 0)
   })
 })
 
-
 // broadcast keys without saving to file
-describe('lattice #3b', () => {
+describe('lattice #12', () => {
   const args = [
     'lattice',
     '-i',
-    '1',
+    '2',
     '-w',
     '/tmp/wallet.json',
     '-t',
@@ -256,14 +325,68 @@ describe('lattice #3b', () => {
       done()
     })
   })
-  it('keys broadcast to network', () => {
-    assert.notStrictEqual(exitCode, 0)
+  it('exit code should be 0 with keys broadcast to network printed to console', () => {
+    assert.strictEqual(exitCode, 0)
   })
 })
 
 
+// broadcast keys without saving to file in json
+describe('lattice #13', () => {
+  const args = [
+    'lattice',
+    '-i',
+    '3',
+    '-w',
+    '/tmp/wallet.json',
+    '-t',
+    '-b',
+    '-j',
+  ]
+  
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 with keys broadcast to network printed to console in json', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+// broadcast keys without saving to file in json
+describe('lattice #14', () => {
+  const args = [
+    'lattice',
+    '-i',
+    '4',
+    '-w',
+    '/tmp/wallet.json',
+    '-t',
+    '-b',
+    '-j',
+    '-e',
+    'testPassword',
+  ]
+  
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 with keys broadcast to network printed to console in json encrypted', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+/*
 // broadcast keys without saving to file and re-using ots key
-describe('lattice #3c', () => {
+describe('lattice #10', () => {
   const args = [
     'lattice',
     '-i',
@@ -286,3 +409,4 @@ describe('lattice #3c', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
+*/

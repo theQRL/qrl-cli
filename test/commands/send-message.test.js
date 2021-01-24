@@ -357,13 +357,13 @@ describe('send-message #12', () => {
 })
 
 
-// successful mesage send
+// successful mesage send wallet file
 describe('send-message #13', () => {
   const args = [
     'send-message',
     '-t',
     '-M',
-    '"Hey There qrl-cli"',
+    '"qrl-cli test"',
     '-r',
     'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
     '-w',
@@ -380,6 +380,62 @@ describe('send-message #13', () => {
     })
   })
   it('exit code should be 0 if message sent', () => {
-    assert.strictEqual(exitCode, 1)
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+// successful mesage send encrypted wallet file
+describe('send-message #14', () => {
+  const args = [
+    'send-message',
+    '-t',
+    '-M',
+    '"qrl-cli test 1"',
+    '-r',
+    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+    '-w',
+    '/tmp/enc-wallet.json',
+    '-i',
+    '2',
+    '-p',
+    'send-message-test-password'
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if message sent', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+// successful mesage send hex seed
+describe('send-message #15', () => {
+  const args = [
+    'send-message',
+    '-t',
+    '-M',
+    '"qrl-cli test 2"',
+    '-r',
+    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+    '-s',
+    '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc77951272709d',
+    '-i',
+    '0',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if message sent', () => {
+    assert.strictEqual(exitCode, 0)
   })
 })
