@@ -6,7 +6,6 @@ const processFlags = {
   stdio: 'inherit',
 }
 
-/* removing test until connection issue is sorted
 describe('status #1', () => {
   const args = [
     'status',
@@ -58,7 +57,6 @@ describe('status #3', () => {
   })
 })
 
-*/
 //  devnet is Zond...
 // describe('status #4', () => {
 //   const args = ['status', '-d']
@@ -75,7 +73,6 @@ describe('status #3', () => {
 //   })
 // })
 
-/* removing test until connection issue is sorted
 
 describe('status #5', () => {
   const args = ['status', '-g', 'mainnet-1.automated.theqrl.org:19009']
@@ -91,7 +88,6 @@ describe('status #5', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-*/
 
 describe('status #6', () => {
   const args = ['status', '-g']

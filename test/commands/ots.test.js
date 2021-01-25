@@ -23,7 +23,6 @@ describe('ots #1', () => {
   })
 })
 
-/* removing test until connection issue is sorted
 describe('ots #2', () => {
   const args = [
     'ots',
@@ -41,7 +40,7 @@ describe('ots #2', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-*/
+
 describe('ots #3', () => {
   const args = [
     'ots',
@@ -59,8 +58,6 @@ describe('ots #3', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-/* removing test until connection issue is sorted
-
 describe('ots #4', () => {
   const args = [
     'ots',
@@ -97,7 +94,6 @@ describe('ots #5', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-*/
 
 describe('ots #6', () => {
   const args = [

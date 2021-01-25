@@ -116,7 +116,6 @@ describe('get-keys #5', () => {
   })
 })
 
-/* removing test until connection issues are sorted
 
 // get keys from address given testnet
 describe('get-keys #6', () => {
@@ -284,5 +283,3 @@ describe('get-keys #12', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
-*/

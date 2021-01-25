@@ -41,7 +41,6 @@ describe('balance #2', () => {
   })
 })
 
-/* removing test until network connection is sorted, too many failures
 
 describe('balance #3', () => {
   const args = [
@@ -99,7 +98,7 @@ describe('balance #5', () => {
   })
 })
 
-*/
+
 describe('balance #6', () => {
   const args = [
     'balance',

@@ -250,7 +250,6 @@ describe('generate-lattice-keys #10a - create-wallet', () => {
 })
 
 
-/* remove tests that connect to network until connection issues are sorted
 
 // broadcast keys to testnet network and save crystals file
 describe('generate-lattice-keys #10', () => {
@@ -387,7 +386,6 @@ describe('generate-lattice-keys #14', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-*/
 
 /* not failing when ots is reused...
 
