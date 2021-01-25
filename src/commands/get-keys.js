@@ -1,212 +1,140 @@
 /* eslint-disable */
 /* eslint new-cap: 0, max-depth: 0 */
-const {Command, flags} = require('@oclif/command')
-const {red, white} = require('kleur')
+const {
+  Command,
+  flags
+} = require('@oclif/command')
+const {
+  red,
+  white
+} = require('kleur')
 const ora = require('ora')
-const grpc = require('@grpc/grpc-js')
-const {createClient} = require('grpc-js-kit')
-const tmp = require('tmp')
+
+// pick up here adding writing to a file and testing.
+
 const fs = require('fs')
-const util = require('util')
-const CryptoJS = require('crypto-js')
-const {QRLPROTO_SHA256} = require('@theqrl/qrl-proto-sha256')
-const protoLoader = require('@grpc/proto-loader')
-const PROTO_PATH = `${__dirname}/../../src/qrlbase.proto`
+const validateQrlAddress = require('@theqrl/validate-qrl-address')
 
-const readFile = util.promisify(fs.readFile)
-const writeFile = util.promisify(fs.writeFile)
+const helpers = require('@theqrl/explorer-helpers')
 
-const clientGetNodeInfo = client => {
-  return new Promise((resolve, reject) => {
-    client.getNodeInfo({}, (error, response) => {
-      if (error) {
-        reject(error)
-      }
-      resolve(response)
+const Qrlnode = require('../functions/grpc')
+
+
+// Convert bytes to hex
+function bytesToHex(byteArray) {
+  return [...byteArray]
+    .map((byte) => {
+      return ('00' + (byte & 0xff).toString(16)).slice(-2) 
     })
-  })
+    .join('')
 }
 
-let qrlClient = null
-
-async function checkProtoHash(file) {
-  return readFile(file)
-  .then(async contents => {
-    const protoFileWordArray = CryptoJS.lib.WordArray.create(contents)
-    const calculatedProtoHash = CryptoJS.SHA256(protoFileWordArray).toString(
-      CryptoJS.enc.Hex
-    )
-    // console.log(calculatedProtoHash)
-    let verified = false
-    QRLPROTO_SHA256.forEach(value => {
-      if (value.protoSha256 === calculatedProtoHash) {
-        verified = true
-      }
-    })
-    return verified
-  })
-  .catch(error => {
-    throw new Error(error)
-  })
-}
-
-async function loadGrpcBaseProto(grpcEndpoint) {
-  return protoLoader.load(PROTO_PATH, {}).then(async packageDefinition => {
-    const packageObject = grpc.loadPackageDefinition(packageDefinition)
-    const client = await new packageObject.qrl.Base(
-      grpcEndpoint,
-      grpc.credentials.createInsecure()
-    )
-    const res = await clientGetNodeInfo(client)
-    const qrlProtoFilePath = tmp.fileSync({
-      mode: '0644',
-      prefix: 'qrl-',
-      postfix: '.proto',
-    }).name
-    await writeFile(qrlProtoFilePath, res.grpcProto).then(fsErr => {
-      if (fsErr) {
-        throw new Error('tmp filesystem error')
-      }
-    })
-    return qrlProtoFilePath
-  })
-}
-
-async function loadGrpcProto(protofile, endpoint) {
-  const options = {
-    keepCase: true,
-    longs: String,
-    enums: String,
-    defaults: true,
-    oneofs: true,
-  }
-  const packageDefinition = await protoLoader.load(protofile, options)
-  const grpcObject = await grpc.loadPackageDefinition(packageDefinition)
-  const grpcObjectString = JSON.stringify(
-    util.inspect(grpcObject.qrl, {showHidden: true, depth: 4})
-  )
-  const protoObjectWordArray = CryptoJS.lib.WordArray.create(grpcObjectString)
-  const calculatedObjectHash = CryptoJS.SHA256(protoObjectWordArray).toString(
-    CryptoJS.enc.Hex
-  )
-
-  let verified = false
-  QRLPROTO_SHA256.forEach(value => {
-    // console.log(calculatedObjectHash)
-    if (value.objectSha256 === calculatedObjectHash) {
-      verified = true
-    }
-  })
-  // If the grpc object shasum matches, establish the grpc connection.
-  if (verified) {
-    qrlClient = createClient(
-      {
-        protoPath: protofile,
-        packageName: 'qrl',
-        serviceName: 'PublicAPI',
-        options: {
-          keepCase: true,
-          longs: String,
-          enums: String,
-          defaults: true,
-          oneofs: true,
-        },
-      },
-      endpoint
-    )
-  } else {
-    throw new Error('Unable to verify proto file')
-  }
-}
-
-class EphemeralKeys extends Command {
+class keySearch extends Command {
   async run() {
-    const {args} = this.parse(EphemeralKeys)
+    const {flags} = this.parse(keySearch)
 
-    let address = args.address
-    let itemPerPage = args.item_per_page
-    let pageNumber = args.page_number
-    let grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-    let network = 'Devnet'
-
-    this.log(white().bgBlue(network))
-    const spinner = ora({
-      text: 'Fetching Ephemeral keys from API...\n',
-    }).start()
-
-    const proto = await loadGrpcBaseProto(grpcEndpoint)
-    spinner.succeed(proto)
-    checkProtoHash(proto).then(async protoHash => {
-      if (!protoHash) {
-        this.log(`${red('⨉')} Unable to validate .proto file from node`)
+    let address
+    if(flags.address) {
+      address = flags.address
+      let isValidFile = false
+      if (validateQrlAddress.hexString(address).result) {
+        isValidFile = true
+      } else {
+        this.log(`${red('⨉')} QRL Address is not valid: Enter correct address`)
         this.exit(1)
       }
-      // next load GRPC object and check hash of that too
-      await loadGrpcProto(proto, grpcEndpoint)
-      // const getAddressStateReq = {
-      //   address: Buffer.from(address.substring(1), 'hex'),
-      //   // eslint-disable-next-line camelcase
-      //   exclude_ots_bitfield: true,
-      //   // eslint-disable-next-line camelcase
-      //   exclude_transaction_hashes: true,
-      // }
-
-      // await qrlClient.GetAddressState(
-      //   getAddressStateReq,
-      //   async (error, response) => {
-      //     if (error) {
-      //       this.log(`${red('⨉')} Unable to get Lattice transaction list`)
-      //     }
-      //     // let pk3st = Buffer.from( response.lattice_pks_detail[0].pk3, 'hex' )
-      //     spinner.succeed(`RESPONSE: ${ response.state.lattice_pk_count }`)
-      //     spinner.succeed('DONE')
-      //   }
-      // )
-
-      const getTransactionsByAddressReq = {
-        address: Buffer.from(address.substring(1), 'hex'),
-        // eslint-disable-next-line camelcase
-        item_per_page: itemPerPage,
-        // eslint-disable-next-line camelcase
-        page_number: pageNumber,
+    }
+    else {
+      this.log(`${red('⨉')} No address given: Need address`)
+      this.exit(1)
+    }
+    let itemPerPage = 100
+    if (flags.item_per_page) {
+      itemPerPage = parseInt(flags.item_per_page)
+      if (isNaN(itemPerPage)) {
+        this.log(`${red('⨉')} Not a valid number: Need items per page number`)
+        this.exit(1)
       }
-      await qrlClient.GetLatticePKsByAddress(
-        getTransactionsByAddressReq,
-        async (error, response) => {
-          if (error) {
-            this.log(`${red('⨉')} Unable to get Lattice transaction list`)
-          }
-          // let pk3st = Buffer.from( response.lattice_pks_detail[0].pk2, 'hex' )
-          spinner.succeed(`RESPONSE: ${response.lattice_pks_detail}`)
-          spinner.succeed('DONE')
-        }
-      )
-    })
+    }
+    let pageNumber = 1
+    if (flags.page_number) {
+      pageNumber = parseInt(flags.page_number)
+      if (isNaN(pageNumber)) {
+        this.log(`${red('⨉')} Not a valid number: Which page to view`)
+        this.exit(1)
+      }
+    }  
+    // network stuff
+    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let network = 'Mainnet'
+
+    if (flags.grpc) {
+      grpcEndpoint = flags.grpc
+      network = `Custom GRPC endpoint: [${flags.grpc}]`
+    }
+    if (flags.devnet) {
+      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
+      network = 'Devnet'
+    }
+    if (flags.testnet) {
+      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      network = 'Testnet'
+    }
+    if (flags.mainnet) {
+      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      network = 'Mainnet'
+    }
+    this.log(`Fetching Lattice keys posted on on ${white().bgBlue(network)} from: ${address} `)
+    const spinner = ora({ text: 'Fetching Ephemeral keys...\n', }).start()
+
+    const Qrlnetwork = await new Qrlnode(grpcEndpoint)
+    await Qrlnetwork.connect()
+    const getTransactionsByAddressReq = {
+      address: Buffer.from(address.substring(1), 'hex'),
+      item_per_page: itemPerPage,
+      page_number: pageNumber,
+    }
+    const response = await Qrlnetwork.api('GetLatticePKsByAddress', getTransactionsByAddressReq)
+    if (response.lattice_pks_detail.length === 0) {
+      spinner.succeed('No keys found for address:\n' + address)
+      this.exit(0)
+    }
+
+    let latticeKeys = []
+    for (let i = 0; i < response.lattice_pks_detail.length; i++) {
+      latticeKeys.push({
+        pk1: bytesToHex(response.lattice_pks_detail[i].pk1),
+        pk2: bytesToHex(response.lattice_pks_detail[i].pk2),
+        pk3: bytesToHex(response.lattice_pks_detail[i].pk3),
+        txHash: bytesToHex(response.lattice_pks_detail[i].tx_hash),
+      })
+    }
+    console.log(JSON.stringify(latticeKeys))
+    spinner.succeed('Total Keys Found: ' + JSON.stringify(response.lattice_pks_detail.length))
   }
 }
 
-EphemeralKeys.description = `Get Ephemeral keys associated to a QRL address
+keySearch.description = `Get Ephemeral keys associated to a QRL address
 `
+keySearch.flags = {
 
-EphemeralKeys.args = [
-  {
-    name: 'address',
-    description: 'address to return OTS state for',
-    required: true,
-  },
-  {
-    name: 'item_per_page',
-    description: 'number of items to show per page',
-    required: true,
-  },
-  {
-    name: 'page_number',
-    description: 'page number to retrieve',
-    required: true,
-  },
-]
+  address: flags.string({
+    char: 'a',
+    default: false,
+    description: 'address for key lookup',
+  }),
+  item_per_page: flags.string({
+    char: 'i',
+    default: false,
+    description: 'How many results to return per page: defaults to 1',
+  }),
+  page_number: flags.string({
+    char: 'p',
+    default: false,
+    description: 'which page to print: defaults to 1',
+  }),
+  
 
-EphemeralKeys.flags = {
   testnet: flags.boolean({
     char: 't',
     default: false,
@@ -223,11 +151,15 @@ EphemeralKeys.flags = {
     description:
       'advanced: grcp endpoint (for devnet/custom QRL network deployments)',
   }),
-  password: flags.string({
-    char: 'p',
-    required: false,
-    description: 'wallet file password',
-  }),
+
+
+  // password: flags.string({
+    // char: 'p',
+    // required: false,
+    // description: 'wallet file password',
+  // }),
+
+
 }
 
-module.exports = {EphemeralKeys}
+module.exports = {keySearch}
