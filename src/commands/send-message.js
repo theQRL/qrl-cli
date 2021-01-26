@@ -267,6 +267,18 @@ class SendMessage extends Command {
       spinner.succeed('xmssPK returned...')
       const Qrlnetwork = await new Qrlnode(grpcEndpoint)
       await Qrlnetwork.connect()
+      
+      // verify we have connected and try again if not
+      let i = 0
+      const count = 5
+      while (Qrlnetwork.connection === false && i < count) {
+        spinner.succeed(`retry connection attempt: ${i}...`)
+        // eslint-disable-next-line no-await-in-loop
+        await Qrlnetwork.connect()
+        // eslint-disable-next-line no-plusplus
+        i++
+      }
+
       const spinner2 = ora({ text: 'Network Connect....' }).start()
       let thisAddress = []
       if (flags.recipient) {
@@ -332,7 +344,17 @@ class SendMessage extends Command {
       const txhash = JSON.parse(pushTransactionRes)
       if (txnHash === bytesToHex(txhash.data)) {
         spinner4.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
-      } else {
+        
+        // return link to explorer
+        if (network === 'Mainnet') {
+          spinner3.succeed(`https://explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+        }
+        else if (network === 'Testnet') {
+          spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+        }
+        this.exit(0)
+      } 
+      else {
         spinner4.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
         this.exit(1)
       }

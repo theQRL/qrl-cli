@@ -397,17 +397,6 @@ class Lattice extends Command {
             // push the transaction to the network
            const response = await Qrlnetwork.api('PushTransaction', pushTransactionReq)
            this.log(`response: ${response}`)
-           // verify we have connected and try again if not... again
-           i = 0
-           while (Qrlnetwork.connection === false && i < count) {
-             spinner3.succeed(`retry response connection attempt: ${i}...`)
-             // eslint-disable-next-line no-await-in-loop
-             await Qrlnetwork.connect()
-             // eslint-disable-next-line no-plusplus
-             i++
-           }
-
-
             if (response.error_code && response.error_code !== 'SUBMITTED') {
               let errorMessage = 'unknown error'
               if (response.error_code) {
@@ -429,7 +418,7 @@ class Lattice extends Command {
               else if (network === 'Testnet') {
                 spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
               }
-              
+
               if (flags.json || flags.crystalsFile) {
                 const crystalsDetail = {
                   encrypted: false,

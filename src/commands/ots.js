@@ -84,6 +84,18 @@ class OTSKey extends Command {
     const spinner = ora({text: 'Fetching OTS from API...'}).start()
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     await Qrlnetwork.connect()
+
+    // verify we have connected and try again if not
+    let i = 0
+    const count = 5
+    while (Qrlnetwork.connection === false && i < count) {
+      spinner.succeed(`retry connection attempt: ${i}...`)
+      // eslint-disable-next-line no-await-in-loop
+      await Qrlnetwork.connect()
+      // eslint-disable-next-line no-plusplus
+      i++
+    }
+
     const request = { address: Buffer.from(address.substring(1), 'hex') }
     const response = await Qrlnetwork.api('GetOTS', request)
     if (response.unused_ots_index_found) {

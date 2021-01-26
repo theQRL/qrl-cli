@@ -33,6 +33,18 @@ class Status extends Command {
     const spinner = ora({ text: 'Fetching status from node...' }).start()
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     await Qrlnetwork.connect()
+
+    // verify we have connected and try again if not
+    let i = 0
+    const count = 5
+    while (Qrlnetwork.connection === false && i < count) {
+      spinner.succeed(`retry connection attempt: ${i}...`)
+      // eslint-disable-next-line no-await-in-loop
+      await Qrlnetwork.connect()
+      // eslint-disable-next-line no-plusplus
+      i++
+    }
+    
     const response = await Qrlnetwork.api('GetStats')
     spinner.succeed('Network status:')
     this.log(`    ${black().bgWhite('Network id')} ${response.node_info.network_id}`)

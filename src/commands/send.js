@@ -322,6 +322,18 @@ class Send extends Command {
 
       const Qrlnetwork = await new Qrlnode(grpcEndpoint)
       await Qrlnetwork.connect()
+
+      // verify we have connected and try again if not
+      let i = 0
+      const count = 5
+      while (Qrlnetwork.connection === false && i < count) {
+        spinner.succeed(`retry connection attempt: ${i}...`)
+        // eslint-disable-next-line no-await-in-loop
+        await Qrlnetwork.connect()
+        // eslint-disable-next-line no-plusplus
+        i++
+      }
+
       const request = {
         addresses_to: thisAddressesTo,
         amounts: thisAmounts,
@@ -329,10 +341,7 @@ class Send extends Command {
         xmss_pk: xmssPK,
       }
       const tx = await Qrlnetwork.api('TransferCoins', request)
-      // if (error) {
-      //   this.log(`${red('⨉')} Unable send transaction`)
-      //   this.exit(1)
-      // }
+
       spinner.succeed('Node correctly returned transaction for signing')
       const spinner2 = ora({ text: 'Signing transaction...' }).start()
 
@@ -412,6 +421,15 @@ class Send extends Command {
       const txhash = JSON.parse(pushTransactionRes)
       if (txnHash === bytesToHex(txhash.data)) {
         spinner3.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
+
+        // check for network and send link to explorer to user in console
+        if (network === 'Mainnet') {
+          spinner3.succeed(`https://explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+        }
+        else if (network === 'Testnet') {
+          spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+        }
+
         this.exit(0)
       } else {
         spinner3.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)

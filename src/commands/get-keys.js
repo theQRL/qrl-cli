@@ -73,6 +73,18 @@ class keySearch extends Command {
 
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     await Qrlnetwork.connect()
+
+    // verify we have connected and try again if not
+    let i = 0
+    const count = 5
+    while (Qrlnetwork.connection === false && i < count) {
+      spinner.succeed(`retry connection attempt: ${i}...`)
+      // eslint-disable-next-line no-await-in-loop
+      await Qrlnetwork.connect()
+      // eslint-disable-next-line no-plusplus
+      i++
+    }
+
     const getTransactionsByAddressReq = {
       address: Buffer.from(address.substring(1), 'hex'),
       item_per_page: itemPerPage,

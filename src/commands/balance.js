@@ -100,7 +100,7 @@ class Balance extends Command {
     let i = 0
     const count = 5
     while (Qrlnetwork.connection === false && i < count) {
-      spinner.succeed(`\nretry connection attempt: ${i}...`)
+      spinner.succeed(`retry connection attempt: ${i}...`)
       // eslint-disable-next-line no-await-in-loop
       await Qrlnetwork.connect()
       // eslint-disable-next-line no-plusplus
