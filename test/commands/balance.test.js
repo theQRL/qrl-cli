@@ -41,6 +41,7 @@ describe('balance #2', () => {
   })
 })
 
+
 describe('balance #3', () => {
   const args = [
     'balance',
@@ -58,6 +59,7 @@ describe('balance #3', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
+
 
 describe('balance #4', () => {
   const args = [
@@ -95,6 +97,7 @@ describe('balance #5', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
+
 
 describe('balance #6', () => {
   const args = [

@@ -356,7 +356,6 @@ describe('send-message #12', () => {
   })
 })
 
-
 // successful mesage send wallet file
 describe('send-message #13', () => {
   const args = [

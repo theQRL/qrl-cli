@@ -23,6 +23,7 @@ describe('status #1', () => {
   })
 })
 
+
 describe('status #2', () => {
   const args = [
     'status',
@@ -71,6 +72,7 @@ describe('status #3', () => {
 //     assert.strictEqual(exitCode, 0)
 //   })
 // })
+
 
 describe('status #5', () => {
   const args = ['status', '-g', 'mainnet-1.automated.theqrl.org:19009']

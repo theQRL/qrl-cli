@@ -58,7 +58,6 @@ describe('ots #3', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-
 describe('ots #4', () => {
   const args = [
     'ots',
@@ -77,7 +76,6 @@ describe('ots #4', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
 describe('ots #5', () => {
   const args = [
     'ots',

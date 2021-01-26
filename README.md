@@ -32,10 +32,10 @@ USAGE
 # Commands
 <!-- commands -->
 * [`qrl-cli balance ADDRESS`](#qrl-cli-balance-address)
-* [`qrl-cli create-lattice`](#qrl-cli-create-lattice)
 * [`qrl-cli create-wallet`](#qrl-cli-create-wallet)
 * [`qrl-cli decrypt`](#qrl-cli-decrypt)
 * [`qrl-cli encrypt [ADDRESS] [ITEM_PER_PAGE] [PAGE_NUMBER] [MESSAGE]`](#qrl-cli-encrypt-address-item_per_page-page_number-message)
+* [`qrl-cli generate-lattice-keys`](#qrl-cli-generate-lattice-keys)
 * [`qrl-cli get-keys ADDRESS ITEM_PER_PAGE PAGE_NUMBER`](#qrl-cli-get-keys-address-item_per_page-page_number)
 * [`qrl-cli help [COMMAND]`](#qrl-cli-help-command)
 * [`qrl-cli ots ADDRESS`](#qrl-cli-ots-address)
@@ -45,6 +45,7 @@ USAGE
 * [`qrl-cli search SEARCH`](#qrl-cli-search-search)
 * [`qrl-cli send QUANTITY`](#qrl-cli-send-quantity)
 * [`qrl-cli send-initial-message FILE`](#qrl-cli-send-initial-message-file)
+* [`qrl-cli send-message -M [MESSAGE] -r [RECIPIENT]`](#qrl-cli-send-message)
 * [`qrl-cli send-next-message INDEX MESSAGE`](#qrl-cli-send-next-message-index-message)
 * [`qrl-cli sign`](#qrl-cli-sign)
 * [`qrl-cli status`](#qrl-cli-status)
@@ -72,7 +73,7 @@ ARGUMENTS
 
 OPTIONS
   -d, --devnet             queries devnet for the balance
-  -g, --grpc=grpc          advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc          advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -m, --mainnet            queries mainnet for the balance
   -p, --password=password  wallet file password
   -q, --quanta             reports the balance in Quanta
@@ -88,38 +89,6 @@ DESCRIPTION
 
 _See code: [src/commands/balance.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/balance.js)_
 
-## `qrl-cli lattice`
-
-Send lattice transaction 
-
-```
-Create Crystals Keys and broadcast to the network
-
-USAGE
-  $ qrl-cli lattice
-
-OPTIONS
-  -b, --broadcast                          broadcast the crystals keys to the network
-  -c, --crystalsFile=crystalsFile          (c)reate crystals keys to json file
-  -e, --crystalsPassword=crystalsPassword  Password for (e)ncrypetd crystals file
-  -f, --fee=fee                            (f)ee for transaction in Shor (defaults to 100 Shor)
-  -g, --grpc=grpc                          advanced: (g)rpc endpoint (for devnet/custom QRL network deployments)
-  -i, --otsindex=otsindex                  OTS key (i)ndex
-  -j, --json                               Print the keys in json format
-  -m, --mainnet                            sends Lattice transaction to (m)ainnet
-  -p, --walletPassword=walletPassword      wallet file (p)assword
-  -s, --hexseed=hexseed                    hex(s)eed/mnemonic of wallet from where funds should be sent
-  -t, --testnet                            sends Lattice transaction to (t)estnet
-  -w, --wallet=wallet                      json file of (w)allet from where funds should be sent
-
-DESCRIPTION
-  Requires a valid QRL wallet file or hexseed/mnemonic and will by default print kyber and dilithium keys to the console
-  Pass the -c flag to save to a file location and the -b flag to broadcast the keys to the network.
-  Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
-
-```
-
-_See code: [src/commands/create-lattice.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/create-lattice.js)_
 
 ## `qrl-cli create-wallet`
 
@@ -166,7 +135,7 @@ USAGE
   $ qrl-cli decrypt
 
 OPTIONS
-  -g, --grpc=grpc  advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc  advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -m, --mainnet    queries mainnet for the OTS state
   -t, --testnet    queries testnet for the OTS state
 ```
@@ -191,7 +160,7 @@ ARGUMENTS
   MESSAGE        message to encrypt
 
 OPTIONS
-  -g, --grpc=grpc      advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc      advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -h, --txhash=txhash  tx hash of lattice transaction
   -m, --mainnet        queries mainnet for the OTS state
   -s, --string=string  message to encrypt
@@ -199,6 +168,39 @@ OPTIONS
 ```
 
 _See code: [src/commands/encrypt.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/encrypt.js)_
+
+## `qrl-cli generate-lattice-keys`
+
+Send lattice transaction 
+
+```
+Create Crystals Keys and broadcast to the network
+
+USAGE
+  $ qrl-cli lattice
+
+OPTIONS
+  -b, --broadcast                          broadcast the crystals keys to the network
+  -c, --crystalsFile=crystalsFile          (c)reate crystals keys to json file
+  -e, --crystalsPassword=crystalsPassword  Password for (e)ncrypetd crystals file
+  -f, --fee=fee                            (f)ee for transaction in Shor (defaults to 100 Shor)
+  -g, --grpc=grpc                          advanced: (g)rpc endpoint (for devnet/custom QRL network deployments)
+  -i, --otsindex=otsindex                  OTS key (i)ndex
+  -j, --json                               Print the keys in json format
+  -m, --mainnet                            sends Lattice transaction to (m)ainnet
+  -p, --walletPassword=walletPassword      wallet file (p)assword
+  -s, --hexseed=hexseed                    hex(s)eed/mnemonic of wallet from where funds should be sent
+  -t, --testnet                            sends Lattice transaction to (t)estnet
+  -w, --wallet=wallet                      json file of (w)allet from where funds should be sent
+
+DESCRIPTION
+  Requires a valid QRL wallet file or hexseed/mnemonic and will by default print kyber and dilithium keys to the console
+  Pass the -c flag to save to a file location and the -b flag to broadcast the keys to the network.
+  Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
+
+```
+
+_See code: [src/commands/create-lattice.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/generate-lattice-keys.js)_
 
 ## `qrl-cli get-keys ADDRESS ITEM_PER_PAGE PAGE_NUMBER`
 
@@ -212,7 +214,7 @@ USAGE
 
 OPTIONS
   -a, --address=address              address for key lookup
-  -g, --grpc=grpc                    advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc                    advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -i, --item_per_page=item_per_page  How many results to return per page: defaults to 1
   -m, --mainnet                      queries mainnet for the OTS state
   -p, --page_number=page_number      which page to print: defaults to 1
@@ -317,7 +319,7 @@ ARGUMENTS
   FILE  Local EMS file containing private keys
 
 OPTIONS
-  -g, --grpc=grpc          advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc          advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -h, --txhash=txhash      tx hash of lattice transaction
   -m, --mainnet            uses mainnet for this function
   -p, --password=password  EMS file password
@@ -468,7 +470,7 @@ ARGUMENTS
   FILE  Local EMS file containing private keys
 
 OPTIONS
-  -g, --grpc=grpc          advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc          advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -h, --txhash=txhash      tx hash of lattice transaction
   -m, --mainnet            queries mainnet for the OTS state
   -p, --password=password  EMS file password
@@ -494,7 +496,7 @@ ARGUMENTS
   MESSAGE  message to encrypt
 
 OPTIONS
-  -g, --grpc=grpc  advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc  advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -m, --mainnet    queries mainnet for the OTS state
   -t, --testnet    queries testnet for the OTS state
 ```
@@ -514,7 +516,7 @@ USAGE
 
 OPTIONS
   -f, --file=file          (required) ephemeral file containing the private keys to use
-  -g, --grpc=grpc          advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc          advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -m, --mainnet            queries mainnet for the OTS state
   -p, --password=password  ephemeral file password
   -s, --message=message    (required) message to sign
@@ -593,7 +595,7 @@ ARGUMENTS
   PAGE_NUMBER    page number to retrieve
 
 OPTIONS
-  -g, --grpc=grpc  advanced: grcp endpoint (for devnet/custom QRL network deployments)
+  -g, --grpc=grpc  advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -m, --mainnet    queries mainnet for the OTS state
   -t, --testnet    queries testnet for the OTS state
 ```
