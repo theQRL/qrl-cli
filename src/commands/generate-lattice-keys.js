@@ -321,7 +321,7 @@ class Lattice extends Command {
             else {
               this.log(` ${black().bgWhite('encrypted:')}  false`)
               this.log(` ${black().bgWhite('tx_hash:')}  false`)
-              this.log(` ${black().bgWhite('encrypted:')}  false`)
+              this.log(` ${black().bgWhite('network:')}  false`) 
               this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
               this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
               this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberSK.toString('hex')}`)
@@ -436,7 +436,7 @@ class Lattice extends Command {
               else {
                 this.log(` ${black().bgWhite('encrypted:')}  false`)
                 this.log(` ${black().bgWhite('tx_hash:')}  ${txnHash}`)
-                this.log(` ${black().bgWhite('encrypted:')}  false`)
+                this.log(` ${black().bgWhite('network:')}  ${network}`) 
                 this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
                 this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
                 this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberSK.toString('hex')}`)
