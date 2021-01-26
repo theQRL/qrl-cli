@@ -220,8 +220,8 @@ describe('search #11', () => {
       done()
     })
   })
-  it('exit code should be 0 - search command address lookup with bad address', () => {
-    assert.strictEqual(exitCode, 0)
+  it('exit code should be non-0 - search command address lookup with bad address', () => {
+    assert.notStrictEqual(exitCode, 0)
   })
 })
 
@@ -240,8 +240,8 @@ describe('search #12', () => {
       done()
     })
   })
-  it('exit code should be 0 - search command address lookup with bad address (not start with q)', () => {
-    assert.strictEqual(exitCode, 0)
+  it('exit code should be non-0 - search command address lookup with bad address (not start with q)', () => {
+    assert.notStrictEqual(exitCode, 0)
   })
 })
 
