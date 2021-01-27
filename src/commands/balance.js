@@ -140,10 +140,26 @@ Balance.args = [
 ]
 
 Balance.flags = {
-  testnet: flags.boolean({ char: 't', default: false, description: 'queries testnet for the balance' }),
-  mainnet: flags.boolean({ char: 'm', default: false, description: 'queries mainnet for the balance' }),
-  shor: flags.boolean({ char: 's', default: false, description: 'reports the balance in Shor' }),
-  quanta: flags.boolean({ char: 'q', default: false, description: 'reports the balance in Quanta' }),
+  testnet: flags.boolean({
+    char: 't',
+    default: false,
+    description: 'queries testnet for the balance'
+  }),
+  mainnet: flags.boolean({
+    char: 'm',
+    default: false,
+    description: 'queries mainnet for the balance'
+  }),
+  shor: flags.boolean({
+    char: 's',
+    default: false,
+    description: 'reports the balance in Shor'
+  }),
+  quanta: flags.boolean({
+    char: 'q',
+    default: false,
+    description: 'reports the balance in Quanta'
+  }),
   grpc: flags.string({
     char: 'g',
     required: false,

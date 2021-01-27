@@ -29,7 +29,7 @@ class OTSKey extends Command {
           isFile = true
         }
       } catch (error) {
-        this.log(`${red('⨉')} Unable to get OTS: invalid QRL address/wallet file`)
+        this.log(`${red('⨉')} Unable to get OTS: not a file`)
         this.exit(1)
       }
       if (isFile === false) {
@@ -62,7 +62,7 @@ class OTSKey extends Command {
         }
       }
       if (isValidFile === false) {
-        this.log(`${red('⨉')} Unable to get a balance: invalid QRL address/wallet file`)
+        this.log(`${red('⨉')} Unable to get a OTS: invalid QRL address/wallet file`)
         this.exit(1)
       }
     }
