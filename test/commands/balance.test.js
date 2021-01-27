@@ -198,7 +198,7 @@ describe('balance #7', () => {
   const args = [
     'balance',
     'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-    '-a',
+    '-g',
     'https://brooklyn.theqrl.org/nottheapi/',
   ]
   let exitCode
