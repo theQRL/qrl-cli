@@ -17,10 +17,6 @@ class Status extends Command {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
-    if (flags.devnet) {
-      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-      network = 'Devnet'
-    }
     if (flags.testnet) {
       grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
       network = 'Testnet'
@@ -44,7 +40,7 @@ class Status extends Command {
       // eslint-disable-next-line no-plusplus
       i++
     }
-    
+
     const response = await Qrlnetwork.api('GetStats')
     spinner.succeed('Network status:')
     this.log(`    ${black().bgWhite('Network id')} ${response.node_info.network_id}`)
@@ -89,7 +85,6 @@ Advanced: you can use a custom defined node to query for status. Use the (-g) gr
 Status.flags = {
   testnet: flags.boolean({ char: 't', default: false, description: 'queries testnet for the OTS state' }),
   mainnet: flags.boolean({ char: 'm', default: false, description: 'queries mainnet for the OTS state' }),
-  devnet: flags.boolean({ char: 'd', default: false, description: 'queries devnet for the OTS state' }),
   grpc: flags.string({
     char: 'g',
     required: false,

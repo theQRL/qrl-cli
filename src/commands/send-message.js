@@ -125,10 +125,6 @@ class SendMessage extends Command {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
-    if (flags.devnet) {
-      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-      network = 'Devnet'
-    }
     if (flags.testnet) {
       grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
       network = 'Testnet'
@@ -352,7 +348,7 @@ class SendMessage extends Command {
         else if (network === 'Testnet') {
           spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
         }
-        this.exit(0)
+        // this.exit(0)
       } 
       else {
         spinner4.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
@@ -389,12 +385,6 @@ SendMessage.flags = {
     char: 'm',
     default: false,
     description: 'queries mainnet for the OTS state'
-  }),
-
-  devnet: flags.boolean({
-    char: 'd',
-    default: false,
-    description: 'queries devnet for the OTS state'
   }),
 
   grpc: flags.string({

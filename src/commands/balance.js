@@ -79,10 +79,6 @@ class Balance extends Command {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
-    if (flags.devnet) {
-      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-      network = 'Devnet'
-    }
     if (flags.testnet) {
       grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
       network = 'Testnet'
@@ -146,7 +142,6 @@ Balance.args = [
 Balance.flags = {
   testnet: flags.boolean({ char: 't', default: false, description: 'queries testnet for the balance' }),
   mainnet: flags.boolean({ char: 'm', default: false, description: 'queries mainnet for the balance' }),
-  devnet: flags.boolean({ char: 'd', default: false, description: 'queries devnet for the balance' }),
   shor: flags.boolean({ char: 's', default: false, description: 'reports the balance in Shor' }),
   quanta: flags.boolean({ char: 'q', default: false, description: 'reports the balance in Quanta' }),
   grpc: flags.string({

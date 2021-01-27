@@ -192,7 +192,7 @@ class Search extends Command {
 
 Search.description = `Searches for a transaction, block or address
 
-Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet or (-d) devnet. 
+Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet. 
 Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 `
 
