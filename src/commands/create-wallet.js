@@ -172,7 +172,7 @@ class CreateWallet extends Command {
   }
 }
 
-CreateWallet.description = `Create a QRL address
+CreateWallet.description = `Create a new QRL wallet
 
 QRL addresses can be created with various tree height (-h) and hashing mechanisms (1-3)
 You can output to a file (-f) in JSON and encrypt with a user set password (-p).
@@ -181,12 +181,36 @@ Documentation at https://docs.theqrl.org/developers/qrl-cli
 `
 
 CreateWallet.flags = {
-  file: flags.string({char: 'f', required: false, description: 'create wallet to json file'}),
-  password: flags.string({char: 'p', required: false, description: 'password for encrypted wallet file'}),
-  height: flags.string({char: 'h', required: false, description: 'tree height (even numbers 4-18)'}),
-  sha2256: flags.boolean({char: '1', default: false, description: 'use SHA2-256 hashing mechanism'}),
-  shake128: flags.boolean({char: '2', default: false, description: 'use SHAKE-128 hashing mechanism'}),
-  shake256: flags.boolean({char: '3', default: false, description: 'use SHAKE-256 hashing mechanism'}),
+  file: flags.string({
+    char: 'f',
+    required: false,
+    description: 'Create QRL wallet to a json file (wallet.json)'
+  }),
+  password: flags.string({
+    char: 'p',
+    required: false,
+    description: 'Encrypt the wallet file with this password'
+  }),
+  height: flags.string({
+    char: 'h',
+    required: false,
+    description: '(default: 10) XmSS merkle tree height or OTS height (even numbers 4-18)'
+  }),
+  sha2256: flags.boolean({
+    char: '1',
+    default: false,
+    description: '(default) Use SHA2-256 hashing mechanism'
+  }),
+  shake128: flags.boolean({
+    char: '2',
+    default: false,
+    description: 'Use SHAKE-128 hashing mechanism'
+  }),
+  shake256: flags.boolean({
+    char: '3',
+    default: false,
+    description: 'Use SHAKE-256 hashing mechanism'
+  }),
 }
 
 module.exports = CreateWallet

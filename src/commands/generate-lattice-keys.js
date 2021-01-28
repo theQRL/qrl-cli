@@ -198,8 +198,10 @@ class Lattice extends Command {
         this.exit(1)
       }
       if (!flags.otsindex ) {
-        this.log(`${red('⨉')} no OTS index given`)
-        this.exit(1)
+        if (flags.broadcast) {
+          this.log(`${red('⨉')} no OTS index given`)
+          this.exit(1)
+        }
       }
       this.log(`Creating Crystals Keys for: ${address}`)
     }
@@ -305,14 +307,14 @@ class Lattice extends Command {
                 crystalsDetail.dilithiumSK = aes256.encrypt(passphrase, crystalsDetail.dilithiumSK)
                 crystalsDetail.ecdsaPK = aes256.encrypt(passphrase, crystalsDetail.ecdsaPK)
                 crystalsDetail.ecdsaSK = aes256.encrypt(passphrase, crystalsDetail.ecdsaSK)
-                spinner.succeed(`Ephemeral file encrypted...`)
+                spinner.succeed(`Lattice key file encrypted...`)
               }
 
               // output keys to file if flag passed
               if (flags.crystalsFile) {
                 const crystalsJson = ['[', JSON.stringify(crystalsDetail), ']'].join('')
                 fs.writeFileSync(flags.crystalsFile, crystalsJson)
-                spinner.succeed(`Ephemeral private keys written to ${flags.crystalsFile}`)
+                spinner.succeed(`Lattice keys written to ${flags.crystalsFile}`)
               }
               else{
                 this.log(JSON.stringify(crystalsDetail))
@@ -443,12 +445,12 @@ class Lattice extends Command {
                   crystalsDetail.ecdsaPK = aes256.encrypt(passphrase, crystalsDetail.ecdsaPK)
                   crystalsDetail.ecdsaSK = aes256.encrypt(passphrase, crystalsDetail.ecdsaSK)
                 }
-                spinner2.succeed(`Ephemeral file encrypted!`)
+                spinner2.succeed(`Lattice key file encrypted!`)
                 if (flags.crystalsFile) {
                   // write the file here
                   const crystalsJson = ['[', JSON.stringify(crystalsDetail), ']'].join('')
                   fs.writeFileSync(flags.crystalsFile, crystalsJson)
-                  spinner3.succeed(`Ephemeral private keys written to ${flags.crystalsFile}`)
+                  spinner3.succeed(`Lattice keys written to ${flags.crystalsFile}`)
                 }
                 else {
                   this.log(JSON.stringify(crystalsDetail))
@@ -479,11 +481,19 @@ class Lattice extends Command {
 }
 
 
-Lattice.description = `Create Crystals Keys and broadcast to the network
-Requires a valid QRL wallet file or hexseed/mnemonic and will by default print kyber and dilithium keys to the console
-Pass the -c flag to save to a file location and the -b flag to broadcast the keys to the network.
-Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
+Lattice.description = `Generate new Kyber & Dilithium lattice key pairs aliong with an ECDSA key and (optionally) broadcast them onto the network.
+    
+This function REQUIRES a valid QRL wallet file or private keys (hexseed/mnemonic) to use 
+for generating and validating these lattice keys. Pass only one, wallet.json file OR hexseed/mnemonic.
 
+By default generate-lattice-keys will print new lattice keys to stdout.
+
+Save lattice keys to a file with the (-c) --crystalsFile flag and a file name. Encrypt the file with
+the (-e) flag and give the new AES encryption passphrase. The output file will be encrypted using this passphrase.
+
+Use the broadcast (-b) flag and a valid otsindex (-i) to broadcast the lattice keys to the QRL network using the addres provided.
+
+Documentation at https://docs.theqrl.org/developers/qrl-cli
 `
 
 Lattice.flags = {
@@ -491,70 +501,70 @@ Lattice.flags = {
   wallet: flags.string({
     char: 'w',
     required: false,
-    description: 'json file of (w)allet from where funds should be sent',
+    description: 'Generating QRL (w)allet file used for broadcasting lattice keys (wallet.json)',
   }),
 
   walletPassword: flags.string({
     char: 'p',
     required: false,
-    description: 'wallet file (p)assword'
+    description: 'Encrypted QRL wallet file (p)assword'
   }),
   hexseed: flags.string({
     char: 's',
     required: false,
-    description: 'hex(s)eed/mnemonic of wallet from where funds should be sent',
+    description: 'Hex(s)eed/Mnemonic of QRL address where funds should be sent from',
   }),
 
   json: flags.boolean({
     char: 'j',
     required: false,
-    description: 'Print the keys in json format'
+    description: 'Print lattice keys in JSON format to stdout'
   }),
 
   crystalsFile: flags.string({
     char: 'c',
     required: false,
-    description: '(c)reate crystals keys to json file'
+    description: '(c)reate Lattice keys JSON file'
   }),
 
   broadcast: flags.boolean({
     char: 'b',
     required: false,
-    description: 'broadcast the crystals keys to the network'
+    description: 'Send lattice keys to the network from the address given'
   }),
 
   crystalsPassword: flags.string({
     char: 'e',
     required: false,
-    description: 'Password for (e)ncrypetd crystals file'
+    description: 'Password to (e)ncrypt lattice keys file'
   }),
 
   fee: flags.string({
     char: 'f',
     required: false,
-    description: '(f)ee for transaction in Shor (defaults to 100 Shor)'
+    description: '(default: 100) QRL (f)ee for transaction in Shor'
   }),
 
   otsindex: flags.string({ 
     char: 'i',
     required: false,
-    description: 'OTS key (i)ndex' 
+    description: 'OTS key (i)ndex for broadcast transaction' 
   }),
 
   testnet: flags.boolean({
     char: 't', 
     default: false, 
-    description: 'sends Lattice transaction to (t)estnet'
+    description: 'Send the lattice key transaction to (t)estnet'
   }),
   mainnet: flags.boolean({
     char: 'm', 
     default: false, 
-    description: 'sends Lattice transaction to (m)ainnet'
+    description: 'Send lattice key transaction to (m)ainnet'
   }),
  grpc: flags.string({
     char: 'g',
     required: false,
-    description: 'advanced: (g)rpc endpoint (for devnet/custom QRL network deployments)',
+    description: 'Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)',
   }),
 
 
