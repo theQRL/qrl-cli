@@ -171,7 +171,7 @@ describe('generate-lattice-keys #7', () => {
       done()
     })
   })
-  it('exit code should be 0 with keys printed to console in and not broadcast', () => {
+  it('exit code should be 0 with keys printed to console encrypted locally', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
@@ -260,7 +260,7 @@ describe('generate-lattice-keys #10', () => {
     '-w',
     '/tmp/wallet.json',
     '-c',
-    '/tmp/ems.json',
+    '/tmp/lattice.json',
     '-t',
     '-b',
   ]
@@ -287,7 +287,7 @@ describe('generate-lattice-keys #11', () => {
     '-w',
     '/tmp/wallet.json',
     '-c',
-    '/tmp/ems.json',
+    '/tmp/enc-lattice.json',
     '-t',
     '-b',
     '-e',
@@ -302,7 +302,7 @@ describe('generate-lattice-keys #11', () => {
       done()
     })
   })
-  it('exit code should be 0 with keys broadcast to network and saved into temp file location', () => {
+  it('exit code should be 0 with keys broadcast to network and encrypted keys saved into /tmp/enc-lattice.json file location', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
