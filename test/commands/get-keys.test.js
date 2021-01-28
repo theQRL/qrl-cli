@@ -6,7 +6,6 @@ const processFlags = {
   stdio: 'inherit',
 }
 
-
 // get-keys command without any flags
 describe('get-keys #1', () => {
   const args = [
@@ -25,7 +24,7 @@ describe('get-keys #1', () => {
   })
 })
 
-// get-keys command without any flags
+// get-keys command with an incorrect QRL address
 describe('get-keys #2', () => {
   const args = [
     'get-keys',
@@ -115,7 +114,6 @@ describe('get-keys #5', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-
 
 // get keys from address given testnet
 describe('get-keys #6', () => {
@@ -280,6 +278,95 @@ describe('get-keys #12', () => {
     })
   })
   it('exit code should be 0 if everything is correct with no keys found', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+// get keys from address given and print to console  No keys found
+describe('get-keys #13', () => {
+  const args = [
+    'get-keys',
+    '-T',
+    'NotATransaction',
+    '-t',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if -T passed without correct txhash Unable to find transaction', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// get keys from address given and print to console  Not a lattice transaction
+describe('get-keys #14', () => {
+  const args = [
+    'get-keys',
+    '-T',
+    '021bb526ec6d35e880e2e706e2dd16a4c6da7223a8b632a57cd5cd44d5f4cf42',
+    '-m',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if -T passed with txhash that is not a lattice transaction', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// get keys from address given and print to console without page passed
+describe('get-keys #15', () => {
+  const args = [
+    'get-keys',
+    '-T',
+    '9b9b4d4faeaac6de6a7166e5dbdcdd1d061132a7a0a7b881868fbd5055376907',
+    '-t',
+    '-i',
+    '1',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if everything is correct with default number of keys printed to console', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+// get keys from address given and print to console without page passed
+describe('get-keys #16', () => {
+  const args = [
+    'get-keys',
+    '-T',
+    '9b9b4d4faeaac6de6a7166e5dbdcdd1d061132a7a0a7b881868fbd5055376907',
+    '-t',
+    '-i',
+    '1',
+    '-j',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if everything is correct with default number of keys printed to console', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
