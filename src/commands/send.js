@@ -533,7 +533,7 @@ Send.flags = {
   wallet: flags.string({
     char: 'w',
     required: false,
-    description: 'json file of wallet from where funds should be sent',
+    description: 'JSON file of wallet from where funds should be sent',
   }),
   hexseed: flags.string({
     char: 'h',

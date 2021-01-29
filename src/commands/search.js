@@ -208,22 +208,22 @@ Search.flags = {
   testnet: flags.boolean({
     char: 't',
     default: false,
-    description: 'queries testnet for the address/txhash/block',
+    description: 'Queries testnet for the address/txhash/block',
   }),
   mainnet: flags.boolean({
     char: 'm',
     default: false,
-    description: 'queries mainnet for the address/txhash/block',
+    description: 'q(default Queries mainnet for the address/txhash/block',
   }),
   grpc: flags.string({
     char: 'g',
     required: false,
-    description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)',
+    description: 'Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)',
   }),
   json: flags.boolean({
     char: 'j',
     required: false,
-    description: 'prints output to json',
+    description: 'Prints output to json',
   }),
 }
 

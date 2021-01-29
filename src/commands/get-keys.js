@@ -185,11 +185,12 @@ class keySearch extends Command {
 
 }
 
-keySearch.description = `Get Ephemeral keys associated to a QRL address or transaction hash
+keySearch.description = `Get lattice keys associated to a QRL address or transaction hash that have been broadcast to the network
 
-Command requires that either a transaction hash or QRL address to lookup is given.
+Command requires that either a transaction hash or QRL address to lookup is given and the network must match where the transactionwas made.
 
-For general address lookups, use page number and items returned number to limit your search.
+For general address lookups, use page number and items returned number to limit your search. 
+qrl-cli get-keys -i 1 -p 1 -a {ADDRESS} - will print the first key if found at that address. 
 
 Found public lattice keys can be writen to a json file with the (-f) flag, default will print lattice keys to stdout
 `

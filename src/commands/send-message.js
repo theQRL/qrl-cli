@@ -402,19 +402,19 @@ SendMessage.flags = {
   wallet: flags.string({
     char: 'w',
     required: false,
-    description: 'json file of (w)allet from where funds should be sent',
+    description: 'JSON (w)allet file message will be sent from',
   }),
 
  password: flags.string({
     char: 'p',
     required: false,
-    description: 'wallet file (p)assword'
+    description: 'Encrypted QRL wallet file (p)assword'
   }),
 
   hexseed: flags.string({
     char: 's',
     required: false,
-    description: 'hex(s)eed/mnemonic of wallet from where funds should be sent',
+    description: 'Secret hex(s)eed/mnemonic of address message should be sent from',
   }),
 
   recipient: flags.string({
@@ -426,13 +426,13 @@ SendMessage.flags = {
   fee: flags.string({
     char: 'f',
     required: false,
-    description: '(f)ee for transaction in Shor (defaults to 100 Shor)'
+    description: 'QRL (f)ee for transaction in Shor (defaults to 100 Shor)'
   }),
 
   otsindex: flags.string({ 
     char: 'i',
     required: false,
-    description: 'OTS key (i)ndex' 
+    description: 'Unused OTS key (i)ndex for message transaction' 
   }),
 }
 

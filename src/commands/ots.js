@@ -119,16 +119,32 @@ If the wallet file is encrypted use the -p flag to pass the wallet file encrypti
 OTSKey.args = [
   {
     name: 'address',
-    description: 'address to return OTS state for',
+    description: 'QRL address to return OTS state for',
     required: true,
   },
 ]
 
 OTSKey.flags = {
-  testnet: flags.boolean({char: 't', default: false, description: 'queries testnet for the OTS state'}),
-  mainnet: flags.boolean({char: 'm', default: false, description: 'queries mainnet for the OTS state'}),
-  grpc: flags.string({char: 'g', required: false, description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)'}),
-  password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
+  testnet: flags.boolean({
+  char: 't',
+  default: false,
+  description: 'Queries testnet for the OTS state'
+}),
+  mainnet: flags.boolean({
+  char: 'm',
+  default: false,
+  description: '(default) Queries mainnet for the OTS state'
+}),
+  grpc: flags.string({
+  char: 'g',
+  required: false,
+    description: 'Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)',
+}),
+  password: flags.string({
+  char: 'p',
+  required: false,
+  description: 'wallet file password if encrypted'
+}),
 }
 
 module.exports = {OTSKey}

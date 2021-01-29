@@ -68,7 +68,7 @@ class Status extends Command {
   }
 }
 
-Status.description = `Gets the network status
+Status.description = `Gets the network status from a node
 
 Reports network status from the node queried. You can select either (-m) mainnet or (-t) testnet
 Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
@@ -83,12 +83,20 @@ Advanced: you can use a custom defined node to query for status. Use the (-g) gr
 // ]
 
 Status.flags = {
-  testnet: flags.boolean({ char: 't', default: false, description: 'queries testnet for the OTS state' }),
-  mainnet: flags.boolean({ char: 'm', default: false, description: 'queries mainnet for the OTS state' }),
+  testnet: flags.boolean({
+    char: 't',
+    default: false,
+    description: 'queries testnet for the OTS state' 
+  }),
+  mainnet: flags.boolean({
+    char: 'm',
+    default: false,
+    description: 'queries mainnet for the OTS state' 
+  }),
   grpc: flags.string({
     char: 'g',
     required: false,
-    description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)',
+    description: 'Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)',
   }),
 }
 
