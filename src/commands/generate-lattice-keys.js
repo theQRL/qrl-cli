@@ -325,12 +325,11 @@ class Lattice extends Command {
               this.log(` ${black().bgWhite('tx_hash:')}  false`)
               this.log(` ${black().bgWhite('network:')}  false`) 
               this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
-              this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
-              this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberSK.toString('hex')}`)
+              this.log(` ${black().bgWhite('Kyber SK:')}  ${kyberSK.toString('hex')}`)
               this.log(` ${black().bgWhite('Dilithium PK:')}  ${dilithiumPK.toString('hex')}`)
-              this.log(` ${black().bgWhite('Dilithium PK:')}  ${dilithiumSK.toString('hex')}`)
+              this.log(` ${black().bgWhite('Dilithium SK:')}  ${dilithiumSK.toString('hex')}`)
               this.log(` ${black().bgWhite('ECDSA PK:')}   ${publicKey.toString('hex')}`)
-              this.log(` ${black().bgWhite('ECDSA PK:')}   ${privateKey.toString('hex')}`)
+              this.log(` ${black().bgWhite('ECDSA SK:')}   ${privateKey.toString('hex')}`)
             }
             // this.exit(0)
           }
@@ -461,12 +460,11 @@ class Lattice extends Command {
                 this.log(` ${black().bgWhite('tx_hash:')}  ${txnHash}`)
                 this.log(` ${black().bgWhite('network:')}  ${network}`) 
                 this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
-                this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberPK.toString('hex')}`)
-                this.log(` ${black().bgWhite('Kyber PK:')}  ${kyberSK.toString('hex')}`)
+                this.log(` ${black().bgWhite('Kyber SK:')}  ${kyberSK.toString('hex')}`)
                 this.log(` ${black().bgWhite('Dilithium PK:')}  ${dilithiumPK.toString('hex')}`)
-                this.log(` ${black().bgWhite('Dilithium PK:')}  ${dilithiumSK.toString('hex')}`)
+                this.log(` ${black().bgWhite('Dilithium SK:')}  ${dilithiumSK.toString('hex')}`)
                 this.log(` ${black().bgWhite('ECDSA PK:')}   ${publicKey.toString('hex')}`)
-                this.log(` ${black().bgWhite('ECDSA PK:')}   ${privateKey.toString('hex')}`)
+                this.log(` ${black().bgWhite('ECDSA SK:')}   ${privateKey.toString('hex')}`)
               }
             } 
             else {

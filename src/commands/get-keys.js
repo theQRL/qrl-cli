@@ -105,7 +105,6 @@ class keySearch extends Command {
         }
         address = 'Q' + bytesToHex(response.transaction.addr_from)
 
-
         latticeKeys = [{
           address,
           network,
