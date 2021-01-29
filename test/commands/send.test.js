@@ -685,6 +685,7 @@ describe('send #3a', () => {
     '-i',
     '1',
     '-t',
+    '-s',
   ]
   let exitCode
   before(done => {
