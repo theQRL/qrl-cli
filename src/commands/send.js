@@ -247,11 +247,14 @@ class Send extends Command {
         })
       } else {
         const convertAmountToBigNumber = new BigNumber(args.quantity)
+        let amountToSend = convertAmountToBigNumber.toNumber()
+        amountToSend = JSON.stringify((parseInt(amountToSend, 10) * shorPerQuanta))
         output.tx.push({
           to: flags.recipient,
-          shor: convertAmountToBigNumber.times(shorPerQuanta).toNumber(),
+          shor: amountToSend,
         })
       }
+      // console.log(output)
     }
     let hexseed = ''
     if (flags.wallet) {
@@ -336,6 +339,7 @@ class Send extends Command {
       thisAmounts.push(o.shor)
     })
     this.log(`Fee: ${fee} Shor`)
+    
     const spinner = ora({ text: 'Sending unsigned transaction to node...' }).start()
     waitForQRLLIB(async () => {
       let XMSS_OBJECT
@@ -349,16 +353,18 @@ class Send extends Command {
       const Qrlnetwork = await new Qrlnode(grpcEndpoint)
       await Qrlnetwork.connect()
 
+      const spinner1 = ora({ text: 'attempting conenction to node...' }).start()
       // verify we have connected and try again if not
       let i = 0
       const count = 5
       while (Qrlnetwork.connection === false && i < count) {
-        spinner.succeed(`retry connection attempt: ${i}...`)
+        spinner1.succeed(`retry connection attempt: ${i}...`)
         // eslint-disable-next-line no-await-in-loop
         await Qrlnetwork.connect()
         // eslint-disable-next-line no-plusplus
         i++
       }
+      spinner1.succeed(`Connected!`)
 
       const request = {
         addresses_to: thisAddressesTo,
@@ -366,6 +372,7 @@ class Send extends Command {
         fee,
         xmss_pk: xmssPK,
       }
+// console.log(request)      
       const tx = await Qrlnetwork.api('TransferCoins', request)
 
       spinner.succeed('Node correctly returned transaction for signing')

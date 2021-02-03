@@ -672,7 +672,7 @@ describe('send #2r', () => {
 
 
 // successful send
-
+/*
 // send basic - -r recipient
 describe('send #3a', () => {
   const args = [
@@ -685,7 +685,6 @@ describe('send #3a', () => {
     '-i',
     '1',
     '-t',
-    '-s',
   ]
   let exitCode
   before(done => {
@@ -699,7 +698,7 @@ describe('send #3a', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
+*/
 // send basic - shor
 describe('send #3b', () => {
   const args = [
