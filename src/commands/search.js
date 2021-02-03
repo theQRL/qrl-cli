@@ -103,6 +103,23 @@ class Search extends Command {
 
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     await Qrlnetwork.connect()
+    
+    // verify we have connected and try again if not
+    let i = 0
+    const count = 5
+    while (Qrlnetwork.connection === false && i < count) {
+      spinner.succeed(`retry connection attempt: ${i}...`)
+      // eslint-disable-next-line no-await-in-loop
+      await Qrlnetwork.connect()
+      // eslint-disable-next-line no-plusplus
+      i++
+    }
+
+    if (Qrlnetwork.connection === false) {
+      // wait a sec and retry the connection
+      spinner.fail('GRPC Connection failed, try again')
+      this.exit(1)
+    }
 
     if (identifySearch(searchString).method === 'tx') {
       const response = await Qrlnetwork.api('GetObject', {
@@ -175,7 +192,7 @@ class Search extends Command {
 
 Search.description = `Searches for a transaction, block or address
 
-Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet or (-d) devnet. 
+Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet. 
 Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 `
 
@@ -191,22 +208,22 @@ Search.flags = {
   testnet: flags.boolean({
     char: 't',
     default: false,
-    description: 'queries testnet for the address/txhash/block',
+    description: 'Queries testnet for the address/txhash/block',
   }),
   mainnet: flags.boolean({
     char: 'm',
     default: false,
-    description: 'queries mainnet for the address/txhash/block',
+    description: 'q(default Queries mainnet for the address/txhash/block',
   }),
   grpc: flags.string({
     char: 'g',
     required: false,
-    description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)',
+    description: 'Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)',
   }),
   json: flags.boolean({
     char: 'j',
     required: false,
-    description: 'prints output to json',
+    description: 'Prints output to json',
   }),
 }
 

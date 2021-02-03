@@ -17,10 +17,6 @@ class Status extends Command {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
-    if (flags.devnet) {
-      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-      network = 'Devnet'
-    }
     if (flags.testnet) {
       grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
       network = 'Testnet'
@@ -33,6 +29,18 @@ class Status extends Command {
     const spinner = ora({ text: 'Fetching status from node...' }).start()
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     await Qrlnetwork.connect()
+
+    // verify we have connected and try again if not
+    let i = 0
+    const count = 5
+    while (Qrlnetwork.connection === false && i < count) {
+      spinner.succeed(`retry connection attempt: ${i}...`)
+      // eslint-disable-next-line no-await-in-loop
+      await Qrlnetwork.connect()
+      // eslint-disable-next-line no-plusplus
+      i++
+    }
+
     const response = await Qrlnetwork.api('GetStats')
     spinner.succeed('Network status:')
     this.log(`    ${black().bgWhite('Network id')} ${response.node_info.network_id}`)
@@ -60,7 +68,7 @@ class Status extends Command {
   }
 }
 
-Status.description = `Gets the network status
+Status.description = `Gets the network status from a node
 
 Reports network status from the node queried. You can select either (-m) mainnet or (-t) testnet
 Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
@@ -75,13 +83,20 @@ Advanced: you can use a custom defined node to query for status. Use the (-g) gr
 // ]
 
 Status.flags = {
-  testnet: flags.boolean({ char: 't', default: false, description: 'queries testnet for the OTS state' }),
-  mainnet: flags.boolean({ char: 'm', default: false, description: 'queries mainnet for the OTS state' }),
-  devnet: flags.boolean({ char: 'd', default: false, description: 'queries devnet for the OTS state' }),
+  testnet: flags.boolean({
+    char: 't',
+    default: false,
+    description: 'queries testnet for the OTS state' 
+  }),
+  mainnet: flags.boolean({
+    char: 'm',
+    default: false,
+    description: 'queries mainnet for the OTS state' 
+  }),
   grpc: flags.string({
     char: 'g',
     required: false,
-    description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)',
+    description: 'Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)',
   }),
 }
 

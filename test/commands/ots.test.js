@@ -5,7 +5,7 @@ const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
-
+// no args
 describe('ots #1', () => {
   const args = [
     'ots',
@@ -23,7 +23,91 @@ describe('ots #1', () => {
   })
 })
 
+// bad address given
 describe('ots #2', () => {
+  const args = [
+    'ots',
+    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with an invalid address as argument', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// bad address file given
+describe('ots #3', () => {
+  const args = [
+    'ots',
+    '/tmp',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with an invalid address file as argument', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+
+// bad password for address file given
+describe('ots #4', () => {
+  const args = [
+    'ots',
+    '/tmp/enc-wallet.json',
+    '-p',
+    'NotThePassword'
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with an invalid password for address file as argument', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// fail with bad grpc address
+describe('ots #5', () => {
+  const args = [
+    'ots',
+    'Q000500b5ea246980f3ff4ee42f399e4a79598d6844e66373eb61ab59d1a1e6cfe8e963eb4bcd7f',
+    '-g',
+    'invalid.theqrl.org:19009',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with dead custom grpc link and a valid address as argument', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+
+
+// valid args should succeed
+describe('ots #6', () => {
   const args = [
     'ots',
     'Q000500b5ea246980f3ff4ee42f399e4a79598d6844e66373eb61ab59d1a1e6cfe8e963eb4bcd7f'
@@ -41,24 +125,8 @@ describe('ots #2', () => {
   })
 })
 
-describe('ots #3', () => {
-  const args = [
-    'ots',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be non-0 if passed with an invalid address as argument', () => {
-    assert.notStrictEqual(exitCode, 0)
-  })
-})
-describe('ots #4', () => {
+// valid mainnet flag
+describe('ots #7', () => {
   const args = [
     'ots',
     'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
@@ -76,7 +144,9 @@ describe('ots #4', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-describe('ots #5', () => {
+
+// valid testnet flag
+describe('ots #8', () => {
   const args = [
     'ots',
     'Q000500b5ea246980f3ff4ee42f399e4a79598d6844e66373eb61ab59d1a1e6cfe8e963eb4bcd7f',
@@ -92,25 +162,5 @@ describe('ots #5', () => {
   })
   it('exit code should be 0 if passed with testnet flag and a valid address as argument', () => {
     assert.strictEqual(exitCode, 0)
-  })
-})
-
-describe('ots #6', () => {
-  const args = [
-    'ots',
-    'Q000500b5ea246980f3ff4ee42f399e4a79598d6844e66373eb61ab59d1a1e6cfe8e963eb4bcd7f',
-    '-g',
-    'invalid.theqrl.org:19009',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be non-0 if passed with dead custom grpc link and a valid address as argument', () => {
-    assert.notStrictEqual(exitCode, 0)
   })
 })

@@ -85,6 +85,7 @@
     "prepack": "oclif-dev manifest && oclif-dev readme",
     "test": "nyc mocha --forbid-only -t 50000 \"test/**/*.test.js\"",
     "test-ots": "nyc mocha --forbid-only -t 50000 \"test/commands/ots.test.js\"",
+    "test-receive": "nyc mocha --forbid-only -t 50000 \"test/commands/receive.test.js\"",
     "test-balance": "nyc mocha --forbid-only -t 50000 \"test/commands/balance.test.js\"",
     "test-search": "nyc mocha --forbid-only -t 50000 \"test/commands/search.test.js\"",
     "test-send": "nyc mocha --forbid-only -t 50000 \"test/commands/send.test.js\"",
