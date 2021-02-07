@@ -247,11 +247,9 @@ class Send extends Command {
         })
       } else {
         const convertAmountToBigNumber = new BigNumber(args.quantity)
-        let amountToSend = convertAmountToBigNumber.toNumber()
-        amountToSend = JSON.stringify((parseInt(amountToSend, 10) * shorPerQuanta))
         output.tx.push({
           to: flags.recipient,
-          shor: amountToSend,
+          shor: convertAmountToBigNumber.times(shorPerQuanta).toString(),
         })
       }
       // console.log(output)

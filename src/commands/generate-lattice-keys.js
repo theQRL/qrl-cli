@@ -397,7 +397,7 @@ class Lattice extends Command {
             }
             // push the transaction to the network
            const response = await Qrlnetwork.api('PushTransaction', pushTransactionReq)
-           this.log(`response: ${response}`)
+           // this.log(`response: ${response}`)
             if (response.error_code && response.error_code !== 'SUBMITTED') {
               let errorMessage = 'unknown error'
               if (response.error_code) {
