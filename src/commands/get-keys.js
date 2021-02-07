@@ -1,18 +1,17 @@
-/* eslint-disable */
 /* eslint new-cap: 0, max-depth: 0 */
 const { Command, flags } = require('@oclif/command')
 const { red, white, black } = require('kleur')
 const ora = require('ora')
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
-const helpers = require('@theqrl/explorer-helpers')
+// const helpers = require('@theqrl/explorer-helpers')
 const Qrlnode = require('../functions/grpc')
 
 // Convert bytes to hex
 function bytesToHex(byteArray) {
   return [...byteArray]
     .map((byte) => {
-      return ('00' + (byte & 0xff).toString(16)).slice(-2) 
+      return ('00' + (byte & 0xff).toString(16)).slice(-2)  // eslint-disable-line
     })
     .join('')
 }
@@ -26,7 +25,7 @@ class keySearch extends Command {
       address = flags.address
       let isValidFile = false
       if (validateQrlAddress.hexString(address).result) {
-        isValidFile = true
+        isValidFile = true // eslint-disable-line
       } else {
         this.log(`${red('⨉')} QRL Address is not valid: Enter correct address`)
         this.exit(1)
@@ -38,16 +37,16 @@ class keySearch extends Command {
     }
     let itemPerPage = 100
     if (flags.item_per_page) {
-      itemPerPage = parseInt(flags.item_per_page)
-      if (isNaN(itemPerPage)) {
+      itemPerPage = parseInt(flags.item_per_page, 10)
+      if (Number.isNaN(itemPerPage)) {
         this.log(`${red('⨉')} Not a valid number: Need items per page number`)
         this.exit(1)
       }
     }
     let pageNumber = 1
     if (flags.page_number) {
-      pageNumber = parseInt(flags.page_number)
-      if (isNaN(pageNumber)) {
+      pageNumber = parseInt(flags.page_number, 10)
+      if (Number.isNaN(pageNumber)) {
         this.log(`${red('⨉')} Not a valid number: Which page to view`)
         this.exit(1)
       }
@@ -84,13 +83,13 @@ class keySearch extends Command {
       // eslint-disable-next-line no-plusplus
       i++
     }
-
-    let latticeKeys = []
+    let latticeKeys = {}
+     latticeKeys.tx = []
 
     if (flags.txhash) {
-      const txhash = flags.txhash
+      const TXHash = flags.txhash
       const response = await Qrlnetwork.api('GetObject', {
-        query: Buffer.from(txhash, 'hex')
+        query: Buffer.from(TXHash, 'hex')
       })
       if (response.found === false) {
         spinner.fail('Unable to find transaction')
@@ -103,8 +102,9 @@ class keySearch extends Command {
           spinner.fail('Not a lattice transaction')
           this.exit(1)
         }
-        address = 'Q' + bytesToHex(response.transaction.addr_from)
-
+        address = `Q${bytesToHex(response.transaction.addr_from)}`
+        // const txHash =  bytesToHex(response.transaction.tx.transaction_hash)
+// console.log(JSON.stringify(response))
         latticeKeys = [{
           address,
           network,
@@ -113,7 +113,7 @@ class keySearch extends Command {
           pk1: bytesToHex(response.transaction.tx.latticePK.pk1),
           pk2: bytesToHex(response.transaction.tx.latticePK.pk2),
           pk3: bytesToHex(response.transaction.tx.latticePK.pk3),
-          txHash: response.transaction.tx.latticePK.transaction_hash,
+          txHash: bytesToHex(response.transaction.tx.transaction_hash),
         })
       }
     }
@@ -127,7 +127,7 @@ class keySearch extends Command {
       }
       const response = await Qrlnetwork.api('GetLatticePKsByAddress', getTransactionsByAddressReq)
       if (response.lattice_pks_detail.length === 0) {
-        spinner.succeed('No keys found for address: ' + address + ' on ' + network)
+        spinner.succeed(`No keys found for address: ${address} on ${network}`)
         this.exit(0)
       }
 
@@ -135,7 +135,7 @@ class keySearch extends Command {
         address,
         network,
       }]
-
+      /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
       for (let i = 0; i < response.lattice_pks_detail.length; i++) {
 
         latticeKeys.push({ 
@@ -146,7 +146,7 @@ class keySearch extends Command {
         })
 
       }
-      spinner.succeed('Total Keys Found: ' + JSON.stringify(response.lattice_pks_detail.length))
+      spinner.succeed(`Total Keys Found: ${JSON.stringify(response.lattice_pks_detail.length)}`)
     }
 
       // output keys to file if flag passed
@@ -156,7 +156,7 @@ class keySearch extends Command {
         spinner.succeed(`Ephemeral public keys written to ${flags.pub_key_file}`)
       }
       if (flags.json && !flags.pub_key_file) {
-        console.log(JSON.stringify(latticeKeys))
+        // console.log(JSON.stringify(latticeKeys))
       }
       else if (!flags.txhash) {
         this.log(` ${black().bgWhite('address:')}  ${address}`)
@@ -164,7 +164,7 @@ class keySearch extends Command {
         // console.log(latticeKeys)
         for (let i = 0; i < latticeKeys.length; i++) {
           if (i > 0) {
-            this.log(` ${black().bgWhite('key #' + i + ':')} `)
+            this.log(` ${black().bgWhite('key #' + i + ':')} `) // eslint-disable-line
             this.log(` ${black().bgWhite('pk1:')}  ${latticeKeys[i].pk1}`)
             this.log(` ${black().bgWhite('pk2:')}  ${latticeKeys[i].pk2}`)
             this.log(` ${black().bgWhite('pk3:')}  ${latticeKeys[i].pk3}`)
@@ -178,7 +178,7 @@ class keySearch extends Command {
         this.log(` ${black().bgWhite('pk1:')}  ${latticeKeys[1].pk1}`)
         this.log(` ${black().bgWhite('pk2:')}  ${latticeKeys[1].pk2}`)
         this.log(` ${black().bgWhite('pk3:')}  ${latticeKeys[1].pk3}`)
-        this.log(` ${black().bgWhite('txHash:')}  ${latticeKeys.txHash}`)
+        this.log(` ${black().bgWhite('txHash:')}  ${latticeKeys[1].txHash}`)
       }
   }
 

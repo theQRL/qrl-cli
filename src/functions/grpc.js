@@ -175,6 +175,7 @@ class QrlNode {
         }
         client[apiCall](request, (error, response) => {
           if (error) {
+            // console.log('\nError with transaction: ' + JSON.stringify(error))
             reject(error)
           }
           resolve(response)

@@ -472,7 +472,7 @@ describe('send #2k', () => {
       done()
     })
   })
-  it('exit code should be non-0 if using a json source of output with incorrect formatted JSON data, shor v Shor', () => {
+  it('exit code should be non-0 if using a json source of output with incorrect formatted JSON file, not address list', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
@@ -672,7 +672,9 @@ describe('send #2r', () => {
 
 
 // successful send
-/*
+// Need funds in the test wallet for this to proceed
+/* 
+
 // send basic - -r recipient
 describe('send #3a', () => {
   const args = [
@@ -680,11 +682,12 @@ describe('send #3a', () => {
     '10',
     '-r',
     'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
-    '-h',
-    'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
+    '-w',
+    '/tmp/wallet.json',
     '-i',
-    '1',
+    '10',
     '-t',
+    '-s',
   ]
   let exitCode
   before(done => {
@@ -698,7 +701,7 @@ describe('send #3a', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-*/
+
 // send basic - shor
 describe('send #3b', () => {
   const args = [
@@ -706,10 +709,10 @@ describe('send #3b', () => {
     '10',
     '-r',
     'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
-    '-h',
-    'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
+    '-w',
+    '/tmp/wallet.json',
     '-i',
-    '1',
+    '11',
     '-t',
     '-s',
   ]
@@ -733,13 +736,14 @@ describe('send #3c', () => {
     '10',
     '-j',
     '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
+    '-w',
+    '/tmp/wallet.json',
     '-i',
-    '1',
+    '12',
     '-t',
     '-f',
     '1',
+    '-s',
   ]
   let exitCode
   before(done => {
@@ -754,20 +758,20 @@ describe('send #3c', () => {
   })
 })
 
-/*
+
 // send using wallet file
 describe('send #3d', () => {
   const args = [
     'send',
-    '10',
+    '1',
     '-r',
     'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
     '-w',
     '/tmp/wallet.json',
     '-i',
-    '2',
+    '13',
     '-t',
-    '-s'
+    '-s',
   ]
   let exitCode
   before(done => {
@@ -786,7 +790,7 @@ describe('send #3d', () => {
 describe('send #3e', () => {
   const args = [
     'send',
-    '10',
+    '1',
     '-r',
     'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
     '-w',
@@ -794,9 +798,9 @@ describe('send #3e', () => {
     '-p',
     'test123',
     '-i',
-    '3',
+    '14',
     '-t',
-    '-s'
+    '-s',
   ]
   let exitCode
   before(done => {
