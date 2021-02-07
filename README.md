@@ -139,7 +139,7 @@ _See code: [src/commands/generate-lattice-keys.js](https://github.com/theqrl/qrl
 
 ## `qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXTFILE] [SIGNEDMESSAGEFILE]`
 
-Generate shared_key files from a couple of lattice keys (user_1 public) and (user_2 secret)
+Generate shared_key files from lattice keys (user_1 public) and (user_2 secret)
 
 ```
 USAGE
@@ -161,38 +161,13 @@ OPTIONS
   -t, --testnet                              queries testnet for the OTS state
 
 DESCRIPTION
-  This function requires that you pass in either:
-
-  Case #1 - Local lattice_key file and recipient PUB_lattice_keys OR TX_ID from their lattice generation transaction
-
-  OR:
-
-  Case #2 - Local lattice_key file and recipents already generated shared_keys (shared_secret and shared_key)
-
-  ------------------------------------------------------
-
-  Case #1 - Generate new shared_keys and shared_keylist
-
-     Requirements:
-       - Local lattice_keys 
-         - Lattice_keyfile OR secret_keys (kyberSK, dilithiumSK, ecdsaSK (hex)) passed in variables
-       - Recipient lattice keys - either:
-         - The public tx_id from a users lattice_tx on the QRL blockchain OR local recipient_lattice_PUB
-    
+  Generate new shared_keys and shared_keylist from transaction hash and private lattice keys    
      Generates:
        - kyber encrypted shared_key
        - shared_key encrypted secret
        - key_list from secret, through shake128 (optional password protected)
 
-  ------------------------------------------------------
-
-  Case #2 - Using provided shared_keys re-create the shared_keylist
-
-     Requirements:
-       - Shared_secret encrypted with shared_keys from other user (case #1 output a)
-       - Shared_key encrypted with the our PUB_kyber_key and senders SEC_Kyber_Key from other user (case #1 output b)
-       - Private lattice key file associated to PUB_kyber_key to decrypt
-
+  Re-generate shared_keys from encrypted secrets
      Generates:
        - Decrypted shared key
        - Decrypted cyphertext (shared_secret)
