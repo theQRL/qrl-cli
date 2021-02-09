@@ -16,10 +16,11 @@ const openWalletFile = (path) => {
   const contents = fs.readFileSync(path)
   return JSON.parse(contents)[0]
 }
-
+      /* eslint-disable */
 const addressForAPI = (address) => {
   return Buffer.from(address.substring(1), 'hex')
 }
+      /* eslint-enable */
 
 class Balance extends Command {
   async run() {

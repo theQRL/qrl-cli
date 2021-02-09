@@ -39,12 +39,15 @@ const toUint8Vector = (arr) => {
   return vec
 }
 
+
 // Convert bytes to hex
 function bytesToHex(byteArray) {
   return [...byteArray]
+    /* eslint-disable */
     .map((byte) => {
-      return ('00' + (byte & 0xff).toString(16)).slice(-2) // eslint-disable-line
+      return ('00' + (byte & 0xff).toString(16)).slice(-2)
     })
+    /* eslint-enable */
     .join('')
 }
 

@@ -157,6 +157,7 @@ OPTIONS
   -i, --pubKeyIndex=pubKeyIndex              Public key index to use
   -k, --sharedKeyListFile=sharedKeyListFile  Secret shared keylist Output file
   -m, --mainnet                              queries mainnet for the OTS state
+  -p, --password=password                    Password to decrypt lattice secret keys
   -s, --signedMessageFile=signedMessageFile  Signed message Output file
   -t, --testnet                              queries testnet for the OTS state
 
