@@ -39,7 +39,6 @@ const { Command, flags } = require('@oclif/command')
 // const { red, white } = require('kleur')
 const ora = require('ora')
 const fs = require('fs')
-// const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const aes256 = require('aes256')
 const { cli } = require('cli-ux')
 // eslint-disable-next-line no-unused-vars
@@ -48,7 +47,6 @@ const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl')
 const { DILLIBmodule } = require('qrllib/build/offline-libjsdilithium')
 // eslint-disable-next-line no-unused-vars
 const { KYBLIBmodule } = require('qrllib/build/offline-libjskyber')
-// const helpers = require('@theqrl/explorer-helpers')
 const Crypto = require('crypto')
 const eccrypto = require('eccrypto')
 const aesjs = require('aes-js')
@@ -123,6 +121,67 @@ const openFile = (path) => {
   return JSON.parse(contents)
 }
 
+const checkCipherTextJson = (checkCipher) => {
+  const valid = {}
+  valid.status = true
+  if (checkCipher === undefined) {
+    valid.status = false
+    valid.error = 'array is undefined'
+    return valid
+  }
+  const arrayLength = Object.keys(checkCipher).length
+  if (arrayLength === 0) {
+    valid.status = false
+    valid.error = 'length of array is 0'
+    return valid
+  }
+  // check that the json has keys as expected 
+  if (!JSON.stringify(checkCipher).includes('iv')) {
+    valid.status = false
+    valid.error = `Output does not have a iv key buffer`
+    return valid
+  }
+  if (!JSON.stringify(checkCipher).includes('ephemPublicKey')) {
+    valid.status = false
+    valid.error = `Output does not have a ephemPublicKey key buffer`
+    return valid
+  }
+  if (!JSON.stringify(checkCipher).includes('ciphertext')) {
+    valid.status = false
+    valid.error = `Output does not have a ciphertext key buffer`
+    return valid
+  }
+  if (!JSON.stringify(checkCipher).includes('mac')) {
+    valid.status = false
+    valid.error = `Output does not have a mac key buffer`
+    return valid
+  }
+  return valid
+}
+
+
+const checkSignedMessageJson = (signedMessage) => {
+  const valid = {}
+  valid.status = true
+  if (signedMessage === undefined) {
+    valid.status = false
+    valid.error = 'array is undefined'
+    return valid
+  }
+  const arrayLength = Object.keys(signedMessage).length
+  if (arrayLength === 0) {
+    valid.status = false
+    valid.error = 'length of array is 0'
+    return valid
+  }
+  // check that the json has one key and its 5466 characters
+  if (signedMessage.length !== 5466) {
+    valid.status = false
+    valid.error = `Invalid output length ${signedMessage.length}, expected message length is 5466. Is JSON correct?`
+    return valid
+  }
+  return valid
+}
 const checkLatticeJSON = (check) => {
   const valid = {}
   valid.status = true
@@ -207,11 +266,24 @@ const checkLatticeJSON = (check) => {
   return valid
 }
 
+// check if file is empty
+function isFileEmpty(fileName, ignoreWhitespace=true) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(fileName, (err, data) => {
+      if( err ) {
+        reject(err);
+        return;
+      }
+      resolve((!ignoreWhitespace && data.length === 0) || (ignoreWhitespace && !!String(data).match(/^\s*$/)))
+    });
+  })
+}
+
 class LatticeShared extends Command {
   async run() {
     const {args, flags} = this.parse(LatticeShared)
-    if (flags.cypherTextFile) {
-      cypherTextFile = flags.cypherTextFile
+    if (flags.cypherText) {
+      cypherTextFile = flags.cypherText
     }
     if (flags.signedMessageFile) {
       signedMessageFile = flags.signedMessageFile
@@ -241,14 +313,13 @@ class LatticeShared extends Command {
     this.log(`Generate Lattice Shared_Keys...`)
     const spinner = ora({ text: 'Fetching Lattice keys...\n', }).start()
 
-
-// Collect the required pub/sec keys needed to generate keys
-
-
+    // Collect the required pub/sec keys needed to generate keys
     let latticeSK = []
     let latticePK = []
     let validSecretJson = ''
     let validPublicJson = ''
+    let validCypherTextJson = ''
+    let validSignedMessageJson = ''
     let pubKeyAddress = ''
 
 
@@ -258,13 +329,22 @@ class LatticeShared extends Command {
     if (args.latticeSK) {
       // check if the secret keys are a file or json
       if (fs.existsSync(args.latticeSK)) {
-        // file submitted
-        latticeSK = openFile(args.latticeSK)
-        try {          
-          if (latticeSK[0].encrypted === false) {
-            // check lattice file for valid json
-            validSecretJson = checkLatticeJSON(latticeSK)
+        // file submitted, is file empty?
+        isFileEmpty(args.latticeSK).then( (isEmpty) => {
+          if (isEmpty) {
+            spinner.fail('Ciphertext File is empty...')
+            this.exit(1)
           }
+        })
+        try{
+          latticeSK = openFile(args.latticeSK)
+        }
+        catch (e) {
+          spinner.fail('Unable to open file...')
+          this.exit(1)
+        }
+
+        try {  
           if (latticeSK[0].encrypted === true) {
             let password
             if (flags.password) {
@@ -292,16 +372,9 @@ class LatticeShared extends Command {
           spinner.fail(`Failed to decrypt: ${error}`)
           this.exit(1)
         }
-        // check lattice file for valid json
-        validSecretJson = checkLatticeJSON(latticeSK)
-        if (!validSecretJson.status) {
-          // not valid, fail
-          spinner.fail(`Invalid JSON found in secret keys... ${validSecretJson.error}`)
-          this.exit(1)
-        }
       }
       else {
-        // check for encrypted json
+        // not a file, check for json
         try {
           // is it valid json
           latticeSK = JSON.parse(args.latticeSK)
@@ -310,53 +383,39 @@ class LatticeShared extends Command {
           spinner.fail('Invalid JSON given...')
           this.exit(1)
         }
-        try {
-          if (latticeSK[0].encrypted === false) {
-            // not encrypted. does it contain the keys we need?
-            validSecretJson = checkLatticeJSON(latticeSK)
+        if (latticeSK[0].encrypted === true) {
+          // is encrypted, get password
+          let password
+          if (flags.password) {
+            // from flags
+            password = flags.password
+          } 
+          else {
+            // no flag passed, ask user for password
+            password = await cli.prompt('Enter password for lattice file', {type: 'hide'})
           }
-          if (latticeSK[0].encrypted === true) {
-            // is encrypted, get password
-            let password
-            if (flags.password) {
-              // from flags
-              password = flags.password
-            } 
-            else {
-              // no flag passed, ask user for password
-              password = await cli.prompt('Enter password for lattice file', {type: 'hide'})
-            }
-            latticeSK[0].encrypted = false
-            latticeSK[0].tx_hash = aes256.decrypt(password, latticeSK[0].tx_hash)
-            latticeSK[0].network = aes256.decrypt(password, latticeSK[0].network)
-            latticeSK[0].kyberPK = aes256.decrypt(password, latticeSK[0].kyberPK)
-            latticeSK[0].kyberSK = aes256.decrypt(password, latticeSK[0].kyberSK)
-            latticeSK[0].dilithiumPK = aes256.decrypt(password, latticeSK[0].dilithiumPK)
-            latticeSK[0].dilithiumSK = aes256.decrypt(password, latticeSK[0].dilithiumSK)
-            latticeSK[0].ecdsaPK = aes256.decrypt(password, latticeSK[0].ecdsaPK)
-            latticeSK[0].ecdsaSK = aes256.decrypt(password, latticeSK[0].ecdsaSK)
-            if (!latticeSK[0].network.match(/^(Testnet|Mainnet|GRPC)$/)) {
-              // console.log('network: ' + latticeSK[0].network )
-              spinner.fail('Data still encrypted... Bad passphrase?')
-              this.exit(1)
-            } 
-          }
+          latticeSK[0].encrypted = false
+          latticeSK[0].tx_hash = aes256.decrypt(password, latticeSK[0].tx_hash)
+          latticeSK[0].network = aes256.decrypt(password, latticeSK[0].network)
+          latticeSK[0].kyberPK = aes256.decrypt(password, latticeSK[0].kyberPK)
+          latticeSK[0].kyberSK = aes256.decrypt(password, latticeSK[0].kyberSK)
+          latticeSK[0].dilithiumPK = aes256.decrypt(password, latticeSK[0].dilithiumPK)
+          latticeSK[0].dilithiumSK = aes256.decrypt(password, latticeSK[0].dilithiumSK)
+          latticeSK[0].ecdsaPK = aes256.decrypt(password, latticeSK[0].ecdsaPK)
+          latticeSK[0].ecdsaSK = aes256.decrypt(password, latticeSK[0].ecdsaSK)
+          if (!latticeSK[0].network.match(/^(Testnet|Mainnet|GRPC)$/)) {
+            spinner.fail('Data still encrypted... Bad passphrase?')
+            this.exit(1)
+          } 
         }
-        catch (error) {
-          spinner.fail(`Failed to decrypt: ${error}`)
-          this.exit(1)
-        }
-        // check lattice file for valid json does it contain the keys we need
-        validSecretJson = checkLatticeJSON(latticeSK)
-        if (!validSecretJson.status) {
-          // not valid, fail
-          spinner.fail(`Invalid JSON found in secret keys... ${validSecretJson.error}`)
-          this.exit(1)
-        }
-
       }
-
-
+      // check lattice file for valid json does it contain the keys we need
+      validSecretJson = checkLatticeJSON(latticeSK)
+      if (!validSecretJson.status) {
+        // not valid, fail
+        spinner.fail(`Invalid JSON found in secret keys... ${validSecretJson.error}`)
+        this.exit(1)
+      }
     }
 
 // /////////////////////////
@@ -380,17 +439,45 @@ class LatticeShared extends Command {
 // /////////////////////////
     // Check for file, txhash or JSON
     if (args.latticePK) {
-      // not a hexseed
-      if (args.latticePK.length !== 64) {
         // check if the public keys are a file or json
         if (fs.existsSync(args.latticePK)) {
           // file submitted
           latticePK = openFile(args.latticePK)
           // check lattice file for valid json
-          validPublicJson = checkLatticeJSON(latticePK)
+        }
+        // is a hexseed
+        else if (args.latticePK.length === 64) {
+          // fetch the transaction from the network
+          spinner.succeed(`Grabbing public keys from ${network}`)
+          const response = await Qrlnetwork.api('GetObject', {
+            query: Buffer.from(args.latticePK, 'hex')
+          })
+          if (response.found === false) {
+            spinner.fail('Unable to find transaction...')
+            this.exit(1)
+          } 
+          else {
+            // check that the response contains lattice keys
+            if (!response.transaction.tx.latticePK) {
+              // not a lattice transaction. Fail
+              spinner.fail('No lattice transaction found...')
+              this.exit(1)
+            }
+            pubKeyAddress = `Q${bytesToHex(response.transaction.addr_from)}`
+            latticePK = [{
+              address: pubKeyAddress,
+              network,
+            }]
+            latticePK.push({ 
+              pk1: bytesToHex(response.transaction.tx.latticePK.pk1),
+              pk2: bytesToHex(response.transaction.tx.latticePK.pk2),
+              pk3: bytesToHex(response.transaction.tx.latticePK.pk3),
+              txHash: bytesToHex(response.transaction.tx.transaction_hash),
+            })
+          }
         }
         else {
-          // JSON sent, is it valid?
+          // Is it JSON, if so is it valid?
           try {
             latticePK = JSON.parse(args.latticePK)
           } 
@@ -398,47 +485,11 @@ class LatticeShared extends Command {
             spinner.fail('not valid json or json file given...')
             this.exit(1)
           }
+        }
+        // is the json valid?
           validPublicJson = checkLatticeJSON(latticePK)
-        }
         if (!validPublicJson.status) {
-          spinner.fail(`Invalid JSON found in secret keys... ${validPublicJson.error}`)
-          this.exit(1)
-        }
-      }
-      else {
-        // fetch the transaction from the network
-        const response = await Qrlnetwork.api('GetObject', {
-          query: Buffer.from(args.latticePK, 'hex')
-        })
-        if (response.found === false) {
-          spinner.fail('Unable to find transaction...')
-          this.exit(1)
-        } 
-        else {
-          // check that the response contains lattice keys
-          if (!response.transaction.tx.latticePK) {
-            // not a lattice transaction. Fail
-            spinner.fail('No lattice transaction found...')
-            this.exit(1)
-          }
-          // spinner.succeed('Public Lattice transaction found')
-          pubKeyAddress = `Q${bytesToHex(response.transaction.addr_from)}`
-          latticePK = [{
-            address: pubKeyAddress,
-            network,
-          }]
-          latticePK.push({ 
-            pk1: bytesToHex(response.transaction.tx.latticePK.pk1),
-            pk2: bytesToHex(response.transaction.tx.latticePK.pk2),
-            pk3: bytesToHex(response.transaction.tx.latticePK.pk3),
-            txHash: bytesToHex(response.transaction.tx.transaction_hash),
-          })
-          validPublicJson = true
-        }
-      }
-      // is the json valid?
-      if (!validPublicJson) {
-        spinner.fail(`Invalid JSON found in public keys... ${validPublicJson.error}`)
+          spinner.fail(`Invalid JSON found in public keys... ${validPublicJson.error}`)
         this.exit(1)
       }
     }
@@ -457,17 +508,12 @@ class LatticeShared extends Command {
       const aliceKyberSK = latticeSK[0].kyberSK
       const aliceDilithiumPK = latticeSK[0].dilithiumPK.toString('hex')
       const aliceDilithiumSK = latticeSK[0].dilithiumSK
-      // const senderECDSAPK = latticeSK[0].ecdsaPK
-      // const senderECDSASK = latticeSK[0].ecdsaSK
-
       const bobKyberPK = latticePK[pubKeyIndexNum].pk1
-      // const recipientDilithiumPK = latticePK[pubKeyIndexNum].pk2
       const bobECDSAPK = latticePK[pubKeyIndexNum].pk3
-
 
       waitForKYBLIB(async () => {
         waitForDILLIB(async () => {
-          spinner.succeed(`Public Keys found on ${network}, Generating new shared secrets for...`)
+          spinner.succeed(`Generating new shared secrets for`)
           spinner.succeed(`Address: ${latticePK[0].address}`)
           spinner.succeed(`Lattice Tx Hash: ${latticePK[pubKeyIndexNum].txHash}`)
           // Create the Kyber object from senders KyberSK and senders matching KyberPK
@@ -525,51 +571,83 @@ class LatticeShared extends Command {
       let signedMsg
       let encCypherText
 
-
-
-
       if (!args.signedMessageFile || !args.cypherTextFile) {
         spinner.fail('Both Shared Secret and Shared Keys are required...')
         this.exit(1)
       }
+
+      // is cipherTextFile a file?
+      if (fs.existsSync(args.cypherTextFile)) {
+        // is file empty?
+// spinner.succeed('is the file empty? ')
+        isFileEmpty(args.cypherTextFile).then( (isEmpty) => {
+          if (isEmpty) {
+            spinner.fail('Ciphertext File is empty...')
+            this.exit(1)
+          }
+        })
+        encCypherTextJson = openEphemeralFile(args.cypherTextFile)
+        // check for valid json here
+        validCypherTextJson = await checkCipherTextJson(encCypherTextJson)
+        if (!validCypherTextJson.status) {
+          spinner.fail(`Invalid JSON found in encCipherTextJson... ${validCypherTextJson.error}`)
+          this.exit(1)
+        }
+      }
+      else {
+        // not a file, is it json?
+        try {
+          encCypherTextJson = JSON.parse(args.cypherTextFile)
+        }
+        catch (e) {
+          spinner.fail('No valid cyphertext JSON data passed...')
+          this.exit(1)
+        }
+        validCypherTextJson = await checkCipherTextJson(encCypherTextJson)
+        if (!validCypherTextJson.status) {
+          spinner.fail(`Invalid JSON found in encCipherTextJson... ${validCypherTextJson.error}`)
+          this.exit(1)
+        }
+      }
+
+
+      // is signedMessageFile a file?
+      if (fs.existsSync(args.signedMessageFile)) {
+        // is file empty?
+        isFileEmpty(args.signedMessageFile).then( (isEmpty) => {
+          if (isEmpty) {
+            spinner.fail('signedMessageFile File is empty...')
+            this.exit(1)
+          }
+        })
+        signedMsgJson = openEphemeralFile(args.signedMessageFile)
+        // check for valid json here
+        validSignedMessageJson = await checkSignedMessageJson(signedMsgJson)
+        if (!validSignedMessageJson.status) {
+          spinner.fail(`Invalid JSON found in Signed Message JSON... ${validSignedMessageJson.error}`)
+          this.exit(1)
+        }
+      }
+      else {
+        try {
+          signedMsgJson = JSON.parse(args.signedMessageFile)
+        }
+        catch (e) {
+          spinner.fail('invalid signed message json...')
+        }
+        // check for valid json here
+        validSignedMessageJson = await checkSignedMessageJson(signedMsgJson[0])
+        if (!validSignedMessageJson.status) {
+          spinner.fail(`Invalid JSON found in Signed Message JSON... ${validSignedMessageJson.error}`)
+          this.exit(1)
+        }
+      }
+    
+
       spinner.succeed('Shared secrets found, decrypting and generating shared keylist')
-        // Generate keys from found list using secret key and pub key from sender
+      // Generate keys from found list using secret key and pub key from sender
       waitForKYBLIB(async () => {
         waitForDILLIB(async () => {
-          // is cypherTextFile a file?
-          if (fs.existsSync(args.cypherTextFile)) {
-            encCypherTextJson = openEphemeralFile(args.cypherTextFile)
-this.log('file encCypherTextJson')
-
-          }
-          else if (JSON.parse(args.cypherTextFile)) {
-            encCypherTextJson = openEphemeralFile(args.cypherTextFile)
-this.log('json encCypherTextJson')
-
-          }
-          else {
-            spinner.fail('cyphertext is not valid json or file...')
-            this.exit(1)
-          }
-
-          // is cypherTextFile a file?
-          if (fs.existsSync(args.signedMessageFile)) {
-this.log('file signedMsgJson')
-            signedMsgJson = openEphemeralFile(args.signedMessageFile)
-          }
-          else if (JSON.parse(args.signedMessageFile)) {
-this.log('json signedMsgJson')
-            signedMsgJson = openEphemeralFile(args.signedMessageFile)
-          }
-          else {
-            spinner.fail('signedMsgJson is not valid json or file...')
-            this.exit(1)
-          }
-
-
-
-// this.log(encCypherTextJson)
-
           try {
             encCypherText = encCypherTextJson
             signedMsg = signedMsgJson
@@ -659,7 +737,7 @@ LatticeShared.args = [
 
 LatticeShared.flags = { 
 
-  cypherTextFile: flags.string({
+  cypherText: flags.string({
     char: 'c',
     default: false,
     description: 'Cyphertext Output file'
@@ -685,7 +763,7 @@ LatticeShared.flags = {
   password: flags.string({
     char: 'p',
     default: false,
-    description: 'Password to decrypt lattice secret keys'
+    description: 'Password to encrypt/decrypt lattice secret keys'
   }),
 
   testnet: flags.boolean({
