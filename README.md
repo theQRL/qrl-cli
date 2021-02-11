@@ -34,7 +34,7 @@ USAGE
 * [`qrl-cli balance ADDRESS`](#qrl-cli-balance-address)
 * [`qrl-cli create-wallet`](#qrl-cli-create-wallet)
 * [`qrl-cli generate-lattice-keys`](#qrl-cli-generate-lattice-keys)
-* [`qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXTFILE] [SIGNEDMESSAGEFILE]`](#qrl-cli-generate-shared-keys-latticepk-latticesk-cyphertextfile-signedmessagefile)
+* [`qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXT] [SIGNEDMESSAGE]`](#qrl-cli-generate-shared-keys-latticepk-latticesk-cyphertext-signedmessage)
 * [`qrl-cli get-keys`](#qrl-cli-get-keys)
 * [`qrl-cli help [COMMAND]`](#qrl-cli-help-command)
 * [`qrl-cli ots ADDRESS`](#qrl-cli-ots-address)
@@ -137,29 +137,30 @@ DESCRIPTION
 
 _See code: [src/commands/generate-lattice-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/generate-lattice-keys.js)_
 
-## `qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXTFILE] [SIGNEDMESSAGEFILE]`
+## `qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXT] [SIGNEDMESSAGE]`
 
 Generate shared_key files from lattice keys (user_1 public) and (user_2 secret)
 
 ```
 USAGE
-  $ qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXTFILE] [SIGNEDMESSAGEFILE]
+  $ qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXT] [SIGNEDMESSAGE]
 
 ARGUMENTS
-  LATTICEPK          Generating new key_list or Recreating received list
-  LATTICESK          Generating new key_list or Recreating received list
-  CYPHERTEXTFILE     cypherTextFile from other party
-  SIGNEDMESSAGEFILE  sharedSecret from other party
+  LATTICEPK      Generating new key_list or Recreating received list
+  LATTICESK      Generating new key_list or Recreating received list
+  CYPHERTEXT     Cyphertext file for key-regeneration
+  SIGNEDMESSAGE  Signed Message file for key-regeneration
 
 OPTIONS
-  -c, --cypherTextFile=cypherTextFile        Cyphertext Output file
-  -g, --grpc=grpc                            advanced: grcp endpoint (for devnet/custom QRL network deployments)
-  -i, --pubKeyIndex=pubKeyIndex              Public key index to use
-  -k, --sharedKeyListFile=sharedKeyListFile  Secret shared keylist Output file
-  -m, --mainnet                              queries mainnet for the OTS state
-  -p, --password=password                    Password to decrypt lattice secret keys
-  -s, --signedMessageFile=signedMessageFile  Signed message Output file
-  -t, --testnet                              queries testnet for the OTS state
+  -c, --cypherText=cypherText                Kyber encrypted cyphertext Output file
+  -d, --decryptPassword=decryptPassword      Password to decrypt lattice secret keys
+  -e, --encryptPassword=encryptPassword      Password to encrypt shared Key List File
+  -g, --grpc=grpc                            Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
+  -i, --pubKeyIndex=pubKeyIndex              (default: 1) Public key index to use if multiple are found in file
+  -k, --sharedKeyListFile=sharedKeyListFile  Shared secret Kyber key list Output file
+  -m, --mainnet                              (default) queries mainnet for the public lattice keys
+  -s, --signedMessage=signedMessage          Dilithium signed message Output file
+  -t, --testnet                              queries testnet for the public lattice keys
 
 DESCRIPTION
   Generate new shared_keys and shared_keylist from transaction hash and private lattice keys    

@@ -55,8 +55,8 @@ const Qrlnode = require('../functions/grpc')
 let KYBLIBLoaded = false
 let DILLIBLoaded = false
 let QRLLIBLoaded = false
-let cypherTextFile = 'cypherText.txt'
-let signedMessageFile = 'signedMessage.txt'
+let cypherText = 'cypherText.txt'
+let signedMessage = 'signedMessage.txt'
 let sharedKeyListFile = 'sharedKeyList.txt'
 
 const openEphemeralFile = function oEF(path) {
@@ -283,10 +283,10 @@ class LatticeShared extends Command {
   async run() {
     const {args, flags} = this.parse(LatticeShared)
     if (flags.cypherText) {
-      cypherTextFile = flags.cypherText
+      cypherText = flags.cypherText
     }
-    if (flags.signedMessageFile) {
-      signedMessageFile = flags.signedMessageFile
+    if (flags.signedMessage) {
+      signedMessage = flags.signedMessage
     }
     if (flags.sharedKeyListFile) {
       sharedKeyListFile = flags.sharedKeyListFile
@@ -347,8 +347,8 @@ class LatticeShared extends Command {
         try {  
           if (latticeSK[0].encrypted === true) {
             let password
-            if (flags.password) {
-              password = flags.password
+            if (flags.decryptPassword) {
+              password = flags.decryptPassword
             } 
             else {
               password = await cli.prompt('Enter password for lattice file', {type: 'hide'})
@@ -385,24 +385,24 @@ class LatticeShared extends Command {
         }
         if (latticeSK[0].encrypted === true) {
           // is encrypted, get password
-          let password
-          if (flags.password) {
+          let decryptPassword
+          if (flags.decryptPassword) {
             // from flags
-            password = flags.password
+            decryptPassword = flags.decryptPassword
           } 
           else {
             // no flag passed, ask user for password
-            password = await cli.prompt('Enter password for lattice file', {type: 'hide'})
+            decryptPassword = await cli.prompt('Enter password for lattice file', {type: 'hide'})
           }
           latticeSK[0].encrypted = false
-          latticeSK[0].tx_hash = aes256.decrypt(password, latticeSK[0].tx_hash)
-          latticeSK[0].network = aes256.decrypt(password, latticeSK[0].network)
-          latticeSK[0].kyberPK = aes256.decrypt(password, latticeSK[0].kyberPK)
-          latticeSK[0].kyberSK = aes256.decrypt(password, latticeSK[0].kyberSK)
-          latticeSK[0].dilithiumPK = aes256.decrypt(password, latticeSK[0].dilithiumPK)
-          latticeSK[0].dilithiumSK = aes256.decrypt(password, latticeSK[0].dilithiumSK)
-          latticeSK[0].ecdsaPK = aes256.decrypt(password, latticeSK[0].ecdsaPK)
-          latticeSK[0].ecdsaSK = aes256.decrypt(password, latticeSK[0].ecdsaSK)
+          latticeSK[0].tx_hash = aes256.decrypt(decryptPassword, latticeSK[0].tx_hash)
+          latticeSK[0].network = aes256.decrypt(decryptPassword, latticeSK[0].network)
+          latticeSK[0].kyberPK = aes256.decrypt(decryptPassword, latticeSK[0].kyberPK)
+          latticeSK[0].kyberSK = aes256.decrypt(decryptPassword, latticeSK[0].kyberSK)
+          latticeSK[0].dilithiumPK = aes256.decrypt(decryptPassword, latticeSK[0].dilithiumPK)
+          latticeSK[0].dilithiumSK = aes256.decrypt(decryptPassword, latticeSK[0].dilithiumSK)
+          latticeSK[0].ecdsaPK = aes256.decrypt(decryptPassword, latticeSK[0].ecdsaPK)
+          latticeSK[0].ecdsaSK = aes256.decrypt(decryptPassword, latticeSK[0].ecdsaSK)
           if (!latticeSK[0].network.match(/^(Testnet|Mainnet|GRPC)$/)) {
             spinner.fail('Data still encrypted... Bad passphrase?')
             this.exit(1)
@@ -502,7 +502,7 @@ class LatticeShared extends Command {
 // 1. Generate new key list and secrets
 // Alice sending to Bob initiating the key share
 // /////////////////////////////////////
-    if ( !args.cypherTextFile && !args.signedMessageFile) {
+    if ( !args.cypherText && !args.signedMessage) {
       // Alice is sending the keys to bob initiating the key share
       const aliceKyberPK = latticeSK[0].kyberPK
       const aliceKyberSK = latticeSK[0].kyberSK
@@ -539,17 +539,29 @@ class LatticeShared extends Command {
             const signedMsg = DILOBJECT_SENDER.sign(Buffer.from(encSeed).toString('hex'))
             // save encrpytedCypherText and signedMsg to a local file
             const encCypherTextJson = ['[', JSON.stringify(encryptedCypherText), ']'].join('')
-            fs.writeFileSync(cypherTextFile, encCypherTextJson)
-            spinner.succeed(`Cyphertext file written to: ${cypherTextFile}`)
+            
+            fs.writeFileSync(cypherText, encCypherTextJson)
+
+            spinner.succeed(`Cyphertext file written to: ${cypherText}`)
+            
             const signedMsgJson = ['[', JSON.stringify(signedMsg), ']'].join('')
-            fs.writeFileSync(signedMessageFile, signedMsgJson)
-            spinner.succeed(`Signed Message File file written to: ${signedMessageFile}`)
+            
+            fs.writeFileSync(signedMessage, signedMsgJson)
+            
+            spinner.succeed(`Signed Message File file written to: ${signedMessage}`)
             // 9 - Generate the next 1000 keys with Shake128 and shared secret seed
             waitForQRLLIB(async () => {
               const sBin = QRLLIB.hstr2bin(Buffer.from(Buffer.from(seed).toString('hex')))
-              const keyList = QRLLIB.shake128(64000, sBin)
-              fs.writeFileSync(sharedKeyListFile, QRLLIB.bin2hstr(keyList))
+              let keylist = QRLLIB.shake128(64000, sBin)
+              if (flags.encryptPassword) {
+                keylist = aes256.encrypt(flags.encryptPassword, keylist)
+              }
+
+            
+              fs.writeFileSync(sharedKeyListFile, QRLLIB.bin2hstr(keylist))
+              
               spinner.succeed(`Shared Key List file written to: ${sharedKeyListFile}`)
+            
             })
           })
         })
@@ -571,22 +583,22 @@ class LatticeShared extends Command {
       let signedMsg
       let encCypherText
 
-      if (!args.signedMessageFile || !args.cypherTextFile) {
+      if (!args.signedMessage || !args.cypherText) {
         spinner.fail('Both Shared Secret and Shared Keys are required...')
         this.exit(1)
       }
 
       // is cipherTextFile a file?
-      if (fs.existsSync(args.cypherTextFile)) {
+      if (fs.existsSync(args.cypherText)) {
         // is file empty?
 // spinner.succeed('is the file empty? ')
-        isFileEmpty(args.cypherTextFile).then( (isEmpty) => {
+        isFileEmpty(args.cypherText).then( (isEmpty) => {
           if (isEmpty) {
             spinner.fail('Ciphertext File is empty...')
             this.exit(1)
           }
         })
-        encCypherTextJson = openEphemeralFile(args.cypherTextFile)
+        encCypherTextJson = openEphemeralFile(args.cypherText)
         // check for valid json here
         validCypherTextJson = await checkCipherTextJson(encCypherTextJson)
         if (!validCypherTextJson.status) {
@@ -597,7 +609,7 @@ class LatticeShared extends Command {
       else {
         // not a file, is it json?
         try {
-          encCypherTextJson = JSON.parse(args.cypherTextFile)
+          encCypherTextJson = JSON.parse(args.cypherText)
         }
         catch (e) {
           spinner.fail('No valid cyphertext JSON data passed...')
@@ -611,16 +623,16 @@ class LatticeShared extends Command {
       }
 
 
-      // is signedMessageFile a file?
-      if (fs.existsSync(args.signedMessageFile)) {
+      // is signedMessage a file?
+      if (fs.existsSync(args.signedMessage)) {
         // is file empty?
-        isFileEmpty(args.signedMessageFile).then( (isEmpty) => {
+        isFileEmpty(args.signedMessage).then( (isEmpty) => {
           if (isEmpty) {
-            spinner.fail('signedMessageFile File is empty...')
+            spinner.fail('signedMessage File is empty...')
             this.exit(1)
           }
         })
-        signedMsgJson = openEphemeralFile(args.signedMessageFile)
+        signedMsgJson = openEphemeralFile(args.signedMessage)
         // check for valid json here
         validSignedMessageJson = await checkSignedMessageJson(signedMsgJson)
         if (!validSignedMessageJson.status) {
@@ -630,7 +642,7 @@ class LatticeShared extends Command {
       }
       else {
         try {
-          signedMsgJson = JSON.parse(args.signedMessageFile)
+          signedMsgJson = JSON.parse(args.signedMessage)
         }
         catch (e) {
           spinner.fail('invalid signed message json...')
@@ -723,14 +735,14 @@ LatticeShared.args = [
   },
 
   {
-    name: 'cypherTextFile',
-    description: 'cypherTextFile from other party',
+    name: 'cypherText',
+    description: 'Cyphertext file for key-regeneration',
     required: false,
   },  
 
   {
-    name: 'signedMessageFile',
-    description: 'sharedSecret from other party',
+    name: 'signedMessage',
+    description: 'Signed Message file for key-regeneration',
     required: false,
   },
 ]
@@ -740,48 +752,55 @@ LatticeShared.flags = {
   cypherText: flags.string({
     char: 'c',
     default: false,
-    description: 'Cyphertext Output file'
+    description: 'Kyber encrypted cyphertext Output file'
   }),
 
-  signedMessageFile: flags.string({
+  signedMessage: flags.string({
     char: 's',
     default: false,
-    description: 'Signed message Output file'
+    description: 'Dilithium signed message Output file'
   }),
 
   sharedKeyListFile: flags.string({
     char: 'k',
     default: false,
-    description: 'Secret shared keylist Output file'
+    description: 'Shared secret Kyber key list Output file'
   }),
 
   pubKeyIndex: flags.string({
     char: 'i',
     default: false,
-    description: 'Public key index to use'
+    description: '(default: 1) Public key index to use if multiple are found in file'
   }),
-  password: flags.string({
-    char: 'p',
+
+  decryptPassword: flags.string({
+    char: 'd',
     default: false,
-    description: 'Password to encrypt/decrypt lattice secret keys'
+    description: 'Password to decrypt lattice secret keys'
+  }),
+
+  encryptPassword: flags.string({
+    char: 'e',
+    default: false,
+    description: 'Password to encrypt shared Key List File'
   }),
 
   testnet: flags.boolean({
     char: 't',
     default: false,
-    description: 'queries testnet for the OTS state'
+    description: 'queries testnet for the public lattice keys'
   }),
 
   mainnet: flags.boolean({
     char: 'm',
     default: false,
-    description: 'queries mainnet for the OTS state'
+    description: '(default) queries mainnet for the public lattice keys'
   }),
 
   grpc: flags.string({
     char: 'g',
     required: false,
-    description: 'advanced: grcp endpoint (for devnet/custom QRL network deployments)'
+    description: 'Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)',
   }),
 
 }
