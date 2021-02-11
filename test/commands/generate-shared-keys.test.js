@@ -632,7 +632,7 @@ describe('generate-shared-keys #2c', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
+/*
 // re-generate-shared-keys
 // bob re-generates shared keys for bob using his txID and encrypted files
 describe('generate-shared-keys #2d', () => {
@@ -661,3 +661,4 @@ describe('generate-shared-keys #2d', () => {
   })
 })
 
+*/
