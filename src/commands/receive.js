@@ -77,13 +77,17 @@ If using an encrypted wallet file pass the encryption password with the (-p) fla
 Receive.args = [
   {
     name: 'address',
-    description: 'address to display QR code for',
+    description: 'QRL address to display QR code for',
     required: true,
   },
 ]
 
 Receive.flags = {
-  password: flags.string({char: 'p', required: false, description: 'wallet file password'}),
+  password: flags.string({
+    char: 'p',
+    required: false,
+    description: 'Encrypted QRL wallet file password'
+  }),
 }
 
 module.exports = {Receive}

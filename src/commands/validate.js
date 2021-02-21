@@ -45,13 +45,17 @@ when passed a QRL address in hexstring (preceded by 'Q'), will return details ab
 `
 
 Validate.flags = {
-  quiet: flags.boolean({char: 'q', default: false, description: 'quiet mode: no address details, just return validity via exit code'}),
+  quiet: flags.boolean({
+    char: 'q',
+    default: false,
+    description: 'Quiet mode: no address details, just return validity via exit code'
+  }),
 }
 
 Validate.args = [
   {
     name: 'address',
-    description: 'address to validate',
+    description: 'QRL address to validate',
     required: true,
   },
 ]

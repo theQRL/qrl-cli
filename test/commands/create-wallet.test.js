@@ -86,7 +86,7 @@ describe('create-wallet', () => {
     '-f',
     '/tmp/wallet.json',
     '-p',
-    'joan clarke was here',
+    'test123',
   ]
   let exitCode
   before(done => {

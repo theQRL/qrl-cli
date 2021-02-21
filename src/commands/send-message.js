@@ -47,12 +47,15 @@ const toUint8Vector = (arr) => {
   return vec
 }
 
+
 // Convert bytes to hex
 function bytesToHex(byteArray) {
   return [...byteArray]
+    /* eslint-disable */
     .map((byte) => {
-      return ('00' + (byte & 0xff).toString(16)).slice(-2) // eslint-disable-line
+      return ('00' + (byte & 0xff).toString(16)).slice(-2)
     })
+    /* eslint-enable */
     .join('')
 }
 
@@ -124,10 +127,6 @@ class SendMessage extends Command {
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
-    }
-    if (flags.devnet) {
-      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-      network = 'Devnet'
     }
     if (flags.testnet) {
       grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
@@ -267,6 +266,18 @@ class SendMessage extends Command {
       spinner.succeed('xmssPK returned...')
       const Qrlnetwork = await new Qrlnode(grpcEndpoint)
       await Qrlnetwork.connect()
+      
+      // verify we have connected and try again if not
+      let i = 0
+      const count = 5
+      while (Qrlnetwork.connection === false && i < count) {
+        spinner.succeed(`retry connection attempt: ${i}...`)
+        // eslint-disable-next-line no-await-in-loop
+        await Qrlnetwork.connect()
+        // eslint-disable-next-line no-plusplus
+        i++
+      }
+
       const spinner2 = ora({ text: 'Network Connect....' }).start()
       let thisAddress = []
       if (flags.recipient) {
@@ -332,7 +343,17 @@ class SendMessage extends Command {
       const txhash = JSON.parse(pushTransactionRes)
       if (txnHash === bytesToHex(txhash.data)) {
         spinner4.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
-      } else {
+        
+        // return link to explorer
+        if (network === 'Mainnet') {
+          spinner3.succeed(`https://explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+        }
+        else if (network === 'Testnet') {
+          spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+        }
+        // this.exit(0)
+      } 
+      else {
         spinner4.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
         this.exit(1)
       }
@@ -369,12 +390,6 @@ SendMessage.flags = {
     description: 'queries mainnet for the OTS state'
   }),
 
-  devnet: flags.boolean({
-    char: 'd',
-    default: false,
-    description: 'queries devnet for the OTS state'
-  }),
-
   grpc: flags.string({
     char: 'g',
     required: false,
@@ -390,19 +405,19 @@ SendMessage.flags = {
   wallet: flags.string({
     char: 'w',
     required: false,
-    description: 'json file of (w)allet from where funds should be sent',
+    description: 'JSON (w)allet file message will be sent from',
   }),
 
  password: flags.string({
     char: 'p',
     required: false,
-    description: 'wallet file (p)assword'
+    description: 'Encrypted QRL wallet file (p)assword'
   }),
 
   hexseed: flags.string({
     char: 's',
     required: false,
-    description: 'hex(s)eed/mnemonic of wallet from where funds should be sent',
+    description: 'Secret hex(s)eed/mnemonic of address message should be sent from',
   }),
 
   recipient: flags.string({
@@ -414,13 +429,13 @@ SendMessage.flags = {
   fee: flags.string({
     char: 'f',
     required: false,
-    description: '(f)ee for transaction in Shor (defaults to 100 Shor)'
+    description: 'QRL (f)ee for transaction in Shor (defaults to 100 Shor)'
   }),
 
   otsindex: flags.string({ 
     char: 'i',
     required: false,
-    description: 'OTS key (i)ndex' 
+    description: 'Unused OTS key (i)ndex for message transaction' 
   }),
 }
 

@@ -5,11 +5,13 @@ const {
 } = require('@oclif/command')
 const {
   white,
-  black
+  black,
+  red,
 } = require('kleur')
 const ora = require('ora')
 const helpers = require('@theqrl/explorer-helpers')
 // const moment = require('moment')
+const validateQrlAddress = require('@theqrl/validate-qrl-address')
 
 const Qrlnode = require('../functions/grpc')
 
@@ -63,10 +65,8 @@ class Search extends Command {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
-    if (flags.devnet) {
-      grpcEndpoint = 'devnet-1.automated.theqrl.org:19009'
-      network = 'Devnet'
-    }
+ 
+
     if (flags.testnet) {
       grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
       network = 'Testnet'
@@ -76,7 +76,7 @@ class Search extends Command {
       network = 'Mainnet'
     }
     if (!args.search) {
-      this.log('No search string')
+      this.log(`${red('⨉')} No search string`)
       this.exit(1)
     }
     const searchString = args.search
@@ -92,7 +92,7 @@ class Search extends Command {
         this.log(`${black().bgWhite('Block')} ${searchString}`)
         break
       default: {
-        this.log('No search string')
+        this.log(`${red('⨉')} Incorrect search info given`)
         this.exit(1)
       }
     }
@@ -103,6 +103,23 @@ class Search extends Command {
 
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     await Qrlnetwork.connect()
+    
+    // verify we have connected and try again if not
+    let i = 0
+    const count = 5
+    while (Qrlnetwork.connection === false && i < count) {
+      spinner.succeed(`retry connection attempt: ${i}...`)
+      // eslint-disable-next-line no-await-in-loop
+      await Qrlnetwork.connect()
+      // eslint-disable-next-line no-plusplus
+      i++
+    }
+
+    if (Qrlnetwork.connection === false) {
+      // wait a sec and retry the connection
+      spinner.fail('GRPC Connection failed, try again')
+      this.exit(1)
+    }
 
     if (identifySearch(searchString).method === 'tx') {
       const response = await Qrlnetwork.api('GetObject', {
@@ -113,10 +130,16 @@ class Search extends Command {
         this.exit(1)
       } else {
         spinner.succeed('Transaction found')
-        // eslint-disable-next-line no-console
-        console.dir(helpers.tx(response), {
-          depth: null,
-        })
+          if (flags.json) {
+            // eslint-disable-next-line no-console
+            console.log(JSON.stringify(helpers.tx(response)))
+          }
+          else {
+          // eslint-disable-next-line no-console
+          console.dir(helpers.tx(response), {
+            depth: null,
+          })
+        }
       }
     }
 
@@ -129,22 +152,35 @@ class Search extends Command {
         this.exit(1)
       } else {
         spinner.succeed('Block found')
-        // eslint-disable-next-line no-console
-        console.dir(helpers.block(response), {
-          depth: null,
-        })
+        if (flags.json) {
+          // eslint-disable-next-line no-console
+          console.log(JSON.stringify(helpers.block(response)))
+        }
+        else {
+          // eslint-disable-next-line no-console
+          console.dir(helpers.block(response), {
+            depth: null,
+          })
+        }
       }
     }
 
     if (identifySearch(searchString).method === 'address') {
+
+      if (!validateQrlAddress.hexString(searchString).result) {
+        spinner.fail('Invalid address given')
+        this.exit(1)
+      } 
       const response = await Qrlnetwork.api('GetOptimizedAddressState', {
         address: Buffer.from(searchString.substring(1), 'hex')
       })
-      if (response.found === false) {
-        spinner.fail('Unable to find address')
-        this.exit(1)
-      } else {
-        spinner.succeed('Address found')
+      spinner.succeed('Address found')
+
+      if (flags.json) {
+        // eslint-disable-next-line no-console
+        console.log(JSON.stringify(helpers.a(response)))
+      }
+      else {
         // eslint-disable-next-line no-console
         console.dir(helpers.a(response), {
           depth: null,
@@ -156,7 +192,7 @@ class Search extends Command {
 
 Search.description = `Searches for a transaction, block or address
 
-Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet or (-d) devnet. 
+Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet. 
 Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 `
 
@@ -172,22 +208,22 @@ Search.flags = {
   testnet: flags.boolean({
     char: 't',
     default: false,
-    description: 'queries testnet for the address/txhash/block',
+    description: 'Queries testnet for the address/txhash/block',
   }),
   mainnet: flags.boolean({
     char: 'm',
     default: false,
-    description: 'queries mainnet for the address/txhash/block',
-  }),
-  devnet: flags.boolean({
-    char: 'd',
-    default: false,
-    description: 'queries devnet for the address/txhash/block',
+    description: 'q(default Queries mainnet for the address/txhash/block',
   }),
   grpc: flags.string({
     char: 'g',
     required: false,
-    description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)',
+    description: 'Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)',
+  }),
+  json: flags.boolean({
+    char: 'j',
+    required: false,
+    description: 'Prints output to json',
   }),
 }
 

@@ -39,12 +39,15 @@ const toUint8Vector = (arr) => {
   return vec
 }
 
+
 // Convert bytes to hex
 function bytesToHex(byteArray) {
   return [...byteArray]
+    /* eslint-disable */
     .map((byte) => {
-      return ('00' + (byte & 0xff).toString(16)).slice(-2) // eslint-disable-line
+      return ('00' + (byte & 0xff).toString(16)).slice(-2)
     })
+    /* eslint-enable */
     .join('')
 }
 
@@ -107,29 +110,42 @@ const openWalletFile = (path) => {
 const checkTxJSON = (check) => {
   const valid = {}
   valid.status = true
+
+  if (check === undefined) {
+    valid.status = false
+    valid.error = 'array is undefined'
+    return valid
+  }
   if (check.length === 0) {
     valid.status = false
     valid.error = 'No transactions found: length of array is 0'
     return valid
   }
   check.forEach((element, index) => {
-    if (!element.to) {
+    if (!JSON.stringify(element).includes('to')) {
       valid.status = false
       valid.error = `Output #${index} does not have a 'to' key`
+      return valid
     }
+
     if (!validateQrlAddress.hexString(element.to).result) {
       valid.status = false
       valid.error = `Output #${index} does not contain a valid QRL address`
+      return valid
     }
-    if (!element.shor) {
+
+    if (!JSON.stringify(element).includes('shor')) {
       valid.status = false
       valid.error = `Output #${index} does not have a 'shor' key`
+      return valid
     }
+    return valid
   })
+  return valid
+
   // need some BigNumber checks here
   // ...
   // checks complete
-  return valid
 }
 
 class Send extends Command {
@@ -187,18 +203,31 @@ class Send extends Command {
       this.exit(1)
     }
     if (flags.jsonObject) {
+      // is it json?
+      try {
+          JSON.parse(flags.jsonObject);
+      } catch (e) {
+        this.log(`${red('⨉')} Unable to send: json object passed with -j contains invalid output data (${flags.jsonObject})`)
+        this.exit(1)
+      }
+      // valid json passed, is it also correct format and content?
       output = JSON.parse(flags.jsonObject)
       // now check the json is valid --> separate function
       const validate = checkTxJSON(output.tx)
       if (validate.status === false) {
-        this.log(
-          `${red('⨉')} Unable to send: json object passed with -j contains invalid output data (${validate.error})`
-        )
+        this.log(`${red('⨉')} Unable to send: json object passed with -j contains invalid output data (${validate.error})`)
         this.exit(1)
       }
     }
     if (flags.file) {
       const contents = fs.readFileSync(flags.file)
+            // is it json?
+      try {
+          JSON.parse(contents);
+      } catch (e) {
+        this.log(`${red('⨉')} Unable to send: json object passed with -j contains invalid output data (${contents})`)
+        this.exit(1)
+      }
       output = JSON.parse(contents)
       const validate = checkTxJSON(output.tx)
       if (validate.status === false) {
@@ -223,9 +252,10 @@ class Send extends Command {
         const convertAmountToBigNumber = new BigNumber(args.quantity)
         output.tx.push({
           to: flags.recipient,
-          shor: convertAmountToBigNumber.times(shorPerQuanta).toNumber(),
+          shor: convertAmountToBigNumber.times(shorPerQuanta).toString(),
         })
       }
+      // console.log(output)
     }
     let hexseed = ''
     if (flags.wallet) {
@@ -310,6 +340,7 @@ class Send extends Command {
       thisAmounts.push(o.shor)
     })
     this.log(`Fee: ${fee} Shor`)
+    
     const spinner = ora({ text: 'Sending unsigned transaction to node...' }).start()
     waitForQRLLIB(async () => {
       let XMSS_OBJECT
@@ -322,17 +353,29 @@ class Send extends Command {
 
       const Qrlnetwork = await new Qrlnode(grpcEndpoint)
       await Qrlnetwork.connect()
+
+      const spinner1 = ora({ text: 'attempting conenction to node...' }).start()
+      // verify we have connected and try again if not
+      let i = 0
+      const count = 5
+      while (Qrlnetwork.connection === false && i < count) {
+        spinner1.succeed(`retry connection attempt: ${i}...`)
+        // eslint-disable-next-line no-await-in-loop
+        await Qrlnetwork.connect()
+        // eslint-disable-next-line no-plusplus
+        i++
+      }
+      spinner1.succeed(`Connected!`)
+
       const request = {
         addresses_to: thisAddressesTo,
         amounts: thisAmounts,
         fee,
         xmss_pk: xmssPK,
       }
+// console.log(request)      
       const tx = await Qrlnetwork.api('TransferCoins', request)
-      // if (error) {
-      //   this.log(`${red('⨉')} Unable send transaction`)
-      //   this.exit(1)
-      // }
+
       spinner.succeed('Node correctly returned transaction for signing')
       const spinner2 = ora({ text: 'Signing transaction...' }).start()
 
@@ -412,7 +455,16 @@ class Send extends Command {
       const txhash = JSON.parse(pushTransactionRes)
       if (txnHash === bytesToHex(txhash.data)) {
         spinner3.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
-        this.exit(0)
+
+        // check for network and send link to explorer to user in console
+        if (network === 'Mainnet') {
+          spinner3.succeed(`https://explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+        }
+        else if (network === 'Testnet') {
+          spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+        }
+
+        // this.exit(0)
       } else {
         spinner3.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
         this.exit(1)
@@ -435,28 +487,61 @@ Send.args = [
 ]
 
 Send.flags = {
-  recipient: flags.string({ char: 'r', required: false, description: 'QRL address of recipient' }),
-  testnet: flags.boolean({ char: 't', default: false, description: 'uses testnet to send the transaction' }),
-  mainnet: flags.boolean({ char: 'm', default: false, description: 'uses mainnet to send the transaction' }),
+  recipient: flags.string({
+    char: 'r',
+    required: false,
+    description: 'QRL address of recipient'
+  }),
+  testnet: flags.boolean({
+    char: 't',
+    default: false,
+    description: 'uses testnet to send the transaction'
+  }),
+  mainnet: flags.boolean({
+    char: 'm',
+    default: false,
+    description: 'uses mainnet to send the transaction'
+  }),
   grpc: flags.string({
     char: 'g',
     required: false,
     description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)',
   }),
-  password: flags.string({ char: 'p', required: false, description: 'wallet file password' }),
-  shor: flags.boolean({ char: 's', default: false, description: 'Send in Shor' }),
+  password: flags.string({
+    char: 'p',
+    required: false,
+    description: 'wallet file password'
+  }),
+  shor: flags.boolean({
+    char: 's',
+    default: false,
+    description: 'Send in Shor'
+  }),
   jsonObject: flags.string({
     char: 'j',
     required: false,
     description: 'Pass a JSON object of recipients/quantities for multi-output transactions',
   }),
-  fee: flags.string({ char: 'f', required: false, description: 'Fee for transaction in Shor (defaults to 100 Shor)' }),
-  file: flags.string({ char: 'r', required: false, description: 'JSON file of recipients' }),
-  otsindex: flags.string({ char: 'i', required: true, description: 'OTS key index' }),
+  fee: flags.string({
+    char: 'f',
+    required: false,
+    description: 'Fee for transaction in Shor (defaults to 100 Shor)'
+  }),
+
+  file: flags.string({
+    char: 'R',
+    required: false,
+    description: 'JSON file of recipients'
+  }),
+  otsindex: flags.string({
+    char: 'i',
+    required: true,
+    description: 'OTS key index'
+  }),
   wallet: flags.string({
     char: 'w',
     required: false,
-    description: 'json file of wallet from where funds should be sent',
+    description: 'JSON file of wallet from where funds should be sent',
   }),
   hexseed: flags.string({
     char: 'h',
