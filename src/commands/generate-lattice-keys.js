@@ -13,149 +13,28 @@ const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl') // eslint-disa
 const { DILLIBmodule } = require('qrllib/build/offline-libjsdilithium') // eslint-disable-line no-unused-vars
 const { KYBLIBmodule } = require('qrllib/build/offline-libjskyber') // eslint-disable-line no-unused-vars
 const eccrypto = require('eccrypto')
+const clihelpers = require('../functions/cli-helpers')
 const Qrlnode = require('../functions/grpc')
-
-let QRLLIBLoaded = false
-let DILLIBLoaded = false
-let KYBLIBLoaded = false
-
-const waitForQRLLIB = (callBack) => {
-  setTimeout(() => {
-    // Test the QRLLIB object has the str2bin function.
-    // This is sufficient to tell us QRLLIB has loaded.
-    if (typeof QRLLIB.str2bin === 'function' && QRLLIBLoaded === true) {
-      callBack()
-    } else {
-      QRLLIBLoaded = true
-      return waitForQRLLIB(callBack)
-    }
-    return false
-  }, 50)
-}
-
-const waitForDILLIB = (callBack) => {
-  setTimeout(() => {
-    // Test the DILLIB object has the getString function.
-    // This is sufficient to tell us DILLIB has loaded.
-    if (typeof DILLIB.getString === 'function' && DILLIBLoaded === true) {
-      callBack()
-    } else {
-      DILLIBLoaded = true
-      return waitForDILLIB(callBack)
-    }
-    return false
-  }, 50)
-}
-
-const waitForKYBLIB = (callBack) => {
-  setTimeout(() => {
-    // Test the KYBLIB object has the getString function.
-    // This is sufficient to tell us KYBLIB has loaded.
-    if (typeof KYBLIB.getString === 'function' && KYBLIBLoaded === true) {
-      callBack()
-    } else {
-      KYBLIBLoaded = true
-      return waitForKYBLIB(callBack)
-    }
-    return false
-  }, 50)
-}
-
-const toUint8Vector = (arr) => {
-  const vec = new QRLLIB.Uint8Vector()
-  for (let i = 0; i < arr.length; i += 1) {
-    vec.push_back(arr[i])
-  }
-  return vec
-}
-
-// Convert bytes to hex
-function bytesToHex(byteArray) {
-  return [...byteArray]
-    /* eslint-disable */
-    .map((byte) => {
-      return ('00' + (byte & 0xff).toString(16)).slice(-2)
-    })
-    /* eslint-enable */
-    .join('')
-}
-
-// Concatenates multiple typed arrays into one.
-function concatenateTypedArrays(resultConstructor, ...arrays) {
-  /* eslint-disable */
-  let totalLength = 0
-  for (let arr of arrays) {
-    totalLength += arr.length
-  }
-  const result = new resultConstructor(totalLength)
-  let offset = 0
-  for (let arr of arrays) {
-    result.set(arr, offset)
-    offset += arr.length
-  }
-  /* eslint-enable */
-  return result
-}
-
-// Take input and convert to unsigned uint64 bigendian bytes
-function toBigendianUint64BytesUnsigned(i, bufferResponse = false) {
-  let input = i
-  if (!Number.isInteger(input)) {
-    input = parseInt(input, 10)
-  }
-
-  const byteArray = [0, 0, 0, 0, 0, 0, 0, 0]
-
-  for (let index = 0; index < byteArray.length; index += 1) {
-    const byte = input & 0xff // eslint-disable-line no-bitwise
-    byteArray[index] = byte
-    input = (input - byte) / 256
-  }
-
-  byteArray.reverse()
-
-  if (bufferResponse === true) {
-    const result = Buffer.from(byteArray)
-    return result
-  }
-  const result = new Uint8Array(byteArray)
-  return result
-}
-
-// Convert Binary object to Bytes
-function binaryToBytes(convertMe) {
-  const thisBytes = new Uint8Array(convertMe.size())
-  for (let i = 0; i < convertMe.size(); i += 1) {
-    thisBytes[i] = convertMe.get(i)
-  }
-  return thisBytes
-}
-
-const openWalletFile = (path) => {
-  const contents = fs.readFileSync(path)
-  return JSON.parse(contents)[0]
-}
 
 class Lattice extends Command {
   async run() {
     const { flags } = this.parse(Lattice)
     // network
-    let grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009' // eslint-disable-line no-unused-vars
+    let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.testnetNode.toString()
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.mainnetNode.toString()
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
-
     // check that either wallet file or hexseed/mnemonic are passed
     if (!flags.wallet && !flags.hexseed) {
       this.log(`${red('⨉')} Unable to send to the network, no wallet json file or hexseed specified`)
@@ -169,7 +48,7 @@ class Lattice extends Command {
     // open wallet file
     if (flags.wallet) {
       let isValidFile = false
-      const walletJson = openWalletFile(flags.wallet)
+      const walletJson = clihelpers.openWalletFile(flags.wallet)
       try {
         if (walletJson.encrypted === false) {
           isValidFile = true
@@ -255,7 +134,7 @@ class Lattice extends Command {
 
     // create the keys
     const spinner = ora({text: 'Creating Crystals Keys...'}).start()
-    waitForQRLLIB(async () => {
+    clihelpers.waitForQRLLIB(async () => {
       // get the xmss pub key to send from
       let XMSS_OBJECT
       if (hexseed.match(' ') === null) {
@@ -272,14 +151,14 @@ class Lattice extends Command {
       const ecdsaPK = Buffer.from(publicKey)
       spinner.succeed('ECDSA PK created')
       
-      waitForKYBLIB(async () => {
+      clihelpers.waitForKYBLIB(async () => {
         // new kyber keys
         const KYB_OBJECT = await new KYBLIB.Kyber.empty()
         const kyberPK = Buffer.from(KYB_OBJECT.getPK(), 'hex')
         const kyberSK = Buffer.from(KYB_OBJECT.getSK(), 'hex')
         spinner.succeed('Kyber Keys Created!')
 
-        waitForDILLIB(async () => {
+        clihelpers.waitForDILLIB(async () => {
           // new dilithium keys
           const DIL_OBJECT = await new DILLIB.Dilithium.empty()
           const dilithiumPK = Buffer.from(DIL_OBJECT.getPK(), 'hex')
@@ -365,27 +244,27 @@ class Lattice extends Command {
             const tx = await Qrlnetwork.api('GetLatticeTxn', request)
             spinner.succeed('Node correctly returned transaction for signing')
             const spinner2 = ora({ text: 'Signing transaction...' }).start()
-            const concatenatedArrays = concatenateTypedArrays(
+            const concatenatedArrays = clihelpers.concatenateTypedArrays(
               Uint8Array,
               Buffer.from('', 'hex'), // master_address
-              toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee), // fee
+              clihelpers.toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee), // fee
               kyberPK, // kyber pub key
               dilithiumPK, // dilithium pub key
               ecdsaPK // ecdsa public key
             )
 
             // Convert Uint8Array to VectorUChar
-            const hashableBytes = toUint8Vector(concatenatedArrays)
+            const hashableBytes = clihelpers.toUint8Vector(concatenatedArrays)
 
             // Create sha256 sum of concatenated array
             const shaSum = QRLLIB.sha2_256(hashableBytes)
 
             XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
-            const signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+            const signature = clihelpers.binaryToBytes(XMSS_OBJECT.sign(shaSum))
             // Calculate transaction hash
-            const txnHashConcat = concatenateTypedArrays(Uint8Array, binaryToBytes(shaSum), signature, xmssPK)
+            const txnHashConcat = clihelpers.concatenateTypedArrays(Uint8Array, clihelpers.binaryToBytes(shaSum), signature, xmssPK)
             // tx hash bytes..
-            const txnHashableBytes = toUint8Vector(txnHashConcat)
+            const txnHashableBytes = clihelpers.toUint8Vector(txnHashConcat)
             // get the transaction hash
             const txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
             spinner2.succeed(`Transaction signed with OTS key ${flags.otsindex}. (nodes will reject this transaction if key reuse is detected)`)
@@ -412,14 +291,14 @@ class Lattice extends Command {
             }
             const pushTransactionRes = JSON.stringify(response.tx_hash)
             const txhash = JSON.parse(pushTransactionRes)
-            if (txnHash === bytesToHex(txhash.data)) {
-              spinner3.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
+            if (txnHash === clihelpers.bytesToHex(txhash.data)) {
+              spinner3.succeed(`Transaction submitted to node: transaction ID: ${clihelpers.bytesToHex(txhash.data)}`)
 
               if (network === 'Mainnet') {
-                spinner3.succeed(`https://explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+                spinner3.succeed(`https://explorer.theqrl.org/tx/${clihelpers.bytesToHex(txhash.data)}`)
               }
               else if (network === 'Testnet') {
-                spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+                spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${clihelpers.bytesToHex(txhash.data)}`)
               }
 
               if (flags.json || flags.crystalsFile) {
@@ -470,7 +349,7 @@ class Lattice extends Command {
               }
             } 
             else {
-              spinner3.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
+              spinner3.fail(`Node transaction hash ${clihelpers.bytesToHex(txhash.data)} does not match`)
               this.exit(1)
             }
           }

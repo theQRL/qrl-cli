@@ -4,20 +4,8 @@ const { red, white, black } = require('kleur')
 const ora = require('ora')
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
-// const helpers = require('@theqrl/explorer-helpers')
+const clihelpers = require('../functions/cli-helpers')
 const Qrlnode = require('../functions/grpc')
-
-
-// Convert bytes to hex
-function bytesToHex(byteArray) {
-  return [...byteArray]
-    /* eslint-disable */
-    .map((byte) => {
-      return ('00' + (byte & 0xff).toString(16)).slice(-2)
-    })
-    /* eslint-enable */
-    .join('')
-}
 
 class keySearch extends Command {
   async run() {
@@ -55,7 +43,7 @@ class keySearch extends Command {
       }
     }  
     // network stuff
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
 
     if (flags.grpc) {
@@ -63,13 +51,14 @@ class keySearch extends Command {
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.testnetNode.toString()
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.mainnetNode.toString()
       network = 'Mainnet'
     }
+
     this.log(`Fetching Lattice keys on ${white().bgBlue(network)}`)
     const spinner = ora({ text: 'Fetching Ephemeral keys...\n', }).start()
 
@@ -105,18 +94,16 @@ class keySearch extends Command {
           spinner.fail('Not a lattice transaction')
           this.exit(1)
         }
-        address = `Q${bytesToHex(response.transaction.addr_from)}`
-        // const txHash =  bytesToHex(response.transaction.tx.transaction_hash)
-// console.log(JSON.stringify(response))
+        address = `Q${clihelpers.bytesToHex(response.transaction.addr_from)}`
         latticeKeys = [{
           address,
           network,
         }]
         latticeKeys.push({ 
-          pk1: bytesToHex(response.transaction.tx.latticePK.pk1),
-          pk2: bytesToHex(response.transaction.tx.latticePK.pk2),
-          pk3: bytesToHex(response.transaction.tx.latticePK.pk3),
-          txHash: bytesToHex(response.transaction.tx.transaction_hash),
+          pk1: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk1),
+          pk2: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk2),
+          pk3: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk3),
+          txHash: clihelpers.bytesToHex(response.transaction.tx.transaction_hash),
         })
       }
     }
@@ -142,10 +129,10 @@ class keySearch extends Command {
       for (let i = 0; i < response.lattice_pks_detail.length; i++) {
 
         latticeKeys.push({ 
-          pk1: bytesToHex(response.lattice_pks_detail[i].pk1),
-          pk2: bytesToHex(response.lattice_pks_detail[i].pk2),
-          pk3: bytesToHex(response.lattice_pks_detail[i].pk3),
-          txHash: bytesToHex(response.lattice_pks_detail[i].tx_hash),
+          pk1: clihelpers.bytesToHex(response.lattice_pks_detail[i].pk1),
+          pk2: clihelpers.bytesToHex(response.lattice_pks_detail[i].pk2),
+          pk3: clihelpers.bytesToHex(response.lattice_pks_detail[i].pk3),
+          txHash: clihelpers.bytesToHex(response.lattice_pks_detail[i].tx_hash),
         })
 
       }

@@ -3,26 +3,26 @@ const { Command, flags } = require('@oclif/command')
 const { white, black } = require('kleur')
 const ora = require('ora')
 const moment = require('moment')
+const clihelpers = require('../functions/cli-helpers')
 
 const Qrlnode = require('../functions/grpc')
-
-const shorPerQuanta = 10 ** 9
 
 class Status extends Command {
   async run() {
     const { flags } = this.parse(Status)
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
+
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.testnetNode.toString()
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.mainnetNode.toString()
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
@@ -50,9 +50,9 @@ class Status extends Command {
       )} days`
     )
     this.log(`    ${black().bgWhite('Epoch')} ${response.epoch}`)
-    this.log(`    ${black().bgWhite('Coins emitted')} ${response.coins_emitted / shorPerQuanta}`)
+    this.log(`    ${black().bgWhite('Coins emitted')} ${response.coins_emitted / clihelpers.shorPerQuanta}`)
     this.log(`    ${black().bgWhite('Total coin supply')} ${response.coins_total_supply}`)
-    this.log(`    ${black().bgWhite('Last block reward')} ${response.block_last_reward / shorPerQuanta}`)
+    this.log(`    ${black().bgWhite('Last block reward')} ${response.block_last_reward / clihelpers.shorPerQuanta}`)
     const spinnerNode = ora().start()
     spinnerNode.succeed('Node status:')
     this.log(`    ${black().bgWhite('Version')} ${response.node_info.version}`)
