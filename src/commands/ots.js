@@ -6,13 +6,9 @@ const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const fs = require('fs')
 const aes256 = require('aes256')
 const {cli} = require('cli-ux')
+const clihelpers = require('../functions/cli-helpers')
 
 const Qrlnode = require('../functions/grpc')
-
-const openWalletFile = (path) => {
-  const contents = fs.readFileSync(path)
-  return JSON.parse(contents)[0]
-}
 
 class OTSKey extends Command {
   async run() {
@@ -36,7 +32,7 @@ class OTSKey extends Command {
         this.log(`${red('⨉')} Unable to get OTS: invalid QRL address/wallet file`)
         this.exit(1)
       } else {
-        const walletJson = openWalletFile(path)
+        const walletJson = clihelpers.openWalletFile(path)
         try {
           if (walletJson.encrypted === false) {
             isValidFile = true
@@ -66,20 +62,22 @@ class OTSKey extends Command {
         this.exit(1)
       }
     }
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
+
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.testnetNode.toString()
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.mainnetNode.toString()
       network = 'Mainnet'
     }
+    
     this.log(white().bgBlue(network))
     const spinner = ora({text: 'Fetching OTS from API...'}).start()
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)

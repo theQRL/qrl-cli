@@ -8,19 +8,8 @@ const fs = require('fs')
 const aes256 = require('aes256')
 const { cli } = require('cli-ux')
 
+const clihelpers = require('../functions/cli-helpers')
 const Qrlnode = require('../functions/grpc')
-
-const shorPerQuanta = 10 ** 9
-
-const openWalletFile = (path) => {
-  const contents = fs.readFileSync(path)
-  return JSON.parse(contents)[0]
-}
-      /* eslint-disable */
-const addressForAPI = (address) => {
-  return Buffer.from(address.substring(1), 'hex')
-}
-      /* eslint-enable */
 
 class Balance extends Command {
   async run() {
@@ -43,7 +32,7 @@ class Balance extends Command {
         this.log(`${red('⨉')} Unable to get a balance: invalid QRL address/wallet file`)
         this.exit(1)
       } else {
-        const walletJson = openWalletFile(path)
+        const walletJson = clihelpers.openWalletFile(path)
         try {
           if (walletJson.encrypted === false) {
             isValidFile = true
@@ -74,18 +63,18 @@ class Balance extends Command {
         this.exit(1)
       }
     }
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.testnetNode.toString()
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.mainnetNode.toString()
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
@@ -105,7 +94,7 @@ class Balance extends Command {
     }
 
     const request = {
-      address: addressForAPI(address),
+      address: clihelpers.addressForAPI(address),
     }
     const response = await Qrlnetwork.api('GetOptimizedAddressState', request)
     const balance = new BigNumber(parseInt(response.state.balance, 10))
@@ -115,7 +104,7 @@ class Balance extends Command {
     }
     if (flags.quanta || !flags.shor) {
       // default to showing balance in Quanta if no flags
-      spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
+      spinner.succeed(`Balance: ${balance / clihelpers.shorPerQuanta} Quanta`)
     }
     if (flags.quanta && flags.shor) {
       this.log(`${red('⨉')} Please enter one, shor (-s) or quanta (-q)`)

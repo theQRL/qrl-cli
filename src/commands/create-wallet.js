@@ -5,75 +5,16 @@ const {Command, flags} = require('@oclif/command')
 const {black} = require('kleur')
 const {QRLLIBmodule} = require('qrllib/build/offline-libjsqrl') // eslint-disable-line no-unused-vars
 const Crypto = require('crypto')
-const bech32 = require('bech32')
 const ora = require('ora')
 const fs = require('fs')
 const aes256 = require('aes256')
-
-let QRLLIBLoaded = false
+const clihelpers = require('../functions/cli-helpers')
 
 class CreateWallet extends Command {
   async run() {
     const {flags} = this.parse(CreateWallet)
     const spinner = ora({spinner: 'line', text: 'Creating wallet...'}).start()
-
-    const toUint8Vector = arr => {
-      const vec = new QRLLIB.Uint8Vector()
-      for (let i = 0; i < arr.length; i += 1) {
-        vec.push_back(arr[i])
-      }
-      return vec
-    }
-
-    function b32Encode(input) {
-      return bech32.encode('q', bech32.toWords(input))
-    }
-    const binaryToBytes = convertMe => {
-      const thisBytes = new Uint8Array(convertMe.size())
-      for (let i = 0; i < convertMe.size(); i += 1) {
-        thisBytes[i] = convertMe.get(i)
-      }
-      return thisBytes
-    }
-
-    const concatenateTypedArrays = (resultConstructor, ...arrays) => {
-      let totalLength = 0
-      /* eslint-disable */
-      for (let arr of arrays) {
-        totalLength += arr.length
-      }
-      const result = new resultConstructor(totalLength)
-      let offset = 0
-      for (let arr of arrays) {
-        result.set(arr, offset)
-        offset += arr.length
-      }
-      /* eslint-enable */
-      return result
-    }
-
-    const pkRawToB32Address = pkRaw => {
-      const rawDescriptor = Uint8Array.from([pkRaw.get(0), pkRaw.get(1), pkRaw.get(2)])
-      const ePkHash = binaryToBytes(QRLLIB.sha2_256(pkRaw)) // Uint8Vector -> Uint8Array conversion
-      const descriptorAndHash = concatenateTypedArrays(Uint8Array, rawDescriptor, ePkHash)
-      return b32Encode(descriptorAndHash)
-    }
-
-    const waitForQRLLIB = callBack => {
-      setTimeout(() => {
-        // Test the QRLLIB object has the str2bin function.
-        // This is sufficient to tell us QRLLIB has loaded.
-        if (typeof QRLLIB.str2bin === 'function' && QRLLIBLoaded === true) {
-          callBack()
-        } else {
-          QRLLIBLoaded = true
-          return waitForQRLLIB(callBack)
-        }
-        return false
-      }, 50)
-    }
-
-    waitForQRLLIB(async () => {
+    clihelpers.waitForQRLLIB(async () => {
       // default to a tree height of 10 unless passed via CLI
       let xmssHeight = 10
       if (flags.height) {
@@ -119,7 +60,7 @@ class CreateWallet extends Command {
         this.log('More than one hashing mechanism selected')
         this.exit(1)
       }
-      const randomSeed = toUint8Vector(Crypto.randomBytes(48))
+      const randomSeed = clihelpers.toUint8Vector(Crypto.randomBytes(48))
       const XMSS_OBJECT = await new QRLLIB.Xmss.fromParameters(randomSeed, xmssHeight, hashFunction)
       spinner.succeed('Wallet created')
       if (!flags.file) {
@@ -130,7 +71,7 @@ class CreateWallet extends Command {
       if (flags.file) {
         // output to JSON
         const thisAddress = XMSS_OBJECT.getAddress()
-        const thisAddressB32 = pkRawToB32Address(XMSS_OBJECT.getPKRaw())
+        const thisAddressB32 = clihelpers.pkRawToB32Address(XMSS_OBJECT.getPKRaw())
         const thisPk = XMSS_OBJECT.getPK()
         const thisHashFunction = QRLLIB.getHashFunction(thisAddress).value
         const thisSignatureType = QRLLIB.getSignatureType(thisAddress).value

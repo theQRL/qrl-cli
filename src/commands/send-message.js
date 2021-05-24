@@ -3,137 +3,30 @@
 const { Command, flags } = require('@oclif/command')
 const { white, red } = require('kleur')
 const ora = require('ora')
-// const moment = require('moment')
-const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const aes256 = require('aes256')
 const { cli } = require('cli-ux')
 const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl') // eslint-disable-line no-unused-vars
-// const { BigNumber } = require('bignumber.js')
 const helpers = require('@theqrl/explorer-helpers')
-
+const clihelpers = require('../functions/cli-helpers')
 const Qrlnode = require('../functions/grpc')
-
-let QRLLIBLoaded = false
-
-const waitForQRLLIB = (callBack) => {
-  setTimeout(() => {
-    // Test the QRLLIB object has the str2bin function.
-    // This is sufficient to tell us QRLLIB has loaded.
-    if (typeof QRLLIB.str2bin === 'function' && QRLLIBLoaded === true) {
-      callBack()
-    } else {
-      QRLLIBLoaded = true
-      return waitForQRLLIB(callBack)
-    }
-    return false
-  }, 50)
-}
-
-function string2Bin(str) {
-  const result = [];
-/* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
-  for (let i = 0; i < str.length; i++) {
-    result.push(str.charCodeAt(i));
-  }
-  return result;
-}
-
-const toUint8Vector = (arr) => {
-  const vec = new QRLLIB.Uint8Vector()
-  for (let i = 0; i < arr.length; i += 1) {
-    vec.push_back(arr[i])
-  }
-  return vec
-}
-
-
-// Convert bytes to hex
-function bytesToHex(byteArray) {
-  return [...byteArray]
-    /* eslint-disable */
-    .map((byte) => {
-      return ('00' + (byte & 0xff).toString(16)).slice(-2)
-    })
-    /* eslint-enable */
-    .join('')
-}
-
-// Concatenates multiple typed arrays into one.
-function concatenateTypedArrays(resultConstructor, ...arrays) {
-  /* eslint-disable */
-  let totalLength = 0
-  for (let arr of arrays) {
-    totalLength += arr.length
-  }
-  const result = new resultConstructor(totalLength)
-  let offset = 0
-  for (let arr of arrays) {
-    result.set(arr, offset)
-    offset += arr.length
-  }
-  /* eslint-enable */
-  return result
-}
-
-// Convert Binary object to Bytes
-function binaryToBytes(convertMe) {
-  const thisBytes = new Uint8Array(convertMe.size())
-  for (let i = 0; i < convertMe.size(); i += 1) {
-    thisBytes[i] = convertMe.get(i)
-  }
-  return thisBytes
-}
-
-// Take input and convert to unsigned uint64 bigendian bytes
-function toBigendianUint64BytesUnsigned(i, bufferResponse = false) {
-  let input = i
-  if (!Number.isInteger(input)) {
-    input = parseInt(input, 10)
-  }
-
-  const byteArray = [0, 0, 0, 0, 0, 0, 0, 0]
-
-  for (let index = 0; index < byteArray.length; index += 1) {
-    const byte = input & 0xff // eslint-disable-line no-bitwise
-    byteArray[index] = byte
-    input = (input - byte) / 256
-  }
-
-  byteArray.reverse()
-
-  if (bufferResponse === true) {
-    const result = Buffer.from(byteArray)
-    return result
-  }
-  const result = new Uint8Array(byteArray)
-  return result
-}
-
-const openWalletFile = (path) => {
-  const contents = fs.readFileSync(path)
-  return JSON.parse(contents)[0]
-}
-
-function byteCount(s) {
-    return encodeURI(s).split(/%..|./).length - 1;
-}
 
 class SendMessage extends Command {
   async run() {
     const { flags } = this.parse(SendMessage)
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
+
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.testnetNode.toString()
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.mainnetNode.toString()
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
@@ -142,9 +35,13 @@ class SendMessage extends Command {
       this.log(`${red('⨉')} No message given`)
       this.exit(1)
     }
+
+// QRL Message transaction encoding flag
+
+
     // check size of message MAX 80 bytes
-    const messageBytes = string2Bin(flags.message)
-    const messageLength = byteCount(messageBytes)
+    const messageBytes = clihelpers.string2Bin(flags.message)
+    const messageLength = clihelpers.byteCount(messageBytes)
     
     this.log(`Message Submitted: ${flags.message}`)
     this.log(`Message byte length: ${messageLength}`)
@@ -173,7 +70,7 @@ class SendMessage extends Command {
     // open wallet file
     if (flags.wallet) {
       let isValidFile = false
-      const walletJson = openWalletFile(flags.wallet)
+      const walletJson = clihelpers.openWalletFile(flags.wallet)
       try {
         if (walletJson.encrypted === false) {
           isValidFile = true
@@ -255,7 +152,7 @@ class SendMessage extends Command {
     }
 
     const spinner = ora({ text: 'Sending Message to network...' }).start()
-    waitForQRLLIB(async () => {
+    clihelpers.waitForQRLLIB(async () => {
       let XMSS_OBJECT
       if (hexseed.match(' ') === null) {
         XMSS_OBJECT = await new QRLLIB.Xmss.fromHexSeed(hexseed)
@@ -297,26 +194,26 @@ class SendMessage extends Command {
       spinner2.succeed('Node correctly returned transaction for signing')
       const spinner3 = ora({ text: 'Signing transaction...' }).start()
 
-      const concatenatedArrays = concatenateTypedArrays(
+      const concatenatedArrays = clihelpers.concatenateTypedArrays(
         Uint8Array,
-        toBigendianUint64BytesUnsigned(message.extended_transaction_unsigned.tx.fee), // fee
+        clihelpers.toBigendianUint64BytesUnsigned(message.extended_transaction_unsigned.tx.fee), // fee
         messageBytes,
         thisAddress,
       )
 
       // Convert Uint8Array to VectorUChar
-      const hashableBytes = toUint8Vector(concatenatedArrays)
+      const hashableBytes = clihelpers.toUint8Vector(concatenatedArrays)
 
       // Create sha256 sum of concatenated array
       const shaSum = QRLLIB.sha2_256(hashableBytes)
 
       XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
-      const signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+      const signature = clihelpers.binaryToBytes(XMSS_OBJECT.sign(shaSum))
 
       // Calculate transaction hash
-      const txnHashConcat = concatenateTypedArrays(Uint8Array, binaryToBytes(shaSum), signature, xmssPK)
+      const txnHashConcat = clihelpers.concatenateTypedArrays(Uint8Array, clihelpers.binaryToBytes(shaSum), signature, xmssPK)
       // tx hash bytes..
-      const txnHashableBytes = toUint8Vector(txnHashConcat)
+      const txnHashableBytes = clihelpers.toUint8Vector(txnHashConcat)
       // get the transaction hash
       const txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
       spinner3.succeed(`Transaction signed with OTS key ${flags.otsindex}. (nodes will reject this transaction if key reuse is detected)`)
@@ -341,20 +238,20 @@ class SendMessage extends Command {
       }
       const pushTransactionRes = JSON.stringify(response.tx_hash)
       const txhash = JSON.parse(pushTransactionRes)
-      if (txnHash === bytesToHex(txhash.data)) {
-        spinner4.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
+      if (txnHash === clihelpers.bytesToHex(txhash.data)) {
+        spinner4.succeed(`Transaction submitted to node: transaction ID: ${clihelpers.bytesToHex(txhash.data)}`)
         
         // return link to explorer
         if (network === 'Mainnet') {
-          spinner3.succeed(`https://explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+          spinner3.succeed(`https://explorer.theqrl.org/tx/${clihelpers.bytesToHex(txhash.data)}`)
         }
         else if (network === 'Testnet') {
-          spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+          spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${clihelpers.bytesToHex(txhash.data)}`)
         }
         // this.exit(0)
       } 
       else {
-        spinner4.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
+        spinner4.fail(`Node transaction hash ${clihelpers.bytesToHex(txhash.data)} does not match`)
         this.exit(1)
       }
     })
@@ -381,13 +278,13 @@ SendMessage.flags = {
   testnet: flags.boolean({
     char: 't',
     default: false,
-    description: 'queries testnet for the OTS state'
+    description: 'queries testnet to send the message'
   }),
 
   mainnet: flags.boolean({
     char: 'm',
     default: false,
-    description: 'queries mainnet for the OTS state'
+    description: 'queries mainnet to send the message'
   }),
 
   grpc: flags.string({
@@ -423,7 +320,7 @@ SendMessage.flags = {
   recipient: flags.string({
     char: 'r',
     required: false,
-    description: 'QRL address of recipient'
+    description: '(optional) QRL address of recipient'
   }),
 
   fee: flags.string({
