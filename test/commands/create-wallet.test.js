@@ -273,7 +273,7 @@ describe('create-wallet #14', () => {
 })
 
 describe('create-wallet #15 alice', () => {
-  console.log(`aliceWalletLocation ${aliceWalletLocation}`)
+//  console.log(`aliceWalletLocation ${aliceWalletLocation}`)
   const args = [
     'create-wallet',
     '-3',
@@ -295,7 +295,7 @@ describe('create-wallet #15 alice', () => {
 
 
 describe('create-wallet #16 bob', () => {
-  console.log(`aliceWalletLocation ${aliceWalletLocation}`)
+//  console.log(`aliceWalletLocation ${aliceWalletLocation}`)
   const args = [
     'create-wallet',
     '-3',

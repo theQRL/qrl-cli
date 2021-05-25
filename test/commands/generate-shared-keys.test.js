@@ -12,20 +12,20 @@ const processFlags = {
 
 const encryptPass = 'testPassword'
 
-const alicePubKeyFile = path.join(__dirname, '/../lattice/bob/alice-pub-lattice.json')
+// const alicePubKeyFile = path.join(__dirname, '/../lattice/bob/alice-pub-lattice.json')
 const aliceLatticeLocation = path.join(__dirname, '/../lattice/alice/alice-lattice.json')
 const bobLatticeLocation = path.join(__dirname, '/../lattice/bob/bob-lattice.json')
 const aliceLatticeJSON = JSON.parse(fs.readFileSync(aliceLatticeLocation))
 const bobLatticeJSON = JSON.parse(fs.readFileSync(bobLatticeLocation))
 const bobTXID = bobLatticeJSON[0].tx_hash
-const aliceTXID = aliceLatticeJSON[0].tx_hash
+// const aliceTXID = aliceLatticeJSON[0].tx_hash
 const aliceSignedMessageOut = path.join(__dirname, '/../lattice/alice/forBob/signedMessage.txt')
 const aliceSharedKeyFile = path.join(__dirname, '/../lattice/alice/forBob/aliceSharedKeyList.txt')
 const aliceCipherTextOut = path.join(__dirname, '/../lattice/alice/forBob/cyphertext.txt')
 
 // bobs files
-const bobSharedKeyFile = path.join(__dirname, '/../lattice/bob/fromAlice/bobSharedKeyList.txt')
-const bobEncSharedKeyFile = path.join(__dirname, '/../lattice/bob/fromAlice/bobSharedKeyList.txt')
+// const bobSharedKeyFile = path.join(__dirname, '/../lattice/bob/fromAlice/bobSharedKeyList.txt')
+// const bobEncSharedKeyFile = path.join(__dirname, '/../lattice/bob/fromAlice/bobSharedKeyList.txt')
 const bobPubKeyFile = path.join(__dirname, '/../lattice/alice/bob-pub-lattice.json')
 const bobPubKeyFileJson = JSON.parse(fs.readFileSync(bobPubKeyFile))
 
