@@ -380,7 +380,7 @@ Lattice.flags = {
   wallet: flags.string({
     char: 'w',
     required: false,
-    description: 'Generating QRL (w)allet file used for broadcasting lattice keys (wallet.json)',
+    description: 'QRL (w)allet file used to broadcast lattice keys (wallet.json)',
   }),
 
   walletPassword: flags.string({

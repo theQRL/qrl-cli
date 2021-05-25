@@ -1,5 +1,12 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
+const path = require('path');
+
+// const aliceWalletLocation = path.join(__dirname, '/../lattice/alice/alice-wallet.json')
+const alicePubKeyFile = path.join(__dirname, '/../lattice/bob/alice-pub-lattice.json')
+
+// const bobWalletLocation = path.join(__dirname, '/../lattice/bob/bob-wallet.json')
+const bobPubKeyFile = path.join(__dirname, '/../lattice/alice/bob-pub-lattice.json')
 
 const processFlags = {
   detached: true,
@@ -370,3 +377,59 @@ describe('get-keys #16', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
+
+// get keys from address given and print to file
+describe('get-keys #17', () => {
+  const args = [
+    'get-keys',
+    '-a',
+    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+    '-i',
+    '2',
+    '-p',
+    '1',
+    '-t',
+    '-f',
+    alicePubKeyFile,
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if everything is correct with keys printed to file', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+// get keys from address given and print to file
+describe('get-keys #18', () => {
+  const args = [
+    'get-keys',
+    '-a',
+    'Q020500fda253c2ccd7f906b0251f83ed73b4b71283f0fdbc82e4afd6973ed64d3081ac12280282',
+    '-i',
+    '2',
+    '-p',
+    '1',
+    '-t',
+    '-f',
+    bobPubKeyFile,
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if everything is correct with keys printed to file', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+
