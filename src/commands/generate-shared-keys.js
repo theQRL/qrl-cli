@@ -428,7 +428,6 @@ class LatticeShared extends Command {
 
 // /////////////////////////////////////
 // 1. Generate new key list and secrets
-// Alice sending to Bob initiating the key share
 // /////////////////////////////////////
     if ( !args.cypherText && !args.signedMessage) {
       // Alice is sending the keys to bob initiating the key share
@@ -436,6 +435,7 @@ class LatticeShared extends Command {
       const aliceKyberSK = latticeSK[0].kyberSK
       const aliceDilithiumPK = latticeSK[0].dilithiumPK.toString('hex')
       const aliceDilithiumSK = latticeSK[0].dilithiumSK
+      // bobs info from public keys
       const bobKyberPK = latticePK[pubKeyIndexNum].pk1
       const bobECDSAPK = latticePK[pubKeyIndexNum].pk3
 
@@ -452,30 +452,26 @@ class LatticeShared extends Command {
           const seed = Crypto.randomBytes(32)
           // call kem_encode with recipientKyberPK
           KYBOBJECT_SENDER.kem_encode(bobKyberPK.toString('hex'))
-          // get cyphertext and shared key 
+          // get cyphertext from KYOBJECT 
           const aliceCypherText = KYBOBJECT_SENDER.getCypherText()
+          // get shared key from KYOBJECT
           const sharedKey = KYBOBJECT_SENDER.getMyKey()
           spinner.succeed(`Secrets Generated, encrypting keys...`)
           // encrypt cyphertext with encrypted AES key
           eccrypto.encrypt(Buffer.from(bobECDSAPK, 'hex'), Buffer.from(aliceCypherText)).then( function eccCypher(encryptedCypherText) {
             const mykey = Uint8Array.from(Buffer.from(sharedKey.toString(), 'hex'))
-            // Encrypt the seed *s* with shared key *key*
+            // Encrypt the seed *s* with shared key *mykey*
             const aesCtr = new aesjs.ModeOfOperation.ctr(mykey)
-            // encrypt the seed with
             const encSeed = aesCtr.encrypt(seed)
             // sender signs the payload with DilithiumSK
             const signedMsg = DILOBJECT_SENDER.sign(Buffer.from(encSeed).toString('hex'))
-            // save encrpytedCypherText and signedMsg to a local file
+            // save encrpytedCypherText to a local file
             const encCypherTextJson = ['[', JSON.stringify(encryptedCypherText), ']'].join('')
-            
             fs.writeFileSync(cypherText, encCypherTextJson)
-
             spinner.succeed(`Cyphertext file written to: ${cypherText}`)
-            
+            // save signedMsg to local file
             const signedMsgJson = ['[', JSON.stringify(signedMsg), ']'].join('')
-            
             fs.writeFileSync(signedMessage, signedMsgJson)
-            
             spinner.succeed(`Signed Message File file written to: ${signedMessage}`)
             // 9 - Generate the next 1000 keys with Shake128 and shared secret seed
             clihelpers.waitForQRLLIB(async () => {
@@ -484,10 +480,8 @@ class LatticeShared extends Command {
               if (flags.encryptPassword) {
                 keylist = aes256.encrypt(flags.encryptPassword, keylist)
               }
-
-            
+              // Write the shared keylist file
               fs.writeFileSync(sharedKeyListFile, QRLLIB.bin2hstr(keylist))
-              
               spinner.succeed(`Shared Key List file written to: ${sharedKeyListFile}`)
             
             })
@@ -495,10 +489,10 @@ class LatticeShared extends Command {
         })
       })
     }
-// /////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////
 // 2. Generate key list from shared secrets
-// Bob receiving from Alice, re-generating keys to match Alice
-// /////////////////////////////////////////
+//   Bob receiving from Alice, re-generating keys to match Alice
+// ///////////////////////////////////////////////////////////////
 
     else {
       // Bob received the secrets Alice sent. Use bobs kyberSK to make keys

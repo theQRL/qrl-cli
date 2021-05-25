@@ -7,33 +7,6 @@ const processFlags = {
 }
 
 
-// print keys to file location given with encryption
-describe('balance latticeFile #0', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '50',
-    '-s',
-    '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc77951272709d',
-    '-c',
-    '/tmp/ems1.json',
-    '-e',
-    'test',
-    '-t',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 with encrypted keys printed to file', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
 // create a wallet file to use for next functions
 describe('balance #0a - create-wallet', () => {
   const args = [
