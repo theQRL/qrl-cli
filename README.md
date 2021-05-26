@@ -43,6 +43,8 @@ USAGE
 * [`qrl-cli search SEARCH`](#qrl-cli-search-search)
 * [`qrl-cli send QUANTITY`](#qrl-cli-send-quantity)
 * [`qrl-cli send-message`](#qrl-cli-send-message)
+* [`qrl-cli shared-key-decrypt SHAREDKEYLIST MESSAGE`](#qrl-cli-shared-key-decrypt-sharedkeylist-message)
+* [`qrl-cli shared-key-encrypt SHAREDKEYLIST MESSAGE`](#qrl-cli-shared-key-encrypt-sharedkeylist-message)
 * [`qrl-cli status`](#qrl-cli-status)
 * [`qrl-cli validate ADDRESS`](#qrl-cli-validate-address)
 
@@ -489,6 +491,74 @@ DESCRIPTION
 ```
 
 _See code: [src/commands/send-message.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/send-message.js)_
+
+## `qrl-cli shared-key-decrypt SHAREDKEYLIST MESSAGE`
+
+Decrypt data using a Lattice generated shered keylist
+
+```
+Decrypt data using a Lattice generated shered keylist
+
+Using a given shared keylist index, AES decrypt data given in file, JSON or stdin to command
+
+Example: qrl-cli shared-key-decrypt {KEYLIST} {ENCRYPTED-DATA} -o {DECRYPTED-FILE}
+
+
+USAGE
+  $ qrl-cli shared-key-decrypt SHAREDKEYLIST MESSAGE
+
+ARGUMENTS
+  SHAREDKEYLIST  shared key list for secret decryption keys
+  MESSAGE        Encrypted message to decrypt
+
+OPTIONS
+  -g, --grpc=grpc              Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
+  -i, --index=index            (default: 0) index key to use from keylist array
+  -j, --json                   output plaintext data as json
+  -m, --mainnet                (default) queries mainnet for the public lattice keys
+  -o, --fileOutput=fileOutput  output decrypted data to file
+  -t, --testnet                queries testnet for the public lattice keys
+
+DESCRIPTION
+  Using a given shared keylist index, AES decrypt data given in file, JSON or stdin to command
+
+  Example: qrl-cli shared-key-decrypt {KEYLIST} {ENCRYPTED-DATA} -o {DECRYPTED-FILE}
+```
+
+_See code: [src/commands/shared-key-decrypt.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/shared-key-decrypt.js)_
+
+## `qrl-cli shared-key-encrypt SHAREDKEYLIST MESSAGE`
+
+Encrypt data using a Lattice generated shered keylist
+
+```
+Encrypt data using a Lattice generated shered keylist
+
+Using a given shared keylist index, AES encrypt data given in file or stdin to command
+Example: qrl-cli shared-key-encrypt {KEYLIST} {PLAINTEXT-DATA} -o {ENCRYPTED-OUTPUT-FILE}
+
+
+USAGE
+  $ qrl-cli shared-key-encrypt SHAREDKEYLIST MESSAGE
+
+ARGUMENTS
+  SHAREDKEYLIST  shared key list file for encryption keys
+  MESSAGE        message to encrypt
+
+OPTIONS
+  -g, --grpc=grpc              Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
+  -i, --index=index            (default: 0) index key to use from keylist array
+  -j, --json                   output encrypted data as json
+  -m, --mainnet                (default) queries mainnet for the public lattice keys
+  -o, --fileOutput=fileOutput  output file to save encrypted data
+  -t, --testnet                queries testnet for the public lattice keys
+
+DESCRIPTION
+  Using a given shared keylist index, AES encrypt data given in file or stdin to command
+  Example: qrl-cli shared-key-encrypt {KEYLIST} {PLAINTEXT-DATA} -o {ENCRYPTED-OUTPUT-FILE}
+```
+
+_See code: [src/commands/shared-key-encrypt.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/shared-key-encrypt.js)_
 
 ## `qrl-cli status`
 
