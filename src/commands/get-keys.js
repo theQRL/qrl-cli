@@ -7,6 +7,17 @@ const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const clihelpers = require('../functions/cli-helpers')
 const Qrlnode = require('../functions/grpc')
 
+
+/*
+Validate the keys are still good that are returned with `GetLatticeTxn` call. 
+
+This should return the latticeksy metadata with `enabled: "BOOL"` and `deleted: "BOOL"`
+
+*/
+
+
+
+
 class keySearch extends Command {
   async run() {
     const {flags} = this.parse(keySearch)
@@ -75,6 +86,10 @@ class keySearch extends Command {
       // eslint-disable-next-line no-plusplus
       i++
     }
+
+
+
+
     let latticeKeys = {}
      latticeKeys.tx = []
 
@@ -99,11 +114,47 @@ class keySearch extends Command {
           address,
           network,
         }]
+
+// /////////////////////////////////////
+// Validate the keys returned are good!
+// /////////////////////////////////////
+        spinner.succeed(`tx_hash: ${TXHash}`)
+        const GetTransactionReq = {
+        tx_hash: Buffer.from(TXHash, 'hex'),
+      }
+        const latticeMetaData = await Qrlnetwork.api('GetTransaction', GetTransactionReq)
+
+
+/*
+  async function checkValidMetaData(txHash){
+    
+    const latticeMetaData = await Qrlnetwork.api('GetTransaction', {
+      query: Buffer.from(txHash, 'hex')
+    })
+    this.log(`latticeMetaData: ${JSON.stringify(latticeMetaData)}`)
+    return latticeMetaData
+  }
+*/
+// const latticeMetaData = checkValidMetaData(TXHash)
+        spinner.succeed(`latticeMetaData masterAddr: ${JSON.stringify(latticeMetaData.tx.master_addr)}`)
+
+const pubKey = clihelpers.bytesToHex(latticeMetaData.tx.public_key)
+        spinner.succeed(`pubKey: ${JSON.stringify(pubKey)}`)
+const sig = clihelpers.bytesToHex(latticeMetaData.tx.signature)
+        spinner.succeed(`sig: ${JSON.stringify(sig)}`)
+const transactionHash = clihelpers.bytesToHex(latticeMetaData.tx.transaction_hash)
+        spinner.succeed(`transaction_hash: ${JSON.stringify(transactionHash)}`)
+const blockHeaderHash = clihelpers.bytesToHex(latticeMetaData.block_header_hash)
+        spinner.succeed(`blockHeaderHash: ${JSON.stringify(blockHeaderHash)}`)
+
+
+        // spinner.succeed(`latticeMetaData: ${JSON.stringify(latticeMetaData)}`)
+
         latticeKeys.push({ 
           pk1: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk1),
           pk2: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk2),
           pk3: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk3),
-          txHash: clihelpers.bytesToHex(response.transaction.tx.transaction_hash),
+          tx_hash: clihelpers.bytesToHex(response.transaction.tx.transaction_hash),
         })
       }
     }
@@ -128,16 +179,26 @@ class keySearch extends Command {
       /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
       for (let i = 0; i < response.lattice_pks_detail.length; i++) {
 
+// /////////////////////////////////////
+// Validate the keys returned are good!
+// /////////////////////////////////////
+
+
+
         latticeKeys.push({ 
           pk1: clihelpers.bytesToHex(response.lattice_pks_detail[i].pk1),
           pk2: clihelpers.bytesToHex(response.lattice_pks_detail[i].pk2),
           pk3: clihelpers.bytesToHex(response.lattice_pks_detail[i].pk3),
-          txHash: clihelpers.bytesToHex(response.lattice_pks_detail[i].tx_hash),
+          tx_hash: clihelpers.bytesToHex(response.lattice_pks_detail[i].tx_hash),
         })
 
       }
       spinner.succeed(`Total Keys Found: ${JSON.stringify(response.lattice_pks_detail.length)}`)
     }
+
+
+
+
 
       // output keys to file if flag passed
       if (flags.pub_key_file) {
@@ -158,7 +219,7 @@ class keySearch extends Command {
             this.log(` ${black().bgWhite('pk1:')}  ${latticeKeys[i].pk1}`)
             this.log(` ${black().bgWhite('pk2:')}  ${latticeKeys[i].pk2}`)
             this.log(` ${black().bgWhite('pk3:')}  ${latticeKeys[i].pk3}`)
-            this.log(` ${black().bgWhite('txHash:')}  ${latticeKeys[i].txHash}`)
+            this.log(` ${black().bgWhite('tx_hash:')}  ${latticeKeys[i].txHash}`)
           }
         }
       }
@@ -168,7 +229,7 @@ class keySearch extends Command {
         this.log(` ${black().bgWhite('pk1:')}  ${latticeKeys[1].pk1}`)
         this.log(` ${black().bgWhite('pk2:')}  ${latticeKeys[1].pk2}`)
         this.log(` ${black().bgWhite('pk3:')}  ${latticeKeys[1].pk3}`)
-        this.log(` ${black().bgWhite('txHash:')}  ${latticeKeys[1].txHash}`)
+        this.log(` ${black().bgWhite('tx_hash:')}  ${latticeKeys[1].txHash}`)
       }
   }
 
