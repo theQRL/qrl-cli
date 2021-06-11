@@ -210,12 +210,112 @@ function stringToBytes(str) {
 }
 
 
+const checkLatticeJSON = (check) => {
+  const valid = {}
+  valid.status = true
+
+  const arrayLength = Object.keys(check).length
+  // is it a secret key? Array length of 1 (0)
+  if (arrayLength === 1) {
+    check.forEach((element, index) => {
+      // check that the json has keys for kyber, dilithium, and ECDSA SK's 
+      if (!JSON.stringify(element).includes('encrypted')) {
+        valid.status = false
+        valid.error = `Output #${index} does not have a "encrypted" key`
+        return valid
+      }
+      if (!JSON.stringify(element).includes('tx_hash')) {
+        valid.status = false
+        valid.error = `Output #${index} does not have a "tx_hash" key`
+        return valid
+      }
+      if (!JSON.stringify(element).includes('network')) {
+        valid.status = false
+        valid.error = `Output #${index} does not have a "tx_hash" key`
+        return valid
+      }
+      if (!JSON.stringify(element).includes('kyberPK')) {
+        valid.status = false
+        valid.error = `Output #${index} does not have a kyberPK key`
+        return valid
+      }
+      if (!JSON.stringify(element).includes('kyberSK')) {
+        valid.status = false
+        valid.error = `Output #${index} does not have a kyberSK key`
+        return valid
+      }
+      if (!JSON.stringify(element).includes('dilithiumSK')) {
+        valid.status = false
+        valid.error = `Output #${index} does not have a dilithiumSK key`
+        return valid
+      }
+      if (!JSON.stringify(element).includes('dilithiumPK')) {
+        valid.status = false
+        valid.error = `Output #${index} does not have a dilithiumPK key`
+        return valid
+      }
+      if (!JSON.stringify(element).includes('ecdsaSK')) {
+        valid.status = false
+        valid.error = `Output #${index} does not have a ecdsaSK key`
+        return valid
+      }
+      if (!JSON.stringify(element).includes('ecdsaPK')) {
+        valid.status = false
+        valid.error = `Output #${index} does not have a ecdsaPK key`
+        return valid
+      }
+      return valid
+    })
+    return valid
+  }
+  // is it a PUB key element? Array has 2 elements minimum ([0], [1])
+  if (arrayLength >= 2) {
+    for (let i = 1; i < arrayLength; i++) { // eslint-disable-line
+      // check that the json has keys for kyber, dilithium, and ECDSA SK's 
+        if (!JSON.stringify(check[1]).includes('pk1')) {
+          valid.status = false
+          valid.error = `Output #${1} does not have a pk1 (kyberPK) key`
+          return valid
+        }
+        if (!JSON.stringify(check[1]).includes('pk2')) {
+          valid.status = false
+          valid.error = `Output #${1} does not have a pk2 (dilithiumPK) key`
+          return valid
+        }
+        if (!JSON.stringify(check[1]).includes('pk3')) {
+          valid.status = false
+          valid.error = `Output #${1} does not have a pk (ecdsaPK) key`
+          return valid
+        }     
+        if (!JSON.stringify(check[1]).includes('txHash')) {
+          valid.status = false
+          valid.error = `Output #${1} does not have a txHash`
+          return valid
+        }
+        if (!JSON.stringify(check[0]).includes('address')) {
+          valid.status = false
+          valid.error = `Output #${0} does not have a address`
+          return valid
+        }
+        if (!JSON.stringify(check[0]).includes('network')) {
+          valid.status = false
+          valid.error = `Output #${0} does not have a network`
+          return valid
+        }
+      return valid
+    }
+    return valid
+  }
+  return valid
+}
+
 module.exports = {
   addressForAPI,
   b32Encode,
   byteCount,
   bytesToHex,
   binaryToBytes,
+  checkLatticeJSON,
   concatenateTypedArrays,
   isFileEmpty,
   mainnetNode,

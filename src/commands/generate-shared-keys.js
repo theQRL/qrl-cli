@@ -107,6 +107,8 @@ const checkSignedMessageJson = (signedMessage) => {
   }
   return valid
 }
+
+/*
 const checkLatticeJSON = (check) => {
   const valid = {}
   valid.status = true
@@ -184,9 +186,9 @@ const checkLatticeJSON = (check) => {
           valid.error = `Output #${1} does not have a pk (ecdsaPK) key`
           return valid
         }     
-        if (!JSON.stringify(check[1]).includes('txHash')) {
+        if (!JSON.stringify(check[1]).includes('tx_hash')) {
           valid.status = false
-          valid.error = `Output #${1} does not have a txHash`
+          valid.error = `Output #${1} does not have a tx_hash`
           return valid
         }
         if (!JSON.stringify(check[0]).includes('address')) {
@@ -206,7 +208,7 @@ const checkLatticeJSON = (check) => {
   return valid
 }
 
-
+*/
 class LatticeShared extends Command {
   async run() {
     const {args, flags} = this.parse(LatticeShared)
@@ -338,7 +340,7 @@ class LatticeShared extends Command {
         }
       }
       // check lattice file for valid json does it contain the keys we need
-      validSecretJson = checkLatticeJSON(latticeSK)
+      validSecretJson = clihelpers.checkLatticeJSON(latticeSK)
       if (!validSecretJson.status) {
         // not valid, fail
         spinner.fail(`${black().bgRed(`Invalid JSON found in secret keys:`)} ${validSecretJson.error}`)
@@ -400,7 +402,7 @@ class LatticeShared extends Command {
               pk1: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk1),
               pk2: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk2),
               pk3: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk3),
-              txHash: clihelpers.bytesToHex(response.transaction.tx.transaction_hash),
+              tx_hash: clihelpers.bytesToHex(response.transaction.tx.transaction_hash),
             })
           }
         }
@@ -415,7 +417,7 @@ class LatticeShared extends Command {
           }
         }
         // is the json valid?
-          validPublicJson = checkLatticeJSON(latticePK)
+          validPublicJson = clihelpers.checkLatticeJSON(latticePK)
         if (!validPublicJson.status) {
           spinner.fail(`${black().bgRed(`Invalid JSON found in public keys:`)} ${validPublicJson.error}`)
         this.exit(1)
@@ -443,7 +445,7 @@ class LatticeShared extends Command {
         clihelpers.waitForDILLIB(async () => {
           spinner.succeed(`Generating new shared secrets for`)
           spinner.succeed(`Address: ${latticePK[0].address}`)
-          spinner.succeed(`Lattice Tx Hash: ${latticePK[pubKeyIndexNum].txHash}`)
+          spinner.succeed(`Lattice Tx Hash: ${latticePK[pubKeyIndexNum].tx_hash}`)
           // Create the Kyber object from senders KyberSK and senders matching KyberPK
           const KYBOBJECT_SENDER = await new KYBLIB.Kyber.fromKeys(aliceKyberPK, aliceKyberSK)
           // Create the Dilithium object from senders DilithiumSK and senders matching DilithiumPK
@@ -646,12 +648,12 @@ LatticeShared.args = [
 
   {
     name: 'latticePK',
-    description: 'Generating new key_list or Recreating received list',
+    description: 'Public key for generating new key_list or Recreating received list',
     required: true,
   },
   {
     name: 'latticeSK',
-    description: 'Generating new key_list or Recreating received list',
+    description: 'Secret key for generating new key_list or Recreating received list',
     required: true,
   },
 
