@@ -221,47 +221,47 @@ const checkLatticeJSON = (check) => {
       // check that the json has keys for kyber, dilithium, and ECDSA SK's 
       if (!JSON.stringify(element).includes('encrypted')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a "encrypted" key`
+        valid.error = `Secret output #${index} does not have a "encrypted" key`
         return valid
       }
       if (!JSON.stringify(element).includes('tx_hash')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a "tx_hash" key`
+        valid.error = `Secret output #${index} does not have a "tx_hash" key`
         return valid
       }
       if (!JSON.stringify(element).includes('network')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a "tx_hash" key`
+        valid.error = `Secret output #${index} does not have a "network" key`
         return valid
       }
       if (!JSON.stringify(element).includes('kyberPK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a kyberPK key`
+        valid.error = `Secret output #${index} does not have a kyberPK key`
         return valid
       }
       if (!JSON.stringify(element).includes('kyberSK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a kyberSK key`
+        valid.error = `Secret output #${index} does not have a kyberSK key`
         return valid
       }
       if (!JSON.stringify(element).includes('dilithiumSK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a dilithiumSK key`
+        valid.error = `Secret output #${index} does not have a dilithiumSK key`
         return valid
       }
       if (!JSON.stringify(element).includes('dilithiumPK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a dilithiumPK key`
+        valid.error = `Secret output #${index} does not have a dilithiumPK key`
         return valid
       }
       if (!JSON.stringify(element).includes('ecdsaSK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a ecdsaSK key`
+        valid.error = `Secret output #${index} does not have a ecdsaSK key`
         return valid
       }
       if (!JSON.stringify(element).includes('ecdsaPK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a ecdsaPK key`
+        valid.error = `Secret output #${index} does not have a ecdsaPK key`
         return valid
       }
       return valid
@@ -287,9 +287,9 @@ const checkLatticeJSON = (check) => {
           valid.error = `Output #${1} does not have a pk (ecdsaPK) key`
           return valid
         }     
-        if (!JSON.stringify(check[1]).includes('txHash')) {
+        if (!JSON.stringify(check[1]).includes('tx_hash')) {
           valid.status = false
-          valid.error = `Output #${1} does not have a txHash`
+          valid.error = `Output #${1} does not have a tx_hash`
           return valid
         }
         if (!JSON.stringify(check[0]).includes('address')) {
