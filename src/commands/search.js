@@ -1,17 +1,10 @@
 /* eslint new-cap: 0 */
-const {
-  Command,
-  flags
-} = require('@oclif/command')
-const {
-  white,
-  black,
-  red,
-} = require('kleur')
+const { Command, flags } = require('@oclif/command')
+const { white, black, red } = require('kleur')
 const ora = require('ora')
 const helpers = require('@theqrl/explorer-helpers')
-// const moment = require('moment')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
+const clihelpers = require('../functions/cli-helpers')
 
 const Qrlnode = require('../functions/grpc')
 
@@ -56,23 +49,24 @@ class Search extends Command {
     const {
       flags
     } = this.parse(Search)
+
     const {
       args
     } = this.parse(Search)
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+
+    let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
+
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
- 
-
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.testnetNode.toString()
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.mainnetNode.toString()
       network = 'Mainnet'
     }
     if (!args.search) {
@@ -80,6 +74,7 @@ class Search extends Command {
       this.exit(1)
     }
     const searchString = args.search
+this.log(`searchstring: ${searchString}`)
     this.log(white().bgBlue(network))
     switch (identifySearch(searchString).method) {
       case 'tx':

@@ -4,20 +4,19 @@ const { red, white, black } = require('kleur')
 const ora = require('ora')
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
-// const helpers = require('@theqrl/explorer-helpers')
+const clihelpers = require('../functions/cli-helpers')
 const Qrlnode = require('../functions/grpc')
 
 
-// Convert bytes to hex
-function bytesToHex(byteArray) {
-  return [...byteArray]
-    /* eslint-disable */
-    .map((byte) => {
-      return ('00' + (byte & 0xff).toString(16)).slice(-2)
-    })
-    /* eslint-enable */
-    .join('')
-}
+/*
+Validate the keys are still good that are returned with `GetLatticeTxn` call. 
+
+This should return the latticeksy metadata with `enabled: "BOOL"` and `deleted: "BOOL"`
+
+*/
+
+
+
 
 class keySearch extends Command {
   async run() {
@@ -55,7 +54,7 @@ class keySearch extends Command {
       }
     }  
     // network stuff
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
 
     if (flags.grpc) {
@@ -63,13 +62,14 @@ class keySearch extends Command {
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.testnetNode.toString()
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = clihelpers.mainnetNode.toString()
       network = 'Mainnet'
     }
+
     this.log(`Fetching Lattice keys on ${white().bgBlue(network)}`)
     const spinner = ora({ text: 'Fetching Ephemeral keys...\n', }).start()
 
@@ -86,6 +86,10 @@ class keySearch extends Command {
       // eslint-disable-next-line no-plusplus
       i++
     }
+
+
+
+
     let latticeKeys = {}
      latticeKeys.tx = []
 
@@ -105,18 +109,52 @@ class keySearch extends Command {
           spinner.fail('Not a lattice transaction')
           this.exit(1)
         }
-        address = `Q${bytesToHex(response.transaction.addr_from)}`
-        // const txHash =  bytesToHex(response.transaction.tx.transaction_hash)
-// console.log(JSON.stringify(response))
+        address = `Q${clihelpers.bytesToHex(response.transaction.addr_from)}`
         latticeKeys = [{
           address,
           network,
         }]
+
+// /////////////////////////////////////
+// Validate the keys returned are good!
+// /////////////////////////////////////
+        spinner.succeed(`tx_hash: ${TXHash}`)
+        const GetTransactionReq = {
+        tx_hash: Buffer.from(TXHash, 'hex'),
+      }
+        const latticeMetaData = await Qrlnetwork.api('GetTransaction', GetTransactionReq)
+
+
+/*
+  async function checkValidMetaData(txHash){
+    
+    const latticeMetaData = await Qrlnetwork.api('GetTransaction', {
+      query: Buffer.from(txHash, 'hex')
+    })
+    this.log(`latticeMetaData: ${JSON.stringify(latticeMetaData)}`)
+    return latticeMetaData
+  }
+*/
+// const latticeMetaData = checkValidMetaData(TXHash)
+        spinner.succeed(`latticeMetaData masterAddr: ${JSON.stringify(latticeMetaData.tx.master_addr)}`)
+
+const pubKey = clihelpers.bytesToHex(latticeMetaData.tx.public_key)
+        spinner.succeed(`pubKey: ${JSON.stringify(pubKey)}`)
+const sig = clihelpers.bytesToHex(latticeMetaData.tx.signature)
+        spinner.succeed(`sig: ${JSON.stringify(sig)}`)
+const transactionHash = clihelpers.bytesToHex(latticeMetaData.tx.transaction_hash)
+        spinner.succeed(`transaction_hash: ${JSON.stringify(transactionHash)}`)
+const blockHeaderHash = clihelpers.bytesToHex(latticeMetaData.block_header_hash)
+        spinner.succeed(`blockHeaderHash: ${JSON.stringify(blockHeaderHash)}`)
+
+
+        // spinner.succeed(`latticeMetaData: ${JSON.stringify(latticeMetaData)}`)
+
         latticeKeys.push({ 
-          pk1: bytesToHex(response.transaction.tx.latticePK.pk1),
-          pk2: bytesToHex(response.transaction.tx.latticePK.pk2),
-          pk3: bytesToHex(response.transaction.tx.latticePK.pk3),
-          txHash: bytesToHex(response.transaction.tx.transaction_hash),
+          pk1: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk1),
+          pk2: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk2),
+          pk3: clihelpers.bytesToHex(response.transaction.tx.latticePK.pk3),
+          tx_hash: clihelpers.bytesToHex(response.transaction.tx.transaction_hash),
         })
       }
     }
@@ -141,16 +179,26 @@ class keySearch extends Command {
       /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
       for (let i = 0; i < response.lattice_pks_detail.length; i++) {
 
+// /////////////////////////////////////
+// Validate the keys returned are good!
+// /////////////////////////////////////
+
+
+
         latticeKeys.push({ 
-          pk1: bytesToHex(response.lattice_pks_detail[i].pk1),
-          pk2: bytesToHex(response.lattice_pks_detail[i].pk2),
-          pk3: bytesToHex(response.lattice_pks_detail[i].pk3),
-          txHash: bytesToHex(response.lattice_pks_detail[i].tx_hash),
+          pk1: clihelpers.bytesToHex(response.lattice_pks_detail[i].pk1),
+          pk2: clihelpers.bytesToHex(response.lattice_pks_detail[i].pk2),
+          pk3: clihelpers.bytesToHex(response.lattice_pks_detail[i].pk3),
+          tx_hash: clihelpers.bytesToHex(response.lattice_pks_detail[i].tx_hash),
         })
 
       }
       spinner.succeed(`Total Keys Found: ${JSON.stringify(response.lattice_pks_detail.length)}`)
     }
+
+
+
+
 
       // output keys to file if flag passed
       if (flags.pub_key_file) {
@@ -171,7 +219,7 @@ class keySearch extends Command {
             this.log(` ${black().bgWhite('pk1:')}  ${latticeKeys[i].pk1}`)
             this.log(` ${black().bgWhite('pk2:')}  ${latticeKeys[i].pk2}`)
             this.log(` ${black().bgWhite('pk3:')}  ${latticeKeys[i].pk3}`)
-            this.log(` ${black().bgWhite('txHash:')}  ${latticeKeys[i].txHash}`)
+            this.log(` ${black().bgWhite('tx_hash:')}  ${latticeKeys[i].txHash}`)
           }
         }
       }
@@ -181,7 +229,7 @@ class keySearch extends Command {
         this.log(` ${black().bgWhite('pk1:')}  ${latticeKeys[1].pk1}`)
         this.log(` ${black().bgWhite('pk2:')}  ${latticeKeys[1].pk2}`)
         this.log(` ${black().bgWhite('pk3:')}  ${latticeKeys[1].pk3}`)
-        this.log(` ${black().bgWhite('txHash:')}  ${latticeKeys[1].txHash}`)
+        this.log(` ${black().bgWhite('tx_hash:')}  ${latticeKeys[1].txHash}`)
       }
   }
 

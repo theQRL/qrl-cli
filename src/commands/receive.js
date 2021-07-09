@@ -6,11 +6,7 @@ const qrcode = require('qrcode-terminal')
 const aes256 = require('aes256')
 const {cli} = require('cli-ux')
 const fs = require('fs')
-
-const openWalletFile = (path) => {
-  const contents = fs.readFileSync(path)
-  return JSON.parse(contents)[0]
-}
+const clihelpers = require('../functions/cli-helpers')
 
 class Receive extends Command {
   async run() {
@@ -33,7 +29,7 @@ class Receive extends Command {
         this.log(`${red('⨉')} Invalid QRL address/wallet file`)
         this.exit(1)
       } else {
-        const walletJson = openWalletFile(path)
+        const walletJson = clihelpers.openWalletFile(path)
         try {
           if (walletJson.encrypted === false) {
             isValidFile = true

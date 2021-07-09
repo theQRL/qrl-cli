@@ -37,11 +37,14 @@ USAGE
 * [`qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXT] [SIGNEDMESSAGE]`](#qrl-cli-generate-shared-keys-latticepk-latticesk-cyphertext-signedmessage)
 * [`qrl-cli get-keys`](#qrl-cli-get-keys)
 * [`qrl-cli help [COMMAND]`](#qrl-cli-help-command)
+* [`qrl-cli notarise DATAHASH`](#qrl-cli-notarise-datahash)
 * [`qrl-cli ots ADDRESS`](#qrl-cli-ots-address)
 * [`qrl-cli receive ADDRESS`](#qrl-cli-receive-address)
 * [`qrl-cli search SEARCH`](#qrl-cli-search-search)
 * [`qrl-cli send QUANTITY`](#qrl-cli-send-quantity)
 * [`qrl-cli send-message`](#qrl-cli-send-message)
+* [`qrl-cli shared-key-decrypt SHAREDKEYLIST MESSAGE`](#qrl-cli-shared-key-decrypt-sharedkeylist-message)
+* [`qrl-cli shared-key-encrypt SHAREDKEYLIST MESSAGE`](#qrl-cli-shared-key-encrypt-sharedkeylist-message)
 * [`qrl-cli status`](#qrl-cli-status)
 * [`qrl-cli validate ADDRESS`](#qrl-cli-validate-address)
 
@@ -118,7 +121,7 @@ OPTIONS
   -p, --walletPassword=walletPassword      Encrypted QRL wallet file (p)assword
   -s, --hexseed=hexseed                    Hex(s)eed/Mnemonic of QRL address where funds should be sent from
   -t, --testnet                            Send the lattice key transaction to (t)estnet
-  -w, --wallet=wallet                      Generating QRL (w)allet file used for broadcasting lattice keys (wallet.json)
+  -w, --wallet=wallet                      QRL (w)allet file used to broadcast lattice keys (wallet.json)
 
 DESCRIPTION
   This function REQUIRES a valid QRL wallet file or private keys (hexseed/mnemonic) to use 
@@ -146,8 +149,8 @@ USAGE
   $ qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXT] [SIGNEDMESSAGE]
 
 ARGUMENTS
-  LATTICEPK      Generating new key_list or Recreating received list
-  LATTICESK      Generating new key_list or Recreating received list
+  LATTICEPK      Public key for generating new key_list or Recreating received list
+  LATTICESK      Secret key for generating new key_list or Recreating received list
   CYPHERTEXT     Cyphertext file for key-regeneration
   SIGNEDMESSAGE  Signed Message file for key-regeneration
 
@@ -169,7 +172,7 @@ DESCRIPTION
        - shared_key encrypted secret
        - key_list from secret, through shake128 (optional password protected)
 
-  Re-generate shared_keys from encrypted secrets
+  Re-generate shared_keys from encrypted secrets, {cyphertext, signedMessage}
      Generates:
        - Decrypted shared key
        - Decrypted cyphertext (shared_secret)
@@ -225,6 +228,37 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
+
+## `qrl-cli notarise DATAHASH`
+
+Notarise a document or file on the blockchain
+
+```
+USAGE
+  $ qrl-cli notarise DATAHASH
+
+ARGUMENTS
+  DATAHASH  File sha256 Hash
+
+OPTIONS
+  -M, --message=message    Additional (M)essage data to send (max 45 char)
+  -f, --fee=fee            QRL (f)ee for transaction in Shor (defaults to 0 Shor)
+  -g, --grpc=grpc          advanced: grpc endpoint (for devnet/custom QRL network deployments)
+  -h, --hexseed=hexseed    Secret (h)exseed/mnemonic of address notarisation should be sent from
+  -i, --otsindex=otsindex  Unused OTS key (i)ndex for message transaction
+  -m, --mainnet            uses mainnet for the notarisation
+  -p, --password=password  Encrypted QRL wallet file (p)assword
+  -t, --testnet            uses testnet for the notarisation
+  -w, --wallet=wallet      JSON (w)allet file notarisation will be sent from
+
+DESCRIPTION
+  Notarise data onto the blockchain. Takes a sha256 hash of a file and submits it to the network using
+  the wallet address given.
+
+  Advanced: you can use a custom defined node to broadcast the notarisation. Use the (-g) grpc endpoint.
+```
+
+_See code: [src/commands/notarise.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/notarise.js)_
 
 ## `qrl-cli ots ADDRESS`
 
@@ -343,11 +377,11 @@ OPTIONS
   -f, --fee=fee              QRL (f)ee for transaction in Shor (defaults to 100 Shor)
   -g, --grpc=grpc            advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -i, --otsindex=otsindex    Unused OTS key (i)ndex for message transaction
-  -m, --mainnet              queries mainnet for the OTS state
+  -m, --mainnet              queries mainnet to send the message
   -p, --password=password    Encrypted QRL wallet file (p)assword
-  -r, --recipient=recipient  QRL address of recipient
+  -r, --recipient=recipient  (optional) QRL address of recipient
   -s, --hexseed=hexseed      Secret hex(s)eed/mnemonic of address message should be sent from
-  -t, --testnet              queries testnet for the OTS state
+  -t, --testnet              queries testnet to send the message
   -w, --wallet=wallet        JSON (w)allet file message will be sent from
 
 DESCRIPTION
@@ -358,6 +392,61 @@ DESCRIPTION
 ```
 
 _See code: [src/commands/send-message.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/send-message.js)_
+
+## `qrl-cli shared-key-decrypt SHAREDKEYLIST MESSAGE`
+
+Decrypt data using a Lattice generated shered keylist
+
+```
+USAGE
+  $ qrl-cli shared-key-decrypt SHAREDKEYLIST MESSAGE
+
+ARGUMENTS
+  SHAREDKEYLIST  shared key list for secret decryption keys
+  MESSAGE        Encrypted message to decrypt
+
+OPTIONS
+  -g, --grpc=grpc              Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
+  -i, --index=index            (default: 0) index key to use from keylist array
+  -j, --json                   output plaintext data as json
+  -m, --mainnet                (default) queries mainnet for the public lattice keys
+  -o, --fileOutput=fileOutput  output decrypted data to file
+  -t, --testnet                queries testnet for the public lattice keys
+
+DESCRIPTION
+  Using a given shared keylist index, AES decrypt data given in file, JSON or stdin to command
+
+  Example: qrl-cli shared-key-decrypt {KEYLIST} {ENCRYPTED-DATA} -o {DECRYPTED-FILE}
+```
+
+_See code: [src/commands/shared-key-decrypt.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/shared-key-decrypt.js)_
+
+## `qrl-cli shared-key-encrypt SHAREDKEYLIST MESSAGE`
+
+Encrypt data using a Lattice generated shered keylist
+
+```
+USAGE
+  $ qrl-cli shared-key-encrypt SHAREDKEYLIST MESSAGE
+
+ARGUMENTS
+  SHAREDKEYLIST  shared key list file for encryption keys
+  MESSAGE        message to encrypt
+
+OPTIONS
+  -g, --grpc=grpc              Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
+  -i, --index=index            (default: 0) index key to use from keylist array
+  -j, --json                   output encrypted data as json
+  -m, --mainnet                (default) queries mainnet for the public lattice keys
+  -o, --fileOutput=fileOutput  output file to save encrypted data
+  -t, --testnet                queries testnet for the public lattice keys
+
+DESCRIPTION
+  Using a given shared keylist index, AES encrypt data given in file or stdin to command
+  Example: qrl-cli shared-key-encrypt {KEYLIST} {PLAINTEXT-DATA} -o {ENCRYPTED-OUTPUT-FILE}
+```
+
+_See code: [src/commands/shared-key-encrypt.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/shared-key-encrypt.js)_
 
 ## `qrl-cli status`
 

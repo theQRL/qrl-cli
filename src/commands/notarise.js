@@ -1,22 +1,43 @@
 /* global QRLLIB */
 /* eslint new-cap: 0 */
+
+/*
+// Notarisation requires a sha256 hash of the data intended to hash. This can be aquired prior using 
+//   something like `sha256sum {FILE}` on a typical *nix system
+*/
+
 const { Command, flags } = require('@oclif/command')
-const { white, red } = require('kleur')
+const { white, black } = require('kleur')
 const ora = require('ora')
+// const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const aes256 = require('aes256')
 const { cli } = require('cli-ux')
 const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl') // eslint-disable-line no-unused-vars
-const helpers = require('@theqrl/explorer-helpers')
+// const CryptoJS = require("crypto-js");
 const clihelpers = require('../functions/cli-helpers')
 const Qrlnode = require('../functions/grpc')
 
-class SendMessage extends Command {
+
+// const openNotarisationFile = (path) => {
+  // const contents = fs.readFileSync(path)
+  // return contents
+// }
+
+class Notarise extends Command {
   async run() {
-    const { flags } = this.parse(SendMessage)
+    const { args, flags } = this.parse(Notarise)
+    // let dataHash
+    let messageData
+    let messageHex
+    let notarisation = 'AFAFA'
+    let hexseed
+    let address
+    let notarialHash
+
+    // network stuff, defaults to mainnet
     let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
-
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
@@ -30,43 +51,84 @@ class SendMessage extends Command {
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
-
-    if (!flags.message) {
-      this.log(`${red('⨉')} No message given`)
-      this.exit(1)
-    }
-
-// QRL Message transaction encoding flag
-
-
-    // check size of message MAX 80 bytes
-    const messageBytes = clihelpers.string2Bin(flags.message)
-    const messageLength = clihelpers.byteCount(messageBytes)
-    
-    this.log(`Message Submitted: ${flags.message}`)
-    this.log(`Message byte length: ${messageLength}`)
-
-    if (messageLength > 80) {
-      this.log(`${red('⨉')} Message cannot be longer than 80 bytes`)
-      this.exit(1)
-    }
-    const thisAddressesTo = []
-    if (flags.recipient) {
-      // passed as an -r flag
-      if (!validateQrlAddress.hexString(flags.recipient).result) {
-        this.log(`${red('⨉')} Unable to send: invalid recipient address`)
+    // the data to notarise here, can be a file submitted (path) or a string passed on cli
+    const spinner = ora({ text: 'Notarising Data...\n', }).start()
+    if (args.dataHash) {
+      const sha256regex = /^\b[A-Fa-f0-9]{64}\b/.test(args.dataHash)
+      // is the passed data the correct length? should be a sha256 sum hash
+      if (args.dataHash.length !== 64 || !sha256regex ) {
+        // either length is wrong or regex not matching
+        spinner.fail(`${black().bgRed(`notarisation data hash invalid...`)}` )
         this.exit(1)
       }
-      // set recipient here
-      thisAddressesTo.push(helpers.hexAddressToRawAddress(flags.recipient))
+      notarialHash = args.dataHash
+
     }
-    if (!flags.wallet && !flags.hexseed) {
-      this.log(`${red('⨉')} Unable to send: no wallet json file or hexseed specified`)
+
+/*
+    // ////////////////////////
+    // HASH A FILE
+    // ////////////////////////
+    // hash a file, only works up to a size dependant on local settings < 2gb
+    // Commented out due to the instability of this method when large file types are given
+    //
+    // Contribution welcome! Help make this function work for large files, perhaps by chuncking?
+    //
+
+    if (fs.existsSync(args.dataHash)) {
+      spinner.succeed(`File found: ${args.dataHash} = ${fs.existsSync(args.dataHash)}`)
+      // file submitted, is file empty?
+      clihelpers.isFileEmpty(args.dataHash).then( (isEmpty) => {
+        if (isEmpty) {
+          spinner.fail('File is empty...')
+          this.exit(1)
+        }
+      })
+      try{
+        dataHash = openNotarisationFile(args.dataHash)
+        dataHash = Buffer.from(openNotarisationFile(args.dataHash), 'hex')
+      }
+      catch (e) {
+        spinner.fail(`Unable to open file: ${e}`)
+        this.exit(1)
+      }
+    }
+    else {
+      spinner.fail('Requires a file to notarise...')
       this.exit(1)
     }
-    // wallet functions
-    let hexseed = ''
-    let address = ''
+    // Convert notarial Data to WordArray
+    const resultWordArray = CryptoJS.lib.WordArray.create(dataHash)
+    // sha256 hash the file, output hex
+    const notarialHash = CryptoJS.SHA256(resultWordArray).toString(CryptoJS.enc.Hex)
+    // add message type for notarisation, (2) and the hash from the file   
+*/
+
+    notarisation += `2${notarialHash}`
+    spinner.succeed(`notarisation: ${notarisation}`)
+    // additional data to send with the notary - user defined
+    
+    if (flags.message) {
+      messageData = flags.message.toString()
+      if (messageData.length > 45) {
+        spinner.fail(`${black().bgRed(`Message cannot be longer than 45 characters.`)} Message Length: ${messageData.length}` )
+        this.exit(1)
+      }
+      spinner.succeed(`Message data recieved: ${messageData}`)
+      // Convert string to hex to append to the hash
+      const messageDataBytes = Buffer.from(messageData, 'hex')
+
+      messageHex = clihelpers.bytesToHex(messageDataBytes)
+      // Construct final hex string for notarisation appending message hex
+      notarisation += messageHex
+    }
+    spinner.succeed(`final notarisation hex: ${notarisation}`)
+    // get wallet private details for transaction
+    if (!flags.wallet && !flags.hexseed) {
+      spinner.fail(`${black().bgRed(`No wallet.json file (-w) or hexseed (-h) specified...`)}` )
+      this.exit(1)
+    }
+
     // open wallet file
     if (flags.wallet) {
       let isValidFile = false
@@ -91,19 +153,21 @@ class SendMessage extends Command {
             isValidFile = true
           } 
           else {
-            this.log(`${red('⨉')} Unable to open wallet file: invalid password`)
+            spinner.fail(`${black().bgRed(`Unable to open wallet file: Invalid password...`)}` )
             this.exit(1)
           }
         }
-      } catch (error) {
+      }
+      catch (error) {
         isValidFile = false
       }
       if (!isValidFile) {
-        this.log(`${red('⨉')} Unable to open wallet file: invalid wallet file`)
+        spinner.fail(`${black().bgRed(`Unable to open wallet file: Invalid wallet file...`)}` )
         this.exit(1)
       }
       if (!flags.otsindex ) {
-        this.log(`${red('⨉')} no OTS index given`)
+        spinner.fail(`${black().bgRed(`No OTS index (-i) given...`)}` )
+        spinner.fail(``)
         this.exit(1)
       }
     }
@@ -115,19 +179,19 @@ class SendMessage extends Command {
       if (hexseed.match(' ') === null) {
         // hexseed: correct length?
         if (hexseed.length !== 102) {
-          this.log(`${red('⨉')} Hexseed invalid: too short`)
+          spinner.fail(`${black().bgRed(`Hexseed invalid: too short...`)}` )
           this.exit(1)
         }
       } else {
         // mnemonic: correct number of words?
         // eslint-disable-next-line no-lonely-if
         if (hexseed.split(' ').length !== 34) {
-          this.log(`${red('⨉')} Mnemonic phrase invalid: too short`)
+          spinner.fail(`${black().bgRed(`Mnemonic phrase invalid: too short...`)}` )
           this.exit(1)
         }
       }
       if (!flags.otsindex ) {
-        this.log(`${red('⨉')} no OTS index given`)
+        spinner.fail(`${black().bgRed(`No OTS index (-i) given...`)}` )
         this.exit(1)
       }
     }
@@ -135,28 +199,29 @@ class SendMessage extends Command {
     if (flags.otsindex) {
       const passedOts = parseInt(flags.otsindex, 10)
       if (!passedOts && passedOts !== 0) {
-        this.log(`${red('⨉')} OTS key is invalid`)
+        spinner.fail(`${black().bgRed(`OTS key is invalid...`)}` )
         this.exit(1)
       }
     }
     // set the fee to default or flag
-    let fee = 0 // default fee 100 Shor
+    let fee = 0 // default fee 0 Shor
     if (flags.fee) {
       const passedFee = parseInt(flags.fee, 10)
       if (passedFee) {
         fee = passedFee
       } else {
-        this.log(`${red('⨉')} Fee is invalid`)
+        spinner.fail(`${black().bgRed(`Fee is invalid...`)}` )
         this.exit(1)
       }
     }
 
-    const spinner = ora({ text: 'Sending Message to network...' }).start()
+    // sign and send transaction
     clihelpers.waitForQRLLIB(async () => {
       let XMSS_OBJECT
       if (hexseed.match(' ') === null) {
         XMSS_OBJECT = await new QRLLIB.Xmss.fromHexSeed(hexseed)
-      } else {
+      } 
+      else {
         XMSS_OBJECT = await new QRLLIB.Xmss.fromMnemonic(hexseed)
       }
       const xmssPK = Buffer.from(XMSS_OBJECT.getPK(), 'hex')
@@ -174,42 +239,30 @@ class SendMessage extends Command {
         // eslint-disable-next-line no-plusplus
         i++
       }
-
-      const spinner2 = ora({ text: 'Network Connect....' }).start()
-      let thisAddress = []
-      if (flags.recipient) {
-
-        [ thisAddress ] = thisAddressesTo
-      }
-
+      // get message hex into bytes for transaction
+      const messageBytes = Buffer.from(notarisation, 'hex')
       const request = {
         master_addr: Buffer.from('', 'hex'),
         message: messageBytes,
-        addr_to: thisAddress,
         fee,
         xmss_pk: xmssPK,
       }
+      // send the message transaction with the notarise encoding to the node
       const message = await Qrlnetwork.api('GetMessageTxn', request)
 
-      spinner2.succeed('Node correctly returned transaction for signing')
       const spinner3 = ora({ text: 'Signing transaction...' }).start()
 
       const concatenatedArrays = clihelpers.concatenateTypedArrays(
         Uint8Array,
         clihelpers.toBigendianUint64BytesUnsigned(message.extended_transaction_unsigned.tx.fee), // fee
         messageBytes,
-        thisAddress,
       )
-
       // Convert Uint8Array to VectorUChar
       const hashableBytes = clihelpers.toUint8Vector(concatenatedArrays)
-
       // Create sha256 sum of concatenated array
       const shaSum = QRLLIB.sha2_256(hashableBytes)
-
       XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
       const signature = clihelpers.binaryToBytes(XMSS_OBJECT.sign(shaSum))
-
       // Calculate transaction hash
       const txnHashConcat = clihelpers.concatenateTypedArrays(Uint8Array, clihelpers.binaryToBytes(shaSum), signature, xmssPK)
       // tx hash bytes..
@@ -233,7 +286,7 @@ class SendMessage extends Command {
         } else {
           errorMessage = `Node rejected signed message: has OTS key ${flags.otsindex} been reused?`
         }
-        spinner4.fail(`${errorMessage}]`)
+        spinner.fail(`${black().bgRed(`Qrlnetwork.api error: ${response.error_code}`)} ${errorMessage}` )
         this.exit(1)
       }
       const pushTransactionRes = JSON.stringify(response.tx_hash)
@@ -251,40 +304,41 @@ class SendMessage extends Command {
         // this.exit(0)
       } 
       else {
-        spinner4.fail(`Node transaction hash ${clihelpers.bytesToHex(txhash.data)} does not match`)
+        spinner.fail(`${black().bgRed(`Node transaction hash ${clihelpers.bytesToHex(txhash.data)} does not match`)}` )
         this.exit(1)
       }
     })
   }
 }
 
-SendMessage.description = `Send up to 80 byte message on the network
+Notarise.description = `Notarise a document or file on the blockchain
 
-Message can be sent to a recipient with the (-r) flag
-You can select either (-m) mainnet or (-t) testnet
+Notarise data onto the blockchain. Takes a sha256 hash of a file and submits it to the network using
+the wallet address given.
 
-Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
+Advanced: you can use a custom defined node to broadcast the notarisation. Use the (-g) grpc endpoint.
 `
 
-// Status.args = [
-//   {
-//     name: 'message',
-//     description: 'message to send',
-//     required: true,
-//   },
-// ]
+Notarise.args = [
+   {
+     name: 'dataHash',
+     description: 'File sha256 Hash',
+     required: true,
+   },
+ ]
 
-SendMessage.flags = {
+Notarise.flags = {
+
   testnet: flags.boolean({
     char: 't',
     default: false,
-    description: 'queries testnet to send the message'
+    description: 'uses testnet for the notarisation'
   }),
 
   mainnet: flags.boolean({
     char: 'm',
     default: false,
-    description: 'queries mainnet to send the message'
+    description: 'uses mainnet for the notarisation'
   }),
 
   grpc: flags.string({
@@ -296,13 +350,13 @@ SendMessage.flags = {
   message: flags.string({
     char: 'M',
     default: false,
-    description: 'Message data to send'
+    description: 'Additional (M)essage data to send (max 45 char)'
   }),
 
   wallet: flags.string({
     char: 'w',
     required: false,
-    description: 'JSON (w)allet file message will be sent from',
+    description: 'JSON (w)allet file notarisation will be sent from',
   }),
 
  password: flags.string({
@@ -312,21 +366,15 @@ SendMessage.flags = {
   }),
 
   hexseed: flags.string({
-    char: 's',
+    char: 'h',
     required: false,
-    description: 'Secret hex(s)eed/mnemonic of address message should be sent from',
-  }),
-
-  recipient: flags.string({
-    char: 'r',
-    required: false,
-    description: '(optional) QRL address of recipient'
+    description: 'Secret (h)exseed/mnemonic of address notarisation should be sent from',
   }),
 
   fee: flags.string({
     char: 'f',
     required: false,
-    description: 'QRL (f)ee for transaction in Shor (defaults to 100 Shor)'
+    description: 'QRL (f)ee for transaction in Shor (defaults to 0 Shor)'
   }),
 
   otsindex: flags.string({ 
@@ -336,4 +384,4 @@ SendMessage.flags = {
   }),
 }
 
-module.exports = { SendMessage }
+module.exports = { Notarise }
