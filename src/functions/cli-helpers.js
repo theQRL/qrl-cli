@@ -3,6 +3,7 @@
 /* global KYBLIB */
 const fs = require('fs')
 const bech32 = require('bech32')
+const validateQrlAddress = require('@theqrl/validate-qrl-address')
 
 // /////////////////////////
 // Export functions
@@ -309,6 +310,47 @@ const checkLatticeJSON = (check) => {
   return valid
 }
 
+const checkTxJSON = (check) => {
+  const valid = {}
+  valid.status = true
+
+  if (check === undefined) {
+    valid.status = false
+    valid.error = 'array is undefined'
+    return valid
+  }
+  if (check.length === 0) {
+    valid.status = false
+    valid.error = 'No transactions found: length of array is 0'
+    return valid
+  }
+  check.forEach((element, index) => {
+    if (!JSON.stringify(element).includes('to')) {
+      valid.status = false
+      valid.error = `Output #${index} does not have a 'to' key`
+      return valid
+    }
+
+    if (!validateQrlAddress.hexString(element.to).result) {
+      valid.status = false
+      valid.error = `Output #${index} does not contain a valid QRL address`
+      return valid
+    }
+
+    if (!JSON.stringify(element).includes('shor')) {
+      valid.status = false
+      valid.error = `Output #${index} does not have a 'shor' key`
+      return valid
+    }
+    return valid
+  })
+  return valid
+
+  // need some BigNumber checks here
+  // ...
+  // checks complete
+}
+
 module.exports = {
   addressForAPI,
   b32Encode,
@@ -316,6 +358,7 @@ module.exports = {
   bytesToHex,
   binaryToBytes,
   checkLatticeJSON,
+  checkTxJSON,
   concatenateTypedArrays,
   isFileEmpty,
   mainnetNode,
