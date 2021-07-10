@@ -478,7 +478,7 @@ describe('send #2k', () => {
 })
 
 
-
+// invalid QRL address
 describe('send #2l', () => {
   const args = [
     'send',
@@ -670,6 +670,34 @@ describe('send #2r', () => {
   })
 })
 
+// too long of message data
+describe('send #2s', () => {
+  const args = [
+    'send',
+    '10',
+    '-r',
+    'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
+    '-w',
+    '/tmp/wallet.json',
+    '-i',
+    '10',
+    '-t',
+    '-s',
+    '-M',
+    'This Message Is Too Long For The Message Space and Will Fail',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if message data is too long', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
 
 // successful send
 // Need funds in the test wallet for this to proceed

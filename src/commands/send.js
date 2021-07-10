@@ -13,54 +13,28 @@ const helpers = require('@theqrl/explorer-helpers')
 const clihelpers = require('../functions/cli-helpers')
 const Qrlnode = require('../functions/grpc')
 
-const checkTxJSON = (check) => {
-  const valid = {}
-  valid.status = true
 
-  if (check === undefined) {
-    valid.status = false
-    valid.error = 'array is undefined'
-    return valid
-  }
-  if (check.length === 0) {
-    valid.status = false
-    valid.error = 'No transactions found: length of array is 0'
-    return valid
-  }
-  check.forEach((element, index) => {
-    if (!JSON.stringify(element).includes('to')) {
-      valid.status = false
-      valid.error = `Output #${index} does not have a 'to' key`
-      return valid
-    }
-
-    if (!validateQrlAddress.hexString(element.to).result) {
-      valid.status = false
-      valid.error = `Output #${index} does not contain a valid QRL address`
-      return valid
-    }
-
-    if (!JSON.stringify(element).includes('shor')) {
-      valid.status = false
-      valid.error = `Output #${index} does not have a 'shor' key`
-      return valid
-    }
-    return valid
-  })
-  return valid
-
-  // need some BigNumber checks here
-  // ...
-  // checks complete
-}
 
 class Send extends Command {
   async run() {
     const { args, flags } = this.parse(Send)
+    let messageBytes 
+    let messageLength
+    if (flags.message) {
+      // check size of message MAX 80 bytes
+      messageBytes = clihelpers.string2Bin(flags.message)
+      messageLength = clihelpers.byteCount(messageBytes)
+      // this.log(`Message Submitted: ${flags.message}`)
+      // this.log(`Message byte length: ${messageLength}`)
+      // over 80 bytes
+      if (messageLength > 80) {
+        this.log(`${red('⨉')} Message cannot be longer than 80 bytes`)
+        this.exit(1)
+      }
+    }
     // network
     let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
-
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
@@ -120,7 +94,7 @@ class Send extends Command {
       // valid json passed, is it also correct format and content?
       output = JSON.parse(flags.jsonObject)
       // now check the json is valid --> separate function
-      const validate = checkTxJSON(output.tx)
+      const validate = clihelpers.checkTxJSON(output.tx)
       if (validate.status === false) {
         this.log(`${red('⨉')} Unable to send: json object passed with -j contains invalid output data (${validate.error})`)
         this.exit(1)
@@ -136,7 +110,7 @@ class Send extends Command {
         this.exit(1)
       }
       output = JSON.parse(contents)
-      const validate = checkTxJSON(output.tx)
+      const validate = clihelpers.checkTxJSON(output.tx)
       if (validate.status === false) {
         this.log(`${red('⨉')} Unable to send: json file contains invalid output data (${validate.error})`)
         this.exit(1)
@@ -247,7 +221,6 @@ class Send extends Command {
       thisAmounts.push(o.shor)
     })
     this.log(`Fee: ${fee} Shor`)
-    
     const spinner = ora({ text: 'Sending unsigned transaction to node...' }).start()
     clihelpers.waitForQRLLIB(async () => {
       let XMSS_OBJECT
@@ -257,10 +230,8 @@ class Send extends Command {
         XMSS_OBJECT = await new QRLLIB.Xmss.fromMnemonic(hexseed)
       }
       const xmssPK = Buffer.from(XMSS_OBJECT.getPK(), 'hex')
-
       const Qrlnetwork = await new Qrlnode(grpcEndpoint)
       await Qrlnetwork.connect()
-
       const spinner1 = ora({ text: 'attempting conenction to node...' }).start()
       // verify we have connected and try again if not
       let i = 0
@@ -273,23 +244,45 @@ class Send extends Command {
         i++
       }
       spinner1.succeed(`Connected!`)
-
-      const request = {
-        addresses_to: thisAddressesTo,
-        amounts: thisAmounts,
-        fee,
-        xmss_pk: xmssPK,
+      let request
+      // if message is given, add to the transaction
+      if (flags.message) {
+        request = {
+          addresses_to: thisAddressesTo,
+          amounts: thisAmounts,
+          fee,
+          message_data: messageBytes,
+          xmss_pk: xmssPK,
+        }
       }
+      else {
+        request = {
+          addresses_to: thisAddressesTo,
+          amounts: thisAmounts,
+          fee,
+          xmss_pk: xmssPK,
+        }
+      }
+
 // console.log(request)      
       const tx = await Qrlnetwork.api('TransferCoins', request)
-
+      spinner1.succeed(`TX: ${JSON.stringify(tx)}`)
       spinner.succeed('Node correctly returned transaction for signing')
       const spinner2 = ora({ text: 'Signing transaction...' }).start()
-
-      let concatenatedArrays = clihelpers.concatenateTypedArrays(
-        Uint8Array,
-        clihelpers.toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee)
-      )
+      let concatenatedArrays
+      if (flags.message) {
+        concatenatedArrays = clihelpers.concatenateTypedArrays(
+          Uint8Array,
+          clihelpers.toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
+          messageBytes,
+        )
+      }
+      else{
+        concatenatedArrays = clihelpers.concatenateTypedArrays(
+          Uint8Array,
+          clihelpers.toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
+        )
+      }
 
       // Now append all recipient (outputs) to concatenatedArrays
       const addrsToRaw = tx.extended_transaction_unsigned.tx.transfer.addrs_to
@@ -314,36 +307,27 @@ class Send extends Command {
 
       // Convert Uint8Array to VectorUChar
       const hashableBytes = clihelpers.toUint8Vector(concatenatedArrays)
-
       // Create sha256 sum of concatenated array
       const shaSum = QRLLIB.sha2_256(hashableBytes)
-
       XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
       const signature = clihelpers.binaryToBytes(XMSS_OBJECT.sign(shaSum))
       // Calculate transaction hash
       const txnHashConcat = clihelpers.concatenateTypedArrays(Uint8Array, clihelpers.binaryToBytes(shaSum), signature, xmssPK)
-
       const txnHashableBytes = clihelpers.toUint8Vector(txnHashConcat)
-
       const txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
-
       spinner2.succeed(
         `Transaction signed with OTS key ${flags.otsindex}. (nodes will reject this transaction if key reuse is detected)`
       )
       const spinner3 = ora({ text: 'Pushing transaction to node...' }).start()
-
       tx.extended_transaction_unsigned.tx.signature = Buffer.from(signature)
       tx.extended_transaction_unsigned.tx.public_key = Buffer.from(xmssPK) // eslint-disable-line camelcase
-
       const addrsTo = tx.extended_transaction_unsigned.tx.transfer.addrs_to
       const addrsToFormatted = []
-
       addrsTo.forEach((item) => {
         const bufItem = Buffer.from(item)
         addrsToFormatted.push(bufItem)
       })
       tx.extended_transaction_unsigned.tx.transfer.addrs_to = addrsToFormatted // eslint-disable-line camelcase
-
       const pushTransactionReq = {
         transaction_signed: tx.extended_transaction_unsigned.tx, // eslint-disable-line camelcase
       }
@@ -362,7 +346,6 @@ class Send extends Command {
       const txhash = JSON.parse(pushTransactionRes)
       if (txnHash === clihelpers.bytesToHex(txhash.data)) {
         spinner3.succeed(`Transaction submitted to node: transaction ID: ${clihelpers.bytesToHex(txhash.data)}`)
-
         // check for network and send link to explorer to user in console
         if (network === 'Mainnet') {
           spinner3.succeed(`https://explorer.theqrl.org/tx/${clihelpers.bytesToHex(txhash.data)}`)
@@ -370,7 +353,6 @@ class Send extends Command {
         else if (network === 'Testnet') {
           spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${clihelpers.bytesToHex(txhash.data)}`)
         }
-
         // this.exit(0)
       } else {
         spinner3.fail(`Node transaction hash ${clihelpers.bytesToHex(txhash.data)} does not match`)
@@ -380,9 +362,14 @@ class Send extends Command {
   }
 }
 
-Send.description = `Send Quanta
-...
-TODO
+Send.description = `Send Quanta from a QRL address to QRL another address
+
+This function allows the transfer of Quanta between QRL addresses. Requires a wallet file or private keys and an unused OTS
+key index to sign the transaction.
+
+Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet, or a custom defined node (-g) grpc endpoint. 
+Advanced: Appenmd a (-M) Message to the transaction with max 80 bytes length
+
 `
 
 Send.args = [
@@ -454,6 +441,11 @@ Send.flags = {
     char: 'h',
     required: false,
     description: 'hexseed/mnemonic of wallet from where funds should be sent',
+  }),
+  message: flags.string({
+    char: 'M',
+    default: false,
+    description: 'Message data to send'
   }),
 }
 
