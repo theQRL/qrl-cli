@@ -81,7 +81,7 @@
   "scripts": {
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "eslint .",
-    "prepack": "oclif-dev manifest && oclif-dev readme",
+    "prepack": "NODE_OPTIONS='--max-old-space-size=4096' oclif-dev manifest && oclif-dev readme",
     "test": "nyc mocha --forbid-only -t 50000 \"test/**/*.test.js\"",
     "test-balance": "nyc mocha --forbid-only -t 50000 \"test/commands/balance.test.js\"",
     "test-create-wallet": "nyc mocha --forbid-only -t 50000 \"test/commands/create-wallet.test.js\"",
@@ -97,7 +97,7 @@
     "test-shared-key-decrypt": "nyc mocha --forbid-only -t 50000 \"test/commands/shared-key-decrypt.test.js\"",
     "test-shared-key-encrypt": "nyc mocha --forbid-only -t 50000 \"test/commands/shared-key-encrypt.test.js\"",
     "test-status": "nyc mocha --forbid-only -t 50000 \"test/commands/status.test.js\"",
-    "version": "oclif-dev readme && git add README.md",
+    "version": "NODE_OPTIONS='--max-old-space-size=4096' oclif-dev readme && git add README.md",
     "cov": "nyc report --reporter=text-lcov > coverage.lcov && ./node_modules/.bin/codecov -t $CODECOV_TOKEN",
     "make-binaries": "pkg . -t node10-macos-x64 -o dist/macos/qrl-cli && pkg . -t node10-win-x64 -o dist/win/qrl-cli && pkg . -t node10-linux-x64 -o dist/linux/qrl-cli && cp ./assets/macos/ecdh.node dist/macos && cp ./assets/linux/ecdh.node dist/linux && cp ./assets/win/ecdh.node dist/win"
   },
