@@ -349,6 +349,7 @@ OPTIONS
   -g, --grpc=grpc          Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
   -m, --mainnet            (default) Queries mainnet for the OTS state
   -p, --password=password  wallet file password if encrypted
+  -q, --quiet              only output the next OTS key
   -t, --testnet            Queries testnet for the OTS state
 
 DESCRIPTION
