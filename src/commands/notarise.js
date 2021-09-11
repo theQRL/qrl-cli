@@ -115,11 +115,13 @@ class Notarise extends Command {
         this.exit(1)
       }
       spinner.succeed(`Message data recieved: ${messageData}`)
+      // spinner.succeed(`Message data length: ${messageData.length}`)
 
       // Convert string to hex to append to the hash
       const messageDataBytes = clihelpers.stringToBytes(messageData)
-      // spinner.succeed(`messageDataBytes: ${messageDataBytes}`)
+      spinner.succeed(`messageDataBytes: ${messageDataBytes}`)
       messageHex = clihelpers.bytesToHex(messageDataBytes)
+      spinner.succeed(`messageHex: ${messageHex}`)
       // Construct final hex string for notarisation appending message hex
       notarisation += messageHex
     }

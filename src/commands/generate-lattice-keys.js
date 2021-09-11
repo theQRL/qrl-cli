@@ -57,8 +57,8 @@ class Lattice extends Command {
         }
         if (walletJson.encrypted === true) {
           let password = ''
-          if (flags.password) {
-            password = flags.password
+          if (flags.walletPassword) {
+            password = flags.walletPassword
           } else {
             password = await cli.prompt('Enter password for wallet file', { type: 'hide' })
           }

@@ -10,6 +10,8 @@ const clihelpers = require('../functions/cli-helpers')
 
 const Qrlnode = require('../functions/grpc')
 
+let spinner
+
 class OTSKey extends Command {
   async run() {
     const {args, flags} = this.parse(OTSKey)
@@ -77,9 +79,10 @@ class OTSKey extends Command {
       grpcEndpoint = clihelpers.mainnetNode.toString()
       network = 'Mainnet'
     }
-    
-    this.log(white().bgBlue(network))
-    const spinner = ora({text: 'Fetching OTS from API...'}).start()
+    if (!flags.quiet) {
+      this.log(white().bgBlue(network))
+      spinner = ora({text: 'Fetching OTS from API...'}).start()
+    }
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     await Qrlnetwork.connect()
 
@@ -87,7 +90,9 @@ class OTSKey extends Command {
     let i = 0
     const count = 5
     while (Qrlnetwork.connection === false && i < count) {
-      spinner.succeed(`retry connection attempt: ${i}...`)
+          if (!flags.quiet) {
+            spinner.succeed(`retry connection attempt: ${i}...`)
+          }
       // eslint-disable-next-line no-await-in-loop
       await Qrlnetwork.connect()
       // eslint-disable-next-line no-plusplus
@@ -96,7 +101,16 @@ class OTSKey extends Command {
 
     const request = { address: Buffer.from(address.substring(1), 'hex') }
     const response = await Qrlnetwork.api('GetOTS', request)
-    if (response.unused_ots_index_found) {
+    if (flags.quiet) {
+      if (response.unused_ots_index_found) {
+        this.log(response.next_unused_ots_index)
+        this.exit(0)
+      } else {
+        this.log(`${red('⨉')} Unable to fetch an OTS key`)
+        this.exit(1)
+      }
+    }
+    else if (response.unused_ots_index_found){
       spinner.succeed(`Next unused OTS key: ${response.next_unused_ots_index}`)
       this.exit(0)
     } else {
@@ -142,6 +156,11 @@ OTSKey.flags = {
   char: 'p',
   required: false,
   description: 'wallet file password if encrypted'
+}),
+  quiet: flags.boolean({
+  char: 'q',
+  required: false,
+  description: 'only output the next OTS key'
 }),
 }
 

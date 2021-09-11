@@ -108,110 +108,10 @@ const checkSignedMessageJson = (signedMessage) => {
   return valid
 }
 
-/*
-const checkLatticeJSON = (check) => {
-  const valid = {}
-  valid.status = true
-
-  const arrayLength = Object.keys(check).length
-  // is it a secret key? Array length of 1 (0)
-  if (arrayLength === 1) {
-    check.forEach((element, index) => {
-      // check that the json has keys for kyber, dilithium, and ECDSA SK's 
-      if (!JSON.stringify(element).includes('encrypted')) {
-        valid.status = false
-        valid.error = `Output #${index} does not have a "encrypted" key`
-        return valid
-      }
-      if (!JSON.stringify(element).includes('tx_hash')) {
-        valid.status = false
-        valid.error = `Output #${index} does not have a "tx_hash" key`
-        return valid
-      }
-      if (!JSON.stringify(element).includes('network')) {
-        valid.status = false
-        valid.error = `Output #${index} does not have a "tx_hash" key`
-        return valid
-      }
-      if (!JSON.stringify(element).includes('kyberPK')) {
-        valid.status = false
-        valid.error = `Output #${index} does not have a kyberPK key`
-        return valid
-      }
-      if (!JSON.stringify(element).includes('kyberSK')) {
-        valid.status = false
-        valid.error = `Output #${index} does not have a kyberSK key`
-        return valid
-      }
-      if (!JSON.stringify(element).includes('dilithiumSK')) {
-        valid.status = false
-        valid.error = `Output #${index} does not have a dilithiumSK key`
-        return valid
-      }
-      if (!JSON.stringify(element).includes('dilithiumPK')) {
-        valid.status = false
-        valid.error = `Output #${index} does not have a dilithiumPK key`
-        return valid
-      }
-      if (!JSON.stringify(element).includes('ecdsaSK')) {
-        valid.status = false
-        valid.error = `Output #${index} does not have a ecdsaSK key`
-        return valid
-      }
-      if (!JSON.stringify(element).includes('ecdsaPK')) {
-        valid.status = false
-        valid.error = `Output #${index} does not have a ecdsaPK key`
-        return valid
-      }
-      return valid
-    })
-    return valid
-  }
-  // is it a PUB key element? Array has 2 elements minimum ([0], [1])
-  if (arrayLength >= 2) {
-    for (let i = 1; i < arrayLength; i++) { // eslint-disable-line
-      // check that the json has keys for kyber, dilithium, and ECDSA SK's 
-        if (!JSON.stringify(check[1]).includes('pk1')) {
-          valid.status = false
-          valid.error = `Output #${1} does not have a pk1 (kyberPK) key`
-          return valid
-        }
-        if (!JSON.stringify(check[1]).includes('pk2')) {
-          valid.status = false
-          valid.error = `Output #${1} does not have a pk2 (dilithiumPK) key`
-          return valid
-        }
-        if (!JSON.stringify(check[1]).includes('pk3')) {
-          valid.status = false
-          valid.error = `Output #${1} does not have a pk (ecdsaPK) key`
-          return valid
-        }     
-        if (!JSON.stringify(check[1]).includes('tx_hash')) {
-          valid.status = false
-          valid.error = `Output #${1} does not have a tx_hash`
-          return valid
-        }
-        if (!JSON.stringify(check[0]).includes('address')) {
-          valid.status = false
-          valid.error = `Output #${0} does not have a address`
-          return valid
-        }
-        if (!JSON.stringify(check[0]).includes('network')) {
-          valid.status = false
-          valid.error = `Output #${0} does not have a network`
-          return valid
-        }
-      return valid
-    }
-    return valid
-  }
-  return valid
-}
-
-*/
 class LatticeShared extends Command {
   async run() {
     const {args, flags} = this.parse(LatticeShared)
+
     if (flags.cypherText) {
       cypherText = flags.cypherText
     }
@@ -222,9 +122,9 @@ class LatticeShared extends Command {
       sharedKeyListFile = flags.sharedKeyListFile
     }
 
-// /////////////////////////
-// network stuff
-// /////////////////////////
+    // //////////////
+    // network stuff
+    // //////////////
     let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
 
@@ -240,7 +140,7 @@ class LatticeShared extends Command {
       grpcEndpoint = clihelpers.mainnetNode.toString()
       network = 'Mainnet'
     }
-    this.log(`Generate Lattice Shared_Keys...`)
+//    this.log(`Generate Lattice Shared_Keys...`)
     const spinner = ora({ text: 'Fetching Lattice keys...\n', }).start()
 
     // Collect the required pub/sec keys needed to generate keys
@@ -377,6 +277,7 @@ class LatticeShared extends Command {
         }
         // is a hexseed
         else if (args.latticePK.length === 64) {
+          // console.log(args.latticePK)
           // fetch the transaction from the network
           spinner.succeed(`Grabbing public keys from ${white().bgBlue(network)}`)
           const response = await Qrlnetwork.api('GetObject', {
@@ -410,6 +311,7 @@ class LatticeShared extends Command {
           // Is it JSON, if so is it valid?
           try {
             latticePK = JSON.parse(args.latticePK)
+            // console.log(`latticePK: ${latticePK}`)
           } 
           catch (e) {
             spinner.fail(`${black().bgRed(`not valid json or json file given:`)} ${e}`)
@@ -480,12 +382,15 @@ class LatticeShared extends Command {
               const sBin = QRLLIB.hstr2bin(Buffer.from(Buffer.from(seed).toString('hex')))
               let keylist = QRLLIB.shake128(64000, sBin)
               if (flags.encryptPassword) {
-                keylist = aes256.encrypt(flags.encryptPassword, keylist)
+                keylist = aes256.encrypt(flags.encryptPassword, QRLLIB.bin2hstr(keylist))
+                fs.writeFileSync(sharedKeyListFile, keylist)
+                spinner.succeed(`Shared Key List file written to: ${sharedKeyListFile}`)
               }
-              // Write the shared keylist file
-              fs.writeFileSync(sharedKeyListFile, QRLLIB.bin2hstr(keylist))
-              spinner.succeed(`Shared Key List file written to: ${sharedKeyListFile}`)
-            
+              else {
+                // Write the shared keylist file
+                fs.writeFileSync(sharedKeyListFile, QRLLIB.bin2hstr(keylist))
+                spinner.succeed(`Shared Key List file written to: ${sharedKeyListFile}`)
+              }
             })
           })
         })
