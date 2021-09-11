@@ -1,34 +1,11 @@
+// /* ////////////////////////
+// Shared Key Decrypt Tests
+// OTS Keys - 
+// */ ///////////////////////
+
 const assert = require('assert')
 const {spawn} = require('child_process')
-const path = require('path');
-
-const notAFile = path.join(__dirname, '/../lattice/notAKeyFile.txt')
-const emptyFile = path.join(__dirname, '/../lattice/empty.txt')
-
-const badEncJsonCipher = path.join(__dirname, '/../lattice/badEncJson_cipher.enc') // file is missing cipher
-const badEncJsonKey = path.join(__dirname, '/../lattice/badEncJson_key.enc') // file is missing key index
-const badEncJsonPayload = path.join(__dirname, '/../lattice/badEncJson_payload.enc') // file is missing payload
-
-
-// const encTextStdin = '022226f6f9295bd0a05a5beb6a173a36ec56598847e0b08252'
-// const encJSONStdin = '{"keyIndex":1,"cipher":"aes","payload":"022226f6f9295bd0a05a5beb6a173a36ec56598847e0b08252"}'
-
-// alices stuff
-const alicesSharedKeyFile = (path.join(__dirname, '/../lattice/alice/forBob/aliceSharedKeyList.txt')).toString()
-const aliceEncFile = path.join(__dirname, '/../lattice/bob/alicesEncMessage.enc') // bob's message to alice encrypted
-const aliceDecryptedFile = path.join(__dirname, '/../lattice/alice/fromBobMessage.txt') // alice's message from bob plaintext output
-
-// const alicePlaintextFile = path.join(__dirname, '/../lattice/toBob.txt') // use to verify they match
-
-// bob's stuff
-const bobsSharedKeyFile = path.join(__dirname, '/../lattice/bob/fromAlice/bobSharedKeyList.txt')
-const bobsEncFile = path.join(__dirname, '/../lattice/alice/forBob/bobsEncMessage.enc')
-const bobsEncJSONFile = path.join(__dirname, '/../lattice/alice/forBob/bobsEncJSONMessage.enc')
-const bobDecryptedFile = path.join(__dirname, '/../lattice/bob/fromAlice/fromAliceMessage.txt')
-
-// const bobPlaintextFile = path.join(__dirname, '/../lattice/toAlice.txt') // use to verify decrypted data matches
-const bobsEncFile1 = path.join(__dirname, '/../lattice/alice/forBob/bobsEncMessage1.enc') // file encrypted using the key index 1
-
+const setup = require('../setup')
 
 const processFlags = {
   detached: true,
@@ -36,16 +13,16 @@ const processFlags = {
 }
 
 // //////////////////////
-// fail
+// failing tests
 // /////////////////////
 
 // No args
 describe('shared-key-decrypt #1 - no args ', () => {
-  const args = [
-    'shared-key-decrypt',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -59,12 +36,12 @@ describe('shared-key-decrypt #1 - no args ', () => {
 
 // One arg
 describe('shared-key-decrypt #2 - one arg ', () => {
-  const args = [
-    'shared-key-decrypt',
-    bobsSharedKeyFile,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.bobSharedKeyFile,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -78,13 +55,13 @@ describe('shared-key-decrypt #2 - one arg ', () => {
 
 // Empty keyfile
 describe('shared-key-decrypt #3 - empty keyfile ', () => {
-  const args = [
-    'shared-key-decrypt',
-    emptyFile,
-    aliceEncFile,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.emptyText,
+      setup.aliceEncFile,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -96,16 +73,15 @@ describe('shared-key-decrypt #3 - empty keyfile ', () => {
   })
 })
 
-
 // Not a keyfile
 describe('shared-key-decrypt #4 - not a key file ', () => {
-  const args = [
-    'shared-key-decrypt',
-    notAFile,
-    bobsEncFile,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.notAKeyFile,
+      setup.bobEncFile,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -119,13 +95,13 @@ describe('shared-key-decrypt #4 - not a key file ', () => {
 
 // empty decrypt data file
 describe('shared-key-decrypt #5 - message to decrypt is empty ', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    emptyFile,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.aliceSharedKeyFile,
+      setup.emptyText,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -137,18 +113,17 @@ describe('shared-key-decrypt #5 - message to decrypt is empty ', () => {
   })
 })
 
-
 // bad index
 describe('shared-key-decrypt #6 - bad Index given - f ', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    bobsEncFile1,
-    '-i',
-    'f',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.aliceSharedKeyFile,
+      setup.bobEncFile,
+      '-i',
+      'f',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -161,77 +136,75 @@ describe('shared-key-decrypt #6 - bad Index given - f ', () => {
 })
 
 // bad enc message json
-describe('shared-key-decrypt #7 - badEncJsonCipher ', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    badEncJsonCipher,
-  ]
+describe('shared-key-decrypt #7 - setup.badEncJsonCipher ', () => {
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.aliceSharedKeyFile,
+      setup.badEncJsonCipher,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
     })
   })
-  it('exit code should be non-0 if passed with badEncJsonCipher', () => {
+  it('exit code should be non-0 if passed with setup.badEncJsonCipher', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
 
-// bad badEncJsonKey
-describe('shared-key-decrypt #8 - bad badEncJsonKey', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    badEncJsonKey,
-  ]
+// bad setup.badEncJsonKey
+describe('shared-key-decrypt #8 - bad setup.badEncJsonKey', () => {
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.aliceSharedKeyFile,
+      setup.badEncJsonKey,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
     })
   })
-  it('exit code should be non-0 if passed with badEncJsonKey', () => {
+  it('exit code should be non-0 if passed with setup.badEncJsonKey', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
 
-// bad badEncJsonPayload
-describe('shared-key-decrypt #9 - badEncJsonPayload ', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    badEncJsonPayload,
-  ]
+// bad setup.badEncJsonPayload
+describe('shared-key-decrypt #9 - setup.badEncJsonPayload ', () => {
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.aliceSharedKeyFile,
+      setup.badEncJsonPayload,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
     })
   })
-  it('exit code should be non-0 if passed with badEncJsonPayload', () => {
+  it('exit code should be non-0 if passed with setup.badEncJsonPayload', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-
 
 // cant write file out
 describe('shared-key-decrypt #10 - bad directory out ', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    bobsEncFile,
-    '-o',
-    '/this/directory/is/not/a/thing'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.aliceSharedKeyFile,
+      setup.bobEncFile,
+      '-o', '/this/directory/is/not/a/thing'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -243,23 +216,19 @@ describe('shared-key-decrypt #10 - bad directory out ', () => {
   })
 })
 
-
 // /////////////////////
 // Pass
 // /////////////////////
 
-describe('PASS - shared-key-decrypt #11 - basic ', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    bobsEncFile,
-    // '-i',
-    // '1',
-    // '-o',
-    // bobdecryptedFile,
-  ]
+describe('shared-key-decrypt #11 - alice decrypt ', () => {
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.aliceSharedKeyFile,
+      setup.bobEncFile,
+      '-i', '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -271,18 +240,15 @@ describe('PASS - shared-key-decrypt #11 - basic ', () => {
   })
 })
 
-describe('PASS - shared-key-decrypt #12 - basic ', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    bobsEncJSONFile,
-    '-i',
-    '1',
-    // '-o',
-    // bobdecryptedFile,
-  ]
+describe('shared-key-decrypt #12 - bob decrypt ', () => {
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.bobSharedKeyFile,
+      setup.aliceEncFile,
+      '-i', '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -294,16 +260,16 @@ describe('PASS - shared-key-decrypt #12 - basic ', () => {
   })
 })
 
-describe('PASS - shared-key-decrypt #13 - alice For Bob ', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    bobsEncFile,
-    '-o',
-    bobDecryptedFile,
-  ]
+describe('shared-key-decrypt #13 - alice For Bob ', () => {
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.aliceSharedKeyFile,
+      setup.bobEncFile,
+      '-o', setup.bobTempDecryptedFile,
+      '-i', '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -315,16 +281,16 @@ describe('PASS - shared-key-decrypt #13 - alice For Bob ', () => {
   })
 })
 
-describe('PASS - shared-key-decrypt #14 - bobs for alice ', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    aliceEncFile,
-    '-o',
-    aliceDecryptedFile,
-  ]
+describe('shared-key-decrypt #14 - bobs for alice ', () => {
   let exitCode
   before(done => {
+    const args = [
+      'shared-key-decrypt',
+      setup.bobSharedKeyFile,
+      setup.aliceEncFile,
+      '-o', setup.aliceTempDecryptedFile,
+      '-i', '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -335,58 +301,3 @@ describe('PASS - shared-key-decrypt #14 - bobs for alice ', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
-
-
-/*
-// decrypt stdin data encTextStdin
-
-describe('PASS - shared-key-decrypt #15 - encTextStdin ', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    encTextStdin,
-    '-i',
-    '0',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with encTextStdin data', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-
-// decrypt stdin data encTextStdin
-
-describe('PASS - shared-key-decrypt #16 - encTextStdin ', () => {
-  const args = [
-    'shared-key-decrypt',
-    alicesSharedKeyFile,
-    encJSONStdin,
-    '-i',
-    '0',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with encTextStdin data', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-
-
-
-*/

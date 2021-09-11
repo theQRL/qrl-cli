@@ -1,57 +1,18 @@
+// /* ////////////////////////
+// Balance Test
+// 
+// */ ///////////////////////
+
+
 const assert = require('assert')
 const {spawn} = require('child_process')
+const setup = require('../setup')
 
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
 
-
-// create a wallet file to use for next functions
-describe('balance #0a - create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-f',
-    '/tmp/wallet.json',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with -h flag and a valid tree height', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-// create a wallet file to use for next functions
-describe('balance #0a - create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-f',
-    '/tmp/enc-wallet.json',
-    '-p',
-    'test123',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with -h flag and a valid tree height', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
 
 // no args
 describe('balance #1', () => {
@@ -129,7 +90,7 @@ describe('balance #4', () => {
 describe('balance #5', () => {
   const args = [
   'balance',
-  '/tmp/enc-wallet.json',
+  setup.aliceENCWalletLocation,
   '-p',
   'notThePass',
   ]
@@ -187,8 +148,6 @@ describe('balance #7', () => {
   })
 })
 
-
-
 describe('balance #8', () => {
   const args = [
     'balance',
@@ -206,7 +165,6 @@ describe('balance #8', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
 
 describe('balance #9', () => {
   const args = [
@@ -291,7 +249,7 @@ describe('balance #12', () => {
 describe('balance #13', () => {
   const args = [
     'balance', 
-    '/tmp/wallet.json',
+    setup.bobPTWalletLocation,
     '-t',
   ]
   let exitCode
@@ -311,9 +269,8 @@ describe('balance #13', () => {
 describe('balance #14', () => {
   const args = [
     'balance', 
-    '/tmp/enc-wallet.json',
-    '-p',
-    'test123',
+    setup.aliceENCWalletLocation,
+    '-p', setup.aliceEncPass,
     '-t',
   ]
   let exitCode

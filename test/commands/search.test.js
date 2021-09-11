@@ -1,3 +1,8 @@
+// /* ////////////////////////
+// Search Tests
+// 
+// */ ///////////////////////
+
 const assert = require('assert')
 const {spawn} = require('child_process')
 
@@ -5,6 +10,7 @@ const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
+
 
 // search command without any flags
 describe('search #1', () => {
@@ -242,5 +248,3 @@ describe('search #12', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-
-// txHash ce14f14564be176a62794088bab55a095ac82fdfa0f390fe6e8df6d2f200b2e9

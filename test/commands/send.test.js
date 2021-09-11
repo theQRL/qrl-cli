@@ -1,5 +1,11 @@
+// /* ////////////////////////
+// Send Tests
+// OTS Keys - 
+// */ ///////////////////////
+
 const assert = require('assert')
 const {spawn} = require('child_process')
+const setup = require('../setup')
 
 const processFlags = {
   detached: true,
@@ -8,11 +14,11 @@ const processFlags = {
 
 // no args given
 describe('send #1a', () => {
-  const args = [
-    'send',
-  ]
   let exitCode
   before(done => {
+    const args = [
+     'send',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -26,12 +32,12 @@ describe('send #1a', () => {
 
 // not enough args given
 describe('send #1b', () => {
-  const args = [
-    'send',
-    '10',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -45,14 +51,14 @@ describe('send #1b', () => {
 
 // no args given
 describe('send #1c', () => {
-  const args = [
-    'send',
-    '10',
-    '-i',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -66,16 +72,16 @@ describe('send #1c', () => {
 
 // no args given
 describe('send #1d', () => {
-  const args = [
-    'send',
-    '10',
-    '-i',
-    '1',
-    '-r',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-i',
+      '1',
+      '-r',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -87,25 +93,24 @@ describe('send #1d', () => {
   })
 })
 
-
 // bad args
 
 // recipient address is bad
 describe('send #2a', () => {
-  const args = [
-    'send',
-    '10',
-    '-i',
-    '1',
-    '-r',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227fg',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-f',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-i',
+      '1',
+      '-r',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227fg',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-f',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -119,22 +124,22 @@ describe('send #2a', () => {
 
 // multiple outputs
 describe('send #2b', () => {
-  const args = [
-    'send',
-    '10',
-    '-i',
-    '1',
-    '-f',
-    '1',
-    '-R',
-    'outputs.json',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-r',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-i',
+      '1',
+      '-f',
+      '1',
+      '-R',
+      'outputs.json',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-r',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -148,22 +153,22 @@ describe('send #2b', () => {
 
 // multiple outputs
 describe('send #2c', () => {
-  const args = [
-    'send',
-    '10',
-    '-f',
-    '1',
-    '-i',
-    '1',
-    '-R',
-    'outputs.json',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-f',
+      '1',
+      '-i',
+      '1',
+      '-R',
+      'outputs.json',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -177,20 +182,20 @@ describe('send #2c', () => {
 
 // multiple outputs
 describe('send #2d', () => {
-  const args = [
-    'send',
-    '10',
-    '-i',
-    '1',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-r',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-i',
+      '1',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-r',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -204,20 +209,20 @@ describe('send #2d', () => {
 
 // multiple outputs
 describe('send #2e', () => {
-  const args = [
-    'send',
-    '10',
-    '-i',
-    '1',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-R',
-    'outputs.json',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-i',
+      '1',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-R',
+      'outputs.json',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -231,19 +236,19 @@ describe('send #2e', () => {
 
 // shor passed with json
 describe('send #2f', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-s',
-    '-i',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-s',
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -256,16 +261,16 @@ describe('send #2f', () => {
 })
 // no hexseed passed
 describe('send #2g', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-i',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -279,18 +284,18 @@ describe('send #2g', () => {
 
 // bad hexseed passed
 describe('send #2f', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb1396',
-    '-i',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb1396',
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -304,19 +309,19 @@ describe('send #2f', () => {
 
 // bad json passed
 describe('send #2g', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"',
-    // '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-i',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"',
+      // '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -330,18 +335,18 @@ describe('send #2g', () => {
 
 // incorrect json data passed
 describe('send #2h', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"To":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-i',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"To":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -355,18 +360,18 @@ describe('send #2h', () => {
 
 // incorrect json data passed bad address
 describe('send #2i', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"to":"q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-i',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"to":"q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -380,18 +385,18 @@ describe('send #2i', () => {
 
 // incorrect json data passed shor
 describe('send #2j', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","Shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shore":"15"}]}',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-i',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","Shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shore":"15"}]}',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -403,69 +408,20 @@ describe('send #2j', () => {
   })
 })
 
-
-
-// create a wallet file to use for next functions
-describe('send - create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-f',
-    '/tmp/wallet.json',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with -h flag and a valid tree height', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-// create a wallet file to use for next functions
-describe('send - create-encrypted-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-p',
-    'test123',
-    '-f',
-    '/tmp/enc-wallet.json',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with -h flag and a valid tree height', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-
 // incorrect json data passed in file
 describe('send #2k', () => {
-  const args = [
-    'send',
-    '10',
-    '-R',
-    '/tmp/wallet.json',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-i',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-R',
+      setup.badWallet,
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -477,22 +433,21 @@ describe('send #2k', () => {
   })
 })
 
-
 // invalid QRL address
 describe('send #2l', () => {
-  const args = [
-    'send',
-    '10',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-i',
-    '1',
-    '-r',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
-    '-t',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-i',
+      '1',
+      '-r',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
+      '-t',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -504,23 +459,22 @@ describe('send #2l', () => {
   })
 })
 
-
 // bad password for encrypted wallet
 describe('send #2m', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-w',
-    '/tmp/enc-wallet.json',
-    '-i',
-    '1',
-    '-p',
-    'test321'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-w',
+      setup.bobENCWalletLocation,
+      '-i',
+      '1',
+      '-p',
+      'test321'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -532,22 +486,20 @@ describe('send #2m', () => {
   })
 })
 
-// bad password for encrypted wallet
+// bad wallet file
 describe('send #2n', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-w',
-    '/tmp/ems.json',
-    '-i',
-    '1',
-    '-p',
-    'test321'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-w',
+      setup.notAWalletFile,
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -559,23 +511,22 @@ describe('send #2n', () => {
   })
 })
 
-
 // bad hexseed, too short
 describe('send #2o', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb1396',
-    '-i',
-    '1',
-    '-p',
-    'test321'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb1396',
+      '-i',
+      '1',
+      '-p',
+      'test321'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -587,23 +538,22 @@ describe('send #2o', () => {
   })
 })
 
-
 // bad mnemonic too short
 describe('send #2p', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam',
-    '-i',
-    '1',
-    '-p',
-    'test321'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-h',
+      'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam',
+      '-i',
+      '1',
+      '-p',
+      'test321'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -618,20 +568,20 @@ describe('send #2p', () => {
 
 // bad OTS
 describe('send #2q', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
-    '-i',
-    'a',
-    '-p',
-    'test321'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-h',
+      'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
+      '-i',
+      'a',
+      '-p',
+      'test321'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -645,20 +595,20 @@ describe('send #2q', () => {
 
 
 describe('send #2r', () => {
-  const args = [
-    'send',
-    '10',
-    '-j',
-    '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
-    '-h',
-    'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
-    '-i',
-    '1',
-    '-f',
-    '.01'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-j',
+      '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
+      '-h',
+      'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
+      '-i',
+      '1',
+      '-f',
+      '.01'
+    ] 
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -672,22 +622,22 @@ describe('send #2r', () => {
 
 // too long of message data
 describe('send #2s', () => {
-  const args = [
-    'send',
-    '10',
-    '-r',
-    'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
-    '-w',
-    '/tmp/wallet.json',
-    '-i',
-    '10',
-    '-t',
-    '-s',
-    '-M',
-    'This Message Is Too Long For The Message Space and Will Fail',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-r',
+      'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
+      '-w',
+      setup.alicePTWalletLocation,
+      '-i',
+      '10',
+      '-t',
+      '-s',
+      '-M',
+      'This Message Is Too Long For The Message Space and Will Fail',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -711,7 +661,7 @@ describe('send #3a', () => {
     '-r',
     'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
     '-w',
-    '/tmp/wallet.json',
+    setup.alicePTWalletLocation,
     '-i',
     '10',
     '-t',
@@ -738,7 +688,7 @@ describe('send #3b', () => {
     '-r',
     'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
     '-w',
-    '/tmp/wallet.json',
+    setup.alicePTWalletLocation,
     '-i',
     '11',
     '-t',
@@ -765,7 +715,7 @@ describe('send #3c', () => {
     '-j',
     '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
     '-w',
-    '/tmp/wallet.json',
+    setup.alicePTWalletLocation,
     '-i',
     '12',
     '-t',
@@ -795,7 +745,7 @@ describe('send #3d', () => {
     '-r',
     'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
     '-w',
-    '/tmp/wallet.json',
+    setup.alicePTWalletLocation,
     '-i',
     '13',
     '-t',

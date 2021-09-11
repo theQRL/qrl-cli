@@ -1,3 +1,7 @@
+// /* ////////////////////////
+// Status Test
+// OTS Keys - 
+// */ ///////////////////////
 const assert = require('assert')
 const {spawn} = require('child_process')
 
@@ -22,7 +26,6 @@ describe('status #1', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
 
 describe('status #2', () => {
   const args = [
@@ -56,23 +59,6 @@ describe('status #3', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
-//  devnet is Zond...
-// describe('status #4', () => {
-//   const args = ['status', '-d']
-//   let exitCode
-//   before(done => {
-//     const process = spawn('./bin/run', args, processFlags)
-//     process.on('exit', code => {
-//       exitCode = code
-//       done()
-//     })
-//   })
-//   it('exit code should be 0 if passed with -d devnet flag', () => {
-//     assert.strictEqual(exitCode, 0)
-//   })
-// })
-
 
 describe('status #5', () => {
   const args = ['status', '-g', 'mainnet-1.automated.theqrl.org:19009']

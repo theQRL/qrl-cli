@@ -1,24 +1,46 @@
+// //////////////////
+// Notarise test
+// OTS Keys 25-29
+// /////////////////
+
 const assert = require('assert')
 const {spawn} = require('child_process')
-const path = require('path');
+const fs = require('fs')
+
+const setup = require('../setup')
 
 const badHashShort = 'fc23dfce42391794f9d86fe0e2babfa815bd1846161784fd5f78fdd774f'
 const badHashInvalid = 'fc23dfce42391794f9d86fe0e2babfa815bd1846161784fd5f78fdd774fc0a_gg'
-const sha256Hash = 'fc23dfce42391794f9d86fe0e2babfa815bd1846161784fd5f78fdd774fc0af5'
+const sha256Hash = 'fc23dfce42351794f9d86fe0e2babfa815bd1846161784fd5f78fdd774fc0af5'
 const longMessage = 'thisMessageIsTooLongToSendWithNotarisationAndWillBeBlockedAsItWontFitInsideTheMessageData'
-const messageData = 'Some Additiona Text'
-const walletJSONFile = path.join(__dirname, '/../lattice/alice/alice-wallet.json')
-const notAWalletFile = path.join(__dirname, '/../lattice/alice/alice.json')
-const hexString = '0004003a2ebbbbe4adfca4b236a0bf91604438e5b09a35d660c7b77343ca8f1e983e115c5166aab75d4dcab819148b5e065aea'
-// const walletFIle = ''
+const messageData = 'Some Text'
+// const notAWalletFile = path.join(__dirname, '/../lattice/alice/alice.json')
 
+let bobWallet
+let hexString // = '0004003a2ebbbbe4adfca4b236a0bf91604438e5b09a35d660c7b77343ca8f1e983e115c5166aab75d4dcab819148b5e065aea'
 
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
 
+const openFile = (path) => {
+  const contents = fs.readFileSync(path)
+  return JSON.parse(contents)
+}
 
+describe('notarise setup', () => {
+  let exitCode
+  before(done => {
+    bobWallet = openFile(setup.bobPTWalletLocation) // 
+    hexString = bobWallet[0].hexseed
+    done()
+  })
+  it('exit code should be 0 if setup', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+  // test cases
 describe('notarise #1', () => {
   const args = [
     'notarise',
@@ -37,12 +59,12 @@ describe('notarise #1', () => {
 })
 
 describe('notarise #2', () => {
-  const args = [
-    'notarise',
-    badHashShort,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'notarise',
+      badHashShort,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -55,12 +77,12 @@ describe('notarise #2', () => {
 })
 
 describe('notarise #3', () => {
-  const args = [
-    'notarise',
-    badHashInvalid,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'notarise',
+      badHashInvalid,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -73,35 +95,33 @@ describe('notarise #3', () => {
 })
 
 describe('notarise #4', () => {
-  const args = [
-    'notarise',
-    sha256Hash,
-    '-h',
-    '00003a2ebbbbe4adfca4b236a0bf91604438e5b09a35d660c7b77343ca8f1e983e115c5166aab75d4dcab819148b5e065aea',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'notarise',
+      sha256Hash,
+      '-h', '00003a2ebbbbe4adfca4b236a0bf91604438e5b09a35d660c7b77343ca8f1e983e115c5166aab75d4dcab819148b5e065aea',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
     })
   })
-  it('exit code should be non-0 if bad hexseed given', () => {
+  it('exit code should be non-0 if bad hexString given', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
 
 
 describe('notarise #5', () => {
-  const args = [
-    'notarise',
-    sha256Hash,
-    '-h',
-    hexString,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'notarise',
+      sha256Hash,
+      '-h', hexString,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -114,19 +134,16 @@ describe('notarise #5', () => {
 })
 
 describe('notarise #6', () => {
-  const args = [
-    'notarise',
-    sha256Hash,
-    '-h',
-    hexString,
-    '-i',
-    '1',
-    '-M',
-    longMessage,
-    '-t'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'notarise',
+      sha256Hash,
+      '-h', hexString,
+      '-i', '25',
+      '-M', longMessage,
+      '-t'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -139,17 +156,15 @@ describe('notarise #6', () => {
 })
 
 describe('notarise #7', () => {
-  const args = [
-    'notarise',
-    sha256Hash,
-    '-w',
-    notAWalletFile,
-    '-i',
-    '1',
-    '-t'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'notarise',
+      sha256Hash,
+      '-w', setup.notAWalletFile,
+      '-i', '25',
+      '-t'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -163,17 +178,15 @@ describe('notarise #7', () => {
 
 
 describe('notarise #8', () => {
-  const args = [
-    'notarise',
-    sha256Hash,
-    '-w',
-    walletJSONFile,
-    '-i',
-    'F',
-    '-t'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'notarise',
+      sha256Hash,
+      '-w', setup.bobPTWalletLocation,
+      '-i', 'F',
+      '-t'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -185,22 +198,23 @@ describe('notarise #8', () => {
   })
 })
 
+// */
+
 // //////////////////////////
 // pass 
 // //////////////////////////
 
-describe('notarise #9', () => {
-  const args = [
-    'notarise',
-    sha256Hash,
-    '-h',
-    hexString,
-    '-i',
-    '10',
-    '-t'
-  ]
+
+describe('notarise #9 bobs plaintext wallet hexString', () => {
   let exitCode
   before(done => {
+    const args = [
+      'notarise',
+       sha256Hash,
+      '-h', hexString,
+      '-i', '25',
+      '-t'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -212,20 +226,17 @@ describe('notarise #9', () => {
   })
 })
 
-describe('notarise #10', () => {
-  const args = [
-    'notarise',
-    sha256Hash,
-    '-h',
-    hexString,
-    '-i',
-    '11',
-    '-M',
-    messageData,
-    '-t'
-  ]
+describe('notarise #10 Bobs plaintext wallet file with messageData', () => {
   let exitCode
   before(done => {
+    const args = [
+      'notarise',
+      sha256Hash,
+      '-w', setup.bobPTWalletLocation,
+      '-i', '26',
+      '-M', messageData,
+      '-t'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -237,25 +248,48 @@ describe('notarise #10', () => {
   })
 })
 
-describe('notarise #11', () => {
-  const args = [
-    'notarise',
-    sha256Hash,
-    '-w',
-    walletJSONFile,
-    '-i',
-    '12',
-    '-t'
-  ]
+describe('notarise #11 Bobs Plain text wallet', () => {
   let exitCode
   before(done => {
+    const args = [
+      'notarise',
+      sha256Hash,
+      '-w',
+      setup.bobPTWalletLocation,
+      '-i', '27',
+      '-t'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
     })
   })
-  it('exit code should be 0 if notarisation succeeded with message data added', () => {
+  it('exit code should be 0 if notarisation succeeded with message data added from walllet file', () => {
     assert.strictEqual(exitCode, 0)
   })
-})
+    })
+
+describe('notarise #12 - Alices encrypted wallet', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'notarise',
+      sha256Hash,
+      '-w',
+      setup.aliceENCWalletLocation,
+      '-i', '28',
+      '-t',
+      '-p', setup.aliceEncPass,
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if notarisation succeeded with message data added from encrypted wallet', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+    })
+
