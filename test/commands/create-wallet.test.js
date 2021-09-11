@@ -300,7 +300,6 @@ describe('create-wallet #16 bob', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
 describe('create-wallet #17 bobEnc', () => {
   let exitCode
   before(done => {
@@ -320,3 +319,4 @@ describe('create-wallet #17 bobEnc', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
+

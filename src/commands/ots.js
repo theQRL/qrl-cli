@@ -10,8 +10,6 @@ const clihelpers = require('../functions/cli-helpers')
 
 const Qrlnode = require('../functions/grpc')
 
-let spinner
-
 class OTSKey extends Command {
   async run() {
     const {args, flags} = this.parse(OTSKey)
@@ -83,6 +81,7 @@ class OTSKey extends Command {
       this.log(white().bgBlue(network))
       spinner = ora({text: 'Fetching OTS from API...'}).start()
     }
+
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     await Qrlnetwork.connect()
 

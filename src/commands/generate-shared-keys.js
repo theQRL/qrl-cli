@@ -125,6 +125,7 @@ class LatticeShared extends Command {
     // //////////////
     // network stuff
     // //////////////
+
     let grpcEndpoint = clihelpers.mainnetNode.toString()
     let network = 'Mainnet'
 

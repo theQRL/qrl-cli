@@ -13,7 +13,6 @@ const processFlags = {
   stdio: 'inherit',
 }
 
-
 // no args
 describe('balance #1', () => {
   const args = ['balance']

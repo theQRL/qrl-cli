@@ -8,6 +8,7 @@ const {spawn} = require('child_process')
 const fs = require('fs')
 const setup = require('../setup')
 
+
 const processFlags = {
   detached: true,
   stdio: 'inherit',

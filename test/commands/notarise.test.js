@@ -19,6 +19,7 @@ const messageData = 'Some Text'
 let bobWallet
 let hexString // = '0004003a2ebbbbe4adfca4b236a0bf91604438e5b09a35d660c7b77343ca8f1e983e115c5166aab75d4dcab819148b5e065aea'
 
+
 const processFlags = {
   detached: true,
   stdio: 'inherit',
@@ -41,6 +42,7 @@ describe('notarise setup', () => {
   })
 })
   // test cases
+
 describe('notarise #1', () => {
   const args = [
     'notarise',
@@ -198,12 +200,10 @@ describe('notarise #8', () => {
   })
 })
 
-// */
 
 // //////////////////////////
 // pass 
 // //////////////////////////
-
 
 describe('notarise #9 bobs plaintext wallet hexString', () => {
   let exitCode
@@ -292,4 +292,3 @@ describe('notarise #12 - Alices encrypted wallet', () => {
     assert.strictEqual(exitCode, 0)
   })
     })
-

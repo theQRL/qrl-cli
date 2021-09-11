@@ -433,6 +433,10 @@ describe('send #2k', () => {
   })
 })
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> aad82e5d0ca795d32849be297d8d6fd06d3013cf
 // invalid QRL address
 describe('send #2l', () => {
   let exitCode
@@ -622,6 +626,7 @@ describe('send #2r', () => {
 
 // too long of message data
 describe('send #2s', () => {
+<<<<<<< HEAD
   let exitCode
   before(done => {
     const args = [
@@ -638,6 +643,24 @@ describe('send #2s', () => {
       '-M',
       'This Message Is Too Long For The Message Space and Will Fail',
     ]
+=======
+  const args = [
+    'send',
+    '10',
+    '-r',
+    'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
+    '-w',
+    '/tmp/wallet.json',
+    '-i',
+    '10',
+    '-t',
+    '-s',
+    '-M',
+    'This Message Is Too Long For The Message Space and Will Fail',
+  ]
+  let exitCode
+  before(done => {
+>>>>>>> aad82e5d0ca795d32849be297d8d6fd06d3013cf
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code

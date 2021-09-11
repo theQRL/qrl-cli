@@ -6,13 +6,79 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
 const fs = require('fs')
-
 const setup = require('../setup')
+
 
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
+// requires a valid lattice key file on the testnet network
+// alice's files
+
+const encryptPass = 'testPassword'
+
+// const alicePubKeyFile = path.join(__dirname, '/../lattice/bob/alice-pub-lattice.json')
+const aliceLatticeLocation = path.join(__dirname, '/../lattice/alice/alice-lattice.json')
+const bobLatticeLocation = path.join(__dirname, '/../lattice/bob/bob-lattice.json')
+const aliceLatticeJSON = JSON.parse(fs.readFileSync(aliceLatticeLocation))
+const bobLatticeJSON = JSON.parse(fs.readFileSync(bobLatticeLocation))
+const bobTXID = bobLatticeJSON[0].tx_hash
+// const aliceTXID = aliceLatticeJSON[0].tx_hash
+const aliceSignedMessageOut = path.join(__dirname, '/../lattice/alice/forBob/signedMessage.txt')
+const aliceSharedKeyFile = path.join(__dirname, '/../lattice/alice/forBob/aliceSharedKeyList.txt')
+const aliceCipherTextOut = path.join(__dirname, '/../lattice/alice/forBob/cyphertext.txt')
+
+// bobs files
+// const bobSharedKeyFile = path.join(__dirname, '/../lattice/bob/fromAlice/bobSharedKeyList.txt')
+// const bobEncSharedKeyFile = path.join(__dirname, '/../lattice/bob/fromAlice/bobSharedKeyList.txt')
+const bobPubKeyFile = path.join(__dirname, '/../lattice/alice/bob-pub-lattice.json')
+const bobPubKeyFileJson = JSON.parse(fs.readFileSync(bobPubKeyFile))
+
+
+/*
+
+describe('get alice lattice keys to file', () => {
+        const args = [
+        'get-keys', 
+        '-T', bobTXID,
+        '-f', bobPubKeyFile,
+        '-t'
+        ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if bob has a lattice', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+describe('get bob lattice keys to file', () => {
+        const args = [
+        'get-keys', 
+        '-T', aliceTXID,
+        '-f', alicePubKeyFile,
+        '-t'
+        ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if bob has a lattice', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+*/
+
 
 const openFile = (path) => {
   const contents = fs.readFileSync(path)
@@ -292,6 +358,7 @@ describe('generate-shared-keys #6', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
+
 
 // generate-shared-keys invalid secret JSON data kyberSK
 describe('generate-shared-keys #7', () => {
@@ -614,6 +681,7 @@ describe('generate-shared-keys #21', () => {
 
 // fail with txhash not found
 describe('generate-shared-keys #22', () => {
+
   let exitCode
   before(done => {
     const args = [
@@ -1108,7 +1176,6 @@ describe('generate-shared-keys #34 alliceLattice JSON', () => {
   })
 })
 
-
 describe('generate-shared-keys #35 encrypted alliceLattice ', () => {
   let exitCode
   before(done => {
@@ -1132,8 +1199,6 @@ describe('generate-shared-keys #35 encrypted alliceLattice ', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
-
 
 describe('generate-shared-keys #35.a encrypted alliceLattice output key encrypted ', () => {
   let exitCode
@@ -1264,3 +1329,4 @@ describe('generate-shared-keys #2d', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
+

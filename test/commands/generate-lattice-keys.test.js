@@ -459,7 +459,6 @@ describe('generate-lattice-keys #13 - print keys to file encrypted', () => {
 
 // broadcast keys to testnet network and save crystals file
 describe('generate-lattice-keys #14', () => {
-
   let exitCode
   before(done => {
     const args = [
@@ -480,8 +479,6 @@ describe('generate-lattice-keys #14', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
-
 
 // broadcast keys to testnet network and save crystals file encrypted
 describe('generate-lattice-keys #15', () => {
@@ -556,7 +553,6 @@ describe('generate-lattice-keys #17', () => {
 
 // broadcast encrypted keys without saving to file in json
 describe('generate-lattice-keys #18', () => {
-  
   let exitCode
   before(done => {
     const args = [
@@ -582,7 +578,6 @@ describe('generate-lattice-keys #18', () => {
 
 // broadcast keys to testnet network and save crystals file
 describe('generate-lattice-keys #19', () => {
-
   let exitCode
   before(done => {
     const args = [
