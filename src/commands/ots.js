@@ -77,6 +77,7 @@ class OTSKey extends Command {
       grpcEndpoint = clihelpers.mainnetNode.toString()
       network = 'Mainnet'
     }
+    let spinner
     if (!flags.quiet) {
       this.log(white().bgBlue(network))
       spinner = ora({text: 'Fetching OTS from API...'}).start()

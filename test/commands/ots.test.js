@@ -190,3 +190,27 @@ describe('ots #8', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
+
+
+// valid testnet flag
+describe('ots #9 - mainnet quiet', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'ots',
+      'Q01040062908a55128609363f80102e3c07821eb06d579d0151e575428e9389f4532593a2291247',
+      '-m',
+      '-q',
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if passed with testnet flag and a valid address as argument', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+// bittrex address 2021 - Q01040062908a55128609363f80102e3c07821eb06d579d0151e575428e9389f4532593a2291247

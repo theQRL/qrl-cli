@@ -344,7 +344,6 @@ exports.mochaHooks = {
 
   // one-time final cleanup
   afterAll: function _After() {
-
     fileRemove(setup.badWallet)
     fileRemove(setup.emptyWallet)
     fileRemove(setup.badSignedMessage)
