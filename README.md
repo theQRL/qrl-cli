@@ -322,6 +322,8 @@ OPTIONS
   -s, --shor                   Send in Shor
   -t, --testnet                uses testnet to send the transaction
   -w, --wallet=wallet          JSON file of wallet from where funds should be sent
+  -T, --savetofile=txfile      Save a transaction to the file (offline mode)
+  -F, --loadfromfile=txfile    Send the saved transaction from the file onto the network
 
 DESCRIPTION
   ...

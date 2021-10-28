@@ -166,7 +166,28 @@ class Send extends Command {
       grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
-    this.log(white().bgBlue(network))
+    if (!flags.loadfromfile) {
+      if (!args.quantity) {
+        this.log(` ${red('›')}   Error: Missing 1 required arg:`)
+        this.log(` ${red('›')}   ${Send.args[0].name}  ${Send.args[0].description}`)
+        this.log(` ${red('›')}   See more help with --help`)
+        this.exit(1)
+      }
+      if (!flags.otsindex) {
+        this.log(` ${red('›')}   Error: Missing required flag:`)
+        this.log(` ${red('›')}    -${Send.flags.otsindex.char}, --otsindex OTSINDEX  ${white(Send.flags.otsindex.description)}`)
+        this.log(` ${red('›')}   See more help with --help`)
+        this.exit(1)
+      }
+    } else {
+      if (args.quantity || flags.fee || flags.file || flags.hexseed || flags.jsonObject ||
+        flags.otsindex || flags.password || flags.recipient || flags.shor || flags.wallet) {
+          this.log(` ${red('›')}   Error: Only these flags are allowed with -F: -m, -t, -g`)
+          this.exit(1)
+      }
+    }
+    let text = flags.savetofile ? 'Transaction details:' : network
+    this.log(white().bgBlue(text))
     // setup quantity/ies and recipient(s)
     let output = {}
     output.tx = []
@@ -178,6 +199,9 @@ class Send extends Command {
       sendMethods += 1
     }
     if (flags.file) {
+      sendMethods += 1
+    }
+    if (flags.loadfromfile) {
       sendMethods += 1
     }
     if (sendMethods === 0) {
@@ -198,8 +222,8 @@ class Send extends Command {
         this.exit(1)
       }
     }
-    if (!flags.wallet && !flags.hexseed) {
-      this.log(`${red('⨉')} Unable to send: no wallet json file or hexseed specified`)
+    if (!flags.wallet && !flags.hexseed && !flags.loadfromfile) {
+      this.log(`${red('⨉')} Unable to send: no wallet json file, transaction file or hexseed specified`)
       this.exit(1)
     }
     if (flags.jsonObject) {
@@ -258,9 +282,9 @@ class Send extends Command {
       // console.log(output)
     }
     let hexseed = ''
+    let address = ''
     if (flags.wallet) {
       let isValidFile = false
-      let address = ''
       const walletJson = openWalletFile(flags.wallet)
       try {
         if (walletJson.encrypted === false) {
@@ -341,133 +365,223 @@ class Send extends Command {
     })
     this.log(`Fee: ${fee} Shor`)
     
-    const spinner = ora({ text: 'Sending unsigned transaction to node...' }).start()
+    text = flags.savetofile ? 'QRLLIB loading...' : 'Sending unsigned transaction to node...'
+    const spinner = ora({ text: text }).start()
     waitForQRLLIB(async () => {
       let XMSS_OBJECT
-      if (hexseed.match(' ') === null) {
-        XMSS_OBJECT = await new QRLLIB.Xmss.fromHexSeed(hexseed)
-      } else {
-        XMSS_OBJECT = await new QRLLIB.Xmss.fromMnemonic(hexseed)
+      let xmssPK
+      if (!flags.loadfromfile) {
+        if (hexseed.match(' ') === null) {
+          XMSS_OBJECT = await new QRLLIB.Xmss.fromHexSeed(hexseed)
+        } else {
+          XMSS_OBJECT = await new QRLLIB.Xmss.fromMnemonic(hexseed)
+        }
+        xmssPK = Buffer.from(XMSS_OBJECT.getPK(), 'hex')
       }
-      const xmssPK = Buffer.from(XMSS_OBJECT.getPK(), 'hex')
 
-      const Qrlnetwork = await new Qrlnode(grpcEndpoint)
-      await Qrlnetwork.connect()
-
-      const spinner1 = ora({ text: 'attempting conenction to node...' }).start()
-      // verify we have connected and try again if not
-      let i = 0
-      const count = 5
-      while (Qrlnetwork.connection === false && i < count) {
-        spinner1.succeed(`retry connection attempt: ${i}...`)
-        // eslint-disable-next-line no-await-in-loop
+      let tx
+      let Qrlnetwork
+      if (!flags.savetofile) {
+        Qrlnetwork = await new Qrlnode(grpcEndpoint)
         await Qrlnetwork.connect()
-        // eslint-disable-next-line no-plusplus
-        i++
-      }
-      spinner1.succeed(`Connected!`)
 
-      const request = {
-        addresses_to: thisAddressesTo,
-        amounts: thisAmounts,
-        fee,
-        xmss_pk: xmssPK,
-      }
+        const spinner1 = ora({ text: 'attempting conenction to node...' }).start()
+        // verify we have connected and try again if not
+        let i = 0
+        const count = 5
+        while (Qrlnetwork.connection === false && i < count) {
+          spinner1.succeed(`retry connection attempt: ${i}...`)
+          // eslint-disable-next-line no-await-in-loop
+          await Qrlnetwork.connect()
+          // eslint-disable-next-line no-plusplus
+          i++
+        }
+        spinner1.succeed(`Connected!`)
+
+        if (!flags.loadfromfile) {
+          const request = {
+            addresses_to: thisAddressesTo,
+            amounts: thisAmounts,
+            fee,
+            xmss_pk: xmssPK,
+          }
 // console.log(request)      
-      const tx = await Qrlnetwork.api('TransferCoins', request)
+          tx = await Qrlnetwork.api('TransferCoins', request)
 
-      spinner.succeed('Node correctly returned transaction for signing')
-      const spinner2 = ora({ text: 'Signing transaction...' }).start()
+          spinner.succeed('Node correctly returned transaction for signing')
+        } else {
+          let txFromFile
+          try {
+            txFromFile = JSON.parse(fs.readFileSync(flags.loadfromfile))
+          } catch(err) {
+            this.log(`${red('⨉')} Invalid transaction file`)
+            this.exit(1)
+          }
 
-      let concatenatedArrays = concatenateTypedArrays(
-        Uint8Array,
-        toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee)
-      )
+          tx = {
+            extended_transaction_unsigned: {
+              tx: {
+                fee: txFromFile.tx.fee,
+                public_key: Buffer.from(txFromFile.tx.public_key, 'hex'),
+                signature: Buffer.from(txFromFile.tx.signature, 'hex'),
+                transaction_hash: txFromFile.tx.transaction_hash,
+                transfer: {
+                  addrs_to: txFromFile.tx.transfer.addrs_to,
+                  amounts: txFromFile.tx.transfer.amounts,
+                  message_data: Buffer.from('')
+                },
+                master_addr: Buffer.from(''),
+                nonce: "0",
+                transactionType: "transfer"
+              }
+            }
+          }
 
-      // Now append all recipient (outputs) to concatenatedArrays
-      const addrsToRaw = tx.extended_transaction_unsigned.tx.transfer.addrs_to
-      const amountsRaw = tx.extended_transaction_unsigned.tx.transfer.amounts
-      const destAddr = []
-      const destAmount = []
-      for (let i = 0; i < addrsToRaw.length; i += 1) {
-        // Add address
-        concatenatedArrays = concatenateTypedArrays(Uint8Array, concatenatedArrays, addrsToRaw[i])
+          spinner.succeed(`Successfully loaded from the file: "${flags.loadfromfile}"`)
+        }
+      } else {
+        tx = {
+          extended_transaction_unsigned: {
+            tx: {
+              fee: String(fee),
+              public_key: {},
+              signature: {},
+              transaction_hash: {},
+              transfer: {
+                addrs_to: thisAddressesTo,
+                amounts: thisAmounts
+              }
+            }
+          }
+        }
 
-        // Add amount
-        concatenatedArrays = concatenateTypedArrays(
+        spinner.succeed('XMSS_OBJECT is created')
+      }
+      let txnHash
+      if (!flags.loadfromfile) {
+        const spinner2 = ora({ text: 'Signing transaction...' }).start()
+
+        let concatenatedArrays = concatenateTypedArrays(
           Uint8Array,
-          concatenatedArrays,
-          toBigendianUint64BytesUnsigned(amountsRaw[i])
+          toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee)
         )
 
-        // Add to array for Ledger Transactions
-        destAddr.push(Buffer.from(addrsToRaw[i]))
-        destAmount.push(toBigendianUint64BytesUnsigned(amountsRaw[i], true))
+        // Now append all recipient (outputs) to concatenatedArrays
+        const addrsToRaw = tx.extended_transaction_unsigned.tx.transfer.addrs_to
+        const amountsRaw = tx.extended_transaction_unsigned.tx.transfer.amounts
+        const destAddr = []
+        const destAmount = []
+        for (let i = 0; i < addrsToRaw.length; i += 1) {
+          // Add address
+          concatenatedArrays = concatenateTypedArrays(Uint8Array, concatenatedArrays, addrsToRaw[i])
+
+          // Add amount
+          concatenatedArrays = concatenateTypedArrays(
+            Uint8Array,
+            concatenatedArrays,
+            toBigendianUint64BytesUnsigned(amountsRaw[i])
+          )
+
+          // Add to array for Ledger Transactions
+          destAddr.push(Buffer.from(addrsToRaw[i]))
+          destAmount.push(toBigendianUint64BytesUnsigned(amountsRaw[i], true))
+        }
+
+        // Convert Uint8Array to VectorUChar
+        const hashableBytes = toUint8Vector(concatenatedArrays)
+
+        // Create sha256 sum of concatenated array
+        const shaSum = QRLLIB.sha2_256(hashableBytes)
+
+        XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
+        const signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
+        // Calculate transaction hash
+        const txnHashConcat = concatenateTypedArrays(Uint8Array, binaryToBytes(shaSum), signature, xmssPK)
+
+        const txnHashableBytes = toUint8Vector(txnHashConcat)
+
+        txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
+
+        text = flags.savetofile ? `Transaction signed with OTS key ${flags.otsindex}` : `Transaction signed with OTS key ${flags.otsindex}. (nodes will reject this transaction if key reuse is detected)`
+        spinner2.succeed(text)
+
+        tx.extended_transaction_unsigned.tx.signature = Buffer.from(signature)
+        tx.extended_transaction_unsigned.tx.public_key = Buffer.from(xmssPK) // eslint-disable-line camelcase
+      } else {
+        txnHash = tx.extended_transaction_unsigned.tx.transaction_hash
       }
-
-      // Convert Uint8Array to VectorUChar
-      const hashableBytes = toUint8Vector(concatenatedArrays)
-
-      // Create sha256 sum of concatenated array
-      const shaSum = QRLLIB.sha2_256(hashableBytes)
-
-      XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
-      const signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
-      // Calculate transaction hash
-      const txnHashConcat = concatenateTypedArrays(Uint8Array, binaryToBytes(shaSum), signature, xmssPK)
-
-      const txnHashableBytes = toUint8Vector(txnHashConcat)
-
-      const txnHash = QRLLIB.bin2hstr(QRLLIB.sha2_256(txnHashableBytes))
-
-      spinner2.succeed(
-        `Transaction signed with OTS key ${flags.otsindex}. (nodes will reject this transaction if key reuse is detected)`
-      )
-      const spinner3 = ora({ text: 'Pushing transaction to node...' }).start()
-
-      tx.extended_transaction_unsigned.tx.signature = Buffer.from(signature)
-      tx.extended_transaction_unsigned.tx.public_key = Buffer.from(xmssPK) // eslint-disable-line camelcase
 
       const addrsTo = tx.extended_transaction_unsigned.tx.transfer.addrs_to
       const addrsToFormatted = []
 
       addrsTo.forEach((item) => {
-        const bufItem = Buffer.from(item)
+        let convItem = item
+        if (flags.loadfromfile) {
+            convItem = helpers.hexAddressToRawAddress(item)
+        }
+        let bufItem = Buffer.from(convItem)
+        if (flags.savetofile) {
+            bufItem = helpers.rawAddressToHexAddress(bufItem)
+        }
         addrsToFormatted.push(bufItem)
       })
       tx.extended_transaction_unsigned.tx.transfer.addrs_to = addrsToFormatted // eslint-disable-line camelcase
 
-      const pushTransactionReq = {
-        transaction_signed: tx.extended_transaction_unsigned.tx, // eslint-disable-line camelcase
-      }
-      const response = await Qrlnetwork.api('PushTransaction', pushTransactionReq)
-      if (response.error_code && response.error_code !== 'SUBMITTED') {
-        let errorMessage = 'unknown error'
-        if (response.error_code) {
-          errorMessage = `Unable send push transaction [error: ${response.error_description}`
+      if (!flags.savetofile) {
+        const spinner3 = ora({ text: 'Pushing transaction to a node...' }).start()
+        const pushTransactionReq = {
+          transaction_signed: tx.extended_transaction_unsigned.tx, // eslint-disable-line camelcase
+        }
+        const response = await Qrlnetwork.api('PushTransaction', pushTransactionReq)
+        if (response.error_code && response.error_code !== 'SUBMITTED') {
+          let errorMessage = 'unknown error'
+          if (response.error_code) {
+            errorMessage = `Unable send push transaction [error: ${response.error_description}`
+          } else {
+            errorMessage = `Node rejected signed message: has OTS key ${flags.otsindex} been reused?`
+          }
+          spinner3.fail(`${errorMessage}]`)
+          this.exit(1)
+        }
+        const pushTransactionRes = JSON.stringify(response.tx_hash)
+        const txhash = JSON.parse(pushTransactionRes)
+        if (txnHash === bytesToHex(txhash.data)) {
+          spinner3.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
+
+          // check for network and send link to explorer to user in console
+          if (network === 'Mainnet') {
+            spinner3.succeed(`https://explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+          }
+          else if (network === 'Testnet') {
+            spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+          }
+
+          // this.exit(0)
         } else {
-          errorMessage = `Node rejected signed message: has OTS key ${flags.otsindex} been reused?`
+          spinner3.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
+          this.exit(1)
         }
-        spinner3.fail(`${errorMessage}]`)
-        this.exit(1)
-      }
-      const pushTransactionRes = JSON.stringify(response.tx_hash)
-      const txhash = JSON.parse(pushTransactionRes)
-      if (txnHash === bytesToHex(txhash.data)) {
-        spinner3.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
-
-        // check for network and send link to explorer to user in console
-        if (network === 'Mainnet') {
-          spinner3.succeed(`https://explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
-        }
-        else if (network === 'Testnet') {
-          spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
-        }
-
-        // this.exit(0)
       } else {
-        spinner3.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
-        this.exit(1)
+        const spinner3 = ora({ text: 'Saving data to the file...' }).start()
+
+        // prepare data to save (JSON format)
+        tx.extended_transaction_unsigned.tx.transaction_hash = txnHash
+        tx.extended_transaction_unsigned.tx.signature = tx.extended_transaction_unsigned.tx.signature.toString('hex')
+        tx.extended_transaction_unsigned.tx.public_key = tx.extended_transaction_unsigned.tx.public_key.toString('hex')
+
+        const dataToSave = {
+          addr_from: address,
+          ots_key: flags.otsindex,
+          tx: tx.extended_transaction_unsigned.tx,
+        }
+
+        try {
+          fs.writeFileSync(flags.savetofile, JSON.stringify(dataToSave))
+          spinner3.succeed(`Transaction data has been saved to the file: "${flags.savetofile}"`)
+        } catch(err) {
+          spinner3.fail('Unable to save data to TX file')
+          this.log(err)
+        }
       }
     })
   }
@@ -482,7 +596,7 @@ Send.args = [
   {
     name: 'quantity',
     description: 'Number of Quanta (Shor if -s flag set) to send',
-    required: true,
+    required: false,
   },
 ]
 
@@ -535,13 +649,23 @@ Send.flags = {
   }),
   otsindex: flags.string({
     char: 'i',
-    required: true,
+    required: false,
     description: 'OTS key index'
   }),
   wallet: flags.string({
     char: 'w',
     required: false,
     description: 'JSON file of wallet from where funds should be sent',
+  }),
+  savetofile: flags.string({
+    char: 'T',
+    required: false,
+    description: 'Save transaction to the file (offline mode)',
+  }),
+  loadfromfile: flags.string({
+    char: 'F',
+    required: false,
+    description: 'Load saved transaction from the file and send)',
   }),
   hexseed: flags.string({
     char: 'h',
