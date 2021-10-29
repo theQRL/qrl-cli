@@ -179,7 +179,7 @@ class Send extends Command {
         this.log(` ${red('›')}   See more help with --help`)
         this.exit(1)
       }
-    } else {
+    } else { // eslint-disable-next-line no-lonely-if
       if (args.quantity || flags.fee || flags.file || flags.hexseed || flags.jsonObject ||
         flags.otsindex || flags.password || flags.recipient || flags.shor || flags.wallet) {
           this.log(` ${red('›')}   Error: Only these flags are allowed with -F: -m, -t, -g`)
@@ -366,7 +366,7 @@ class Send extends Command {
     this.log(`Fee: ${fee} Shor`)
     
     text = flags.savetofile ? 'QRLLIB loading...' : 'Sending unsigned transaction to node...'
-    const spinner = ora({ text: text }).start()
+    const spinner = ora({ text }).start()
     waitForQRLLIB(async () => {
       let XMSS_OBJECT
       let xmssPK
