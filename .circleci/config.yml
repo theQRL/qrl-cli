@@ -18,10 +18,9 @@ jobs:
       - run: |
           node -v
       - run: |
-          nvm install v14
-          nvm install v10.18.1
+          nvm install v16
           node -v
-          nvm alias default v10.18.1
+          nvm alias default v16
       - run:
           name: Install dependencies
           command: yarn
@@ -46,7 +45,7 @@ jobs:
       - run: yarn run postpack
       - run:
           name: "Publish Release on GitHub"
-          command: nvm use v14 && yarn add @semantic-release/git && npx semantic-release
+          command: nvm use v16 && yarn add @semantic-release/git && npx semantic-release
 
   cache:
     <<: *test
