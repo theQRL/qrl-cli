@@ -3439,10 +3439,10 @@
   "resolved" "https://registry.npmjs.org/node-releases/-/node-releases-2.0.1.tgz"
   "version" "2.0.1"
 
-"node@^12.22.7":
-  "integrity" "sha512-09pmNzb4ORmN113t6iHcdSVW3nt909UNEYCTShPGCRpWGbX6C25YheZY4COK+jpBn3bZTLL+5aSn2nmItTUj0A=="
-  "resolved" "https://registry.npmjs.org/node/-/node-12.22.7.tgz"
-  "version" "12.22.7"
+"node@^16.13.1":
+  "integrity" "sha512-XPcWHe8fJfB3mXZMGXxl9rSOkOhxQLjmRJBt898RCzGcZGZC0oz+1Wnc7/4hqDyQ3AZZH5xp6KizkFLIOlpHzA=="
+  "resolved" "https://registry.npmjs.org/node/-/node-16.13.1.tgz"
+  "version" "16.13.1"
   dependencies:
     "node-bin-setup" "^1.0.0"
 

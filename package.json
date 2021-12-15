@@ -32,7 +32,7 @@
     "grpc-js-kit": "^0.1.0",
     "kleur": "^3.0.3",
     "moment": "^2.24.0",
-    "node": "^12.22.7",
+    "node": "^16.13.1",
     "ora": "^3.4.0",
     "qrcode-terminal": "^0.12.0",
     "qrllib": "^1.1.7",
@@ -71,6 +71,9 @@
   "license": "MIT",
   "main": "src/index.js",
   "oclif": {
+    "macos": {
+      "identifier": "com.theqrl.qrl-cli"
+    },
     "commands": "./src/commands",
     "bin": "qrl-cli",
     "plugins": [
