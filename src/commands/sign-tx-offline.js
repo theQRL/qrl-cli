@@ -1,7 +1,7 @@
 /* eslint new-cap: 0, max-depth: 0, complexity: 0 */
 /* global QRLLIB */
 const { Command, flags } = require('@oclif/command')
-const { red, white } = require('kleur')
+const { red } = require('kleur')
 const ora = require('ora')
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
@@ -11,7 +11,7 @@ const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl') // eslint-disa
 const { BigNumber } = require('bignumber.js')
 const helpers = require('@theqrl/explorer-helpers')
 
-const Qrlnode = require('../functions/grpc')
+// const Qrlnode = require('../functions/grpc')
 
 let QRLLIBLoaded = false
 
@@ -41,15 +41,15 @@ const toUint8Vector = (arr) => {
 
 
 // Convert bytes to hex
-function bytesToHex(byteArray) {
-  return [...byteArray]
-    /* eslint-disable */
-    .map((byte) => {
-      return ('00' + (byte & 0xff).toString(16)).slice(-2)
-    })
-    /* eslint-enable */
-    .join('')
-}
+// function bytesToHex(byteArray) {
+//   return [...byteArray]
+//     /* eslint-disable */
+//     .map((byte) => {
+//       return ('00' + (byte & 0xff).toString(16)).slice(-2)
+//     })
+//     /* eslint-enable */
+//     .join('')
+// }
 
 // Concatenates multiple typed arrays into one.
 function concatenateTypedArrays(resultConstructor, ...arrays) {
