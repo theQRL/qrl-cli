@@ -671,6 +671,88 @@ describe('send #2r', () => {
 })
 
 
+// message data over 80 bites
+describe('send #2s', () => {
+  const args = [
+    'send',
+    '10',
+    '-r',
+    'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
+    '-h',
+    'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
+    '-i',
+    '1',
+    '-f',
+    '.01',
+    '-M',
+    'here is a long message exactly 81 bytes long and consisting of tons of words etc.'
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed message with too long content', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// load from file with additional args
+describe('send #2t', () => {
+  const args = [
+    'send',
+    '-F',
+    '/tmp/send_tx.json',
+    '-f',
+    '1'
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed message with too long content', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// save to file with bad location - can not write to root
+describe('send #2u', () => {
+  const args = [
+    'send',
+    '10',
+    '-r',
+    'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
+    '-h',
+    'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
+    '-i',
+    '10',
+    '-t',
+    '-s',
+    '-T',
+    '/root/send_tx.json'
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed message with save location non-writable', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+
+
 // successful send
 // Need funds in the test wallet for this to proceed
 /* 
