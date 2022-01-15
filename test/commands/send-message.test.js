@@ -1,7 +1,7 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
-const testSetup = require('../test_setup')
 const fs = require('fs')
+const testSetup = require('../test_setup')
 
 const processFlags = {
   detached: true,
@@ -12,8 +12,22 @@ const openFile = (path) => {
   const contents = fs.readFileSync(path)
   return JSON.parse(contents)
 }
-const wallet = openFile(testSetup.walletFile)
-const walletHexseed = wallet[0].hexseed
+
+let wallet
+let walletHexseed
+
+describe('setup', () => {
+  let exitCode
+  before(done => {
+    wallet = openFile(testSetup.walletFile)
+    walletHexseed = wallet[0].hexseed
+    done()
+  })
+  it('exit code should be non-0 if passed without any arguments/flags, requires xmss address and ots index', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
 
 describe('send-message #1', () => {
   const args = [

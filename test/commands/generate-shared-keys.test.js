@@ -10,23 +10,40 @@ const processFlags = {
   stdio: 'inherit',
 }
 
+
+let aliceTX
+let bobTX
+let aliceSecLatKey
+let aliceSecEncLatKey
+let bobSecLatKey
+let aliceTxHash
+let bobTxHash
+
 // get alice & bob's lattice txhash from file
 const openFile = (path) => {
   const contents = fs.readFileSync(path)
   return JSON.parse(contents)
 }
 
-const aliceTX = openFile(testSetup.alicePubKeyFile)
-const aliceTxHash = aliceTX[1].txHash
+//  bobSecEncLatKey = openFile(testSetup.bobENCLatticeLocation)
 
-const bobTX = openFile(testSetup.bobPubKeyFile)
-const bobTxHash = bobTX[1].txHash
-
-const aliceSecLatKey = openFile(testSetup.aliceLatticeLocation)
-const aliceSecEncLatKey = openFile(testSetup.aliceENCLatticeLocation)
-const bobSecLatKey = openFile(testSetup.bobLatticeLocation)
-// const bobSecEncLatKey = openFile(testSetup.bobENCLatticeLocation)
-
+// lattice command given without any flags
+describe('setup', () => {
+  let exitCode
+  before(done => {
+    aliceTX = openFile(testSetup.alicePubKeyFile)
+    aliceTxHash = aliceTX[1].txHash
+    bobTX = openFile(testSetup.bobPubKeyFile)
+    bobTxHash = bobTX[1].txHash
+    aliceSecLatKey = openFile(testSetup.aliceLatticeLocation)
+    aliceSecEncLatKey = openFile(testSetup.aliceENCLatticeLocation)
+    bobSecLatKey = openFile(testSetup.bobLatticeLocation)
+    done()
+  })
+  it('exit code should be non-0 if passed without any arguments/flags, requires xmss address and ots index', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
 
 // generate-shared-keys command without any flags
 describe('generate-shared-keys #1a', () => {

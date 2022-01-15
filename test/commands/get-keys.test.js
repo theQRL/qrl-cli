@@ -13,12 +13,29 @@ const openFile = (path) => {
   return JSON.parse(contents)
 }
 
-const aliceWallet = openFile(testSetup.alicePTWalletLocation)
-const aliceAddress = aliceWallet[0].address
-const aliceTX = openFile(testSetup.alicePubKeyFile)
-const aliceTxHash = aliceTX[1].txHash
-const wallet = openFile(testSetup.walletFile)
-const walletAddress = wallet[0].address
+let aliceWallet
+let aliceAddress
+let aliceTX
+let aliceTxHash
+let wallet
+let walletAddress
+
+//
+describe('setup', () => {
+  let exitCode
+  before(done => {
+    aliceWallet = openFile(testSetup.alicePTWalletLocation)
+    aliceAddress = aliceWallet[0].address
+    aliceTX = openFile(testSetup.alicePubKeyFile)
+    aliceTxHash = aliceTX[1].txHash
+    wallet = openFile(testSetup.walletFile)
+    walletAddress = wallet[0].address
+    done()
+  })
+  it('exit code should be non-0 if passed without any arguments/flags, requires xmss address and ots index', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
 
 // //////////////
 // Failed Tests

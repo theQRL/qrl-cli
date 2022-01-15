@@ -14,8 +14,23 @@ const openFile = (path) => {
   const contents = fs.readFileSync(path)
   return JSON.parse(contents)
 }
-const aliceTX = openFile(testSetup.alicePubKeyFile)
-const aliceTxHash = aliceTX[1].txHash
+
+let aliceTX
+let aliceTxHash
+
+//
+describe('setup', () => {
+  let exitCode
+  before(done => {
+    aliceTX = openFile(testSetup.alicePubKeyFile)
+    aliceTxHash = aliceTX[1].txHash
+    done()
+  })
+  it('exit code should be non-0 if passed without any arguments/flags, requires xmss address and ots index', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
 
 // search command without any flags
 describe('search #1', () => {
