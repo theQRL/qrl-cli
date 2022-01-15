@@ -1,84 +1,12 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
 
+const testSetup = require('../test_setup')
+
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
-
-
-// print keys to file location given with encryption
-describe('balance latticeFile #0', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '50',
-    '-s',
-    '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc77951272709d',
-    '-c',
-    '/tmp/ems1.json',
-    '-e',
-    'test',
-    '-t',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 with encrypted keys printed to file', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-// create a wallet file to use for next functions
-describe('balance #0a - create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-f',
-    '/tmp/wallet.json',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with -h flag and a valid tree height', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-// create a wallet file to use for next functions
-describe('balance #0a - create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-f',
-    '/tmp/enc-wallet.json',
-    '-p',
-    'test123',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with -h flag and a valid tree height', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
 
 // no args
 describe('balance #1', () => {
@@ -137,7 +65,7 @@ describe('balance #3', () => {
 describe('balance #4', () => {
   const args = [
   'balance',
-  '/tmp/notAnAddress',
+  testSetup.notAWalletFile,
   ]
   let exitCode
   before((done) => {
@@ -156,7 +84,7 @@ describe('balance #4', () => {
 describe('balance #5', () => {
   const args = [
   'balance',
-  '/tmp/enc-wallet.json',
+  testSetup.encWalletFile,
   '-p',
   'notThePass',
   ]
@@ -214,8 +142,9 @@ describe('balance #7', () => {
   })
 })
 
+// pass
 
-
+// mainnet balance
 describe('balance #8', () => {
   const args = [
     'balance',
@@ -318,7 +247,7 @@ describe('balance #12', () => {
 describe('balance #13', () => {
   const args = [
     'balance', 
-    '/tmp/wallet.json',
+    testSetup.walletFile,
     '-t',
   ]
   let exitCode
@@ -338,9 +267,9 @@ describe('balance #13', () => {
 describe('balance #14', () => {
   const args = [
     'balance', 
-    '/tmp/enc-wallet.json',
+    testSetup.encWalletFile,
     '-p',
-    'test123',
+    testSetup.encPass,
     '-t',
   ]
   let exitCode

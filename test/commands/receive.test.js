@@ -1,11 +1,16 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
 
+const testSetup = require('../test_setup')
+
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
 
+// //////////////
+// Failed Tests
+// //////////////
 
 // no args given
 describe('receive #1', () => {
@@ -48,7 +53,7 @@ describe('receive #2', () => {
 describe('receive #3', () => {
   const args = [
     'receive',
-    '/tmp/enc-wallet.json',
+    testSetup.encWalletFile,
     '-p',
     'wrongPassword'
   ]
@@ -83,6 +88,10 @@ describe('receive #4', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
+
+// //////////////
+// Passing Tests
+// /////////////
 
 describe('receive #5', () => {
   const args = [

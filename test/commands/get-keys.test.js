@@ -1,10 +1,28 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
+const testSetup = require('../test_setup')
+const fs = require('fs')
 
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
+
+const openFile = (path) => {
+  const contents = fs.readFileSync(path)
+  return JSON.parse(contents)
+}
+
+const aliceWallet = openFile(testSetup.alicePTWalletLocation)
+const aliceAddress = aliceWallet[0].address
+const aliceTX = openFile(testSetup.alicePubKeyFile)
+const aliceTxHash = aliceTX[1].txHash
+const wallet = openFile(testSetup.walletFile)
+const walletAddress = wallet[0].address
+
+// //////////////
+// Failed Tests
+// //////////////
 
 // get-keys command without any flags
 describe('get-keys #1', () => {
@@ -115,12 +133,59 @@ describe('get-keys #5', () => {
   })
 })
 
-// get keys from address given testnet
+// get keys from address given and print to console  No keys found
 describe('get-keys #6', () => {
   const args = [
     'get-keys',
+    '-T',
+    'NotATransaction',
+    '-t',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if -T passed without correct txhash Unable to find transaction', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// get keys from address given and print to console  Not a lattice transaction
+describe('get-keys #7', () => {
+  const args = [
+    'get-keys',
+    '-T',
+    '021bb526ec6d35e880e2e706e2dd16a4c6da7223a8b632a57cd5cd44d5f4cf42',
+    '-m',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if -T passed with txhash that is not a lattice transaction', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+
+// //////////////
+//  Passing Tests
+// //////////////
+
+// get keys from address given testnet
+describe('get-keys #2a', () => {
+  const args = [
+    'get-keys',
     '-a',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+    aliceAddress,
     '-t',
   ]
   let exitCode
@@ -137,7 +202,7 @@ describe('get-keys #6', () => {
 })
 
 // get keys from address given mainnet
-describe('get-keys #7', () => {
+describe('get-keys #2b', () => {
   const args = [
     'get-keys',
     '-a',
@@ -162,11 +227,11 @@ describe('get-keys #7', () => {
 })
 
 // get keys from address given and print json
-describe('get-keys #8', () => {
+describe('get-keys #2c', () => {
   const args = [
     'get-keys',
     '-a',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+    aliceAddress,
     '-i',
     '1',
     '-p',
@@ -187,18 +252,18 @@ describe('get-keys #8', () => {
   })
 })
 // get keys from address given and print to file
-describe('get-keys #9', () => {
+describe('get-keys #2d', () => {
   const args = [
     'get-keys',
     '-a',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+    aliceAddress,
     '-i',
     '2',
     '-p',
     '1',
     '-t',
     '-f',
-    '/tmp/pub_key_file.json',
+    testSetup.aliceTempPubKeyFile,
   ]
   let exitCode
   before(done => {
@@ -214,11 +279,11 @@ describe('get-keys #9', () => {
 })
 
 // get keys from address given and print to console without item passed
-describe('get-keys #10', () => {
+describe('get-keys #2e', () => {
   const args = [
     'get-keys',
     '-a',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+    aliceAddress,
     '-t',
     '-j',
     '-p',
@@ -238,11 +303,11 @@ describe('get-keys #10', () => {
 })
 
 // get keys from address given and print to console without page passed
-describe('get-keys #11', () => {
+describe('get-keys #2f', () => {
   const args = [
     'get-keys',
     '-a',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+    aliceAddress,
     '-t',
     '-j',
     '-i',
@@ -262,11 +327,11 @@ describe('get-keys #11', () => {
 })
 
 // get keys from address given and print to console  No keys found
-describe('get-keys #12', () => {
+describe('get-keys #2j', () => {
   const args = [
     'get-keys',
     '-a',
-    'Q000500215d6a512b193aa19f7812bb708251f94e48e176e00bfea0760fa48419feae6ce3ab1637',
+    walletAddress,
     '-t',
   ]
   let exitCode
@@ -282,54 +347,12 @@ describe('get-keys #12', () => {
   })
 })
 
-// get keys from address given and print to console  No keys found
-describe('get-keys #13', () => {
-  const args = [
-    'get-keys',
-    '-T',
-    'NotATransaction',
-    '-t',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be non-0 if -T passed without correct txhash Unable to find transaction', () => {
-    assert.notStrictEqual(exitCode, 0)
-  })
-})
-
-// get keys from address given and print to console  Not a lattice transaction
-describe('get-keys #14', () => {
-  const args = [
-    'get-keys',
-    '-T',
-    '021bb526ec6d35e880e2e706e2dd16a4c6da7223a8b632a57cd5cd44d5f4cf42',
-    '-m',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be non-0 if -T passed with txhash that is not a lattice transaction', () => {
-    assert.notStrictEqual(exitCode, 0)
-  })
-})
-
 // get keys from address given and print to console without page passed
-describe('get-keys #15', () => {
+describe('get-keys #2h', () => {
   const args = [
     'get-keys',
     '-T',
-    '9b9b4d4faeaac6de6a7166e5dbdcdd1d061132a7a0a7b881868fbd5055376907',
+    aliceTxHash,
     '-t',
     '-i',
     '1',
@@ -348,11 +371,11 @@ describe('get-keys #15', () => {
 })
 
 // get keys from address given and print to console without page passed
-describe('get-keys #16', () => {
+describe('get-keys #2i', () => {
   const args = [
     'get-keys',
     '-T',
-    '9b9b4d4faeaac6de6a7166e5dbdcdd1d061132a7a0a7b881868fbd5055376907',
+    aliceTxHash,
     '-t',
     '-i',
     '1',

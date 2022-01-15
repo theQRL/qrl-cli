@@ -1,5 +1,7 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
+const testSetup = require('../test_setup')
+
 
 const processFlags = {
   detached: true,
@@ -86,7 +88,6 @@ describe('send #1d', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-
 
 // bad args
 
@@ -254,6 +255,7 @@ describe('send #2f', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
+
 // no hexseed passed
 describe('send #2g', () => {
   const args = [
@@ -403,81 +405,30 @@ describe('send #2j', () => {
   })
 })
 
-
-
-// create a wallet file to use for next functions
-describe('send - create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-f',
-    '/tmp/wallet.json',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with -h flag and a valid tree height', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-// create a wallet file to use for next functions
-describe('send - create-encrypted-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-p',
-    'test123',
-    '-f',
-    '/tmp/enc-wallet.json',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with -h flag and a valid tree height', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-
-// incorrect json data passed in file
+// incorrect wallet file
 describe('send #2k', () => {
-  const args = [
-    'send',
-    '10',
-    '-R',
-    '/tmp/wallet.json',
-    '-h',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-i',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-R',
+      testSetup.badWallet,
+      '-h',
+      '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
     })
   })
-  it('exit code should be non-0 if using a json source of output with incorrect formatted JSON file, not address list', () => {
+  it('exit code should be non-0 if using wallet file that does not exist.', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-
-
 
 describe('send #2l', () => {
   const args = [
@@ -504,7 +455,6 @@ describe('send #2l', () => {
   })
 })
 
-
 // bad password for encrypted wallet
 describe('send #2m', () => {
   const args = [
@@ -513,11 +463,11 @@ describe('send #2m', () => {
     '-j',
     '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
     '-w',
-    '/tmp/enc-wallet.json',
+    testSetup.encWalletFile,
     '-i',
     '1',
     '-p',
-    'test321'
+    'test321' // wrong password
   ]
   let exitCode
   before(done => {
@@ -540,11 +490,10 @@ describe('send #2n', () => {
     '-j',
     '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
     '-w',
-    '/tmp/ems.json',
+    testSetup.badWalletFile,
     '-i',
     '1',
-    '-p',
-    'test321'
+
   ]
   let exitCode
   before(done => {
@@ -559,7 +508,6 @@ describe('send #2n', () => {
   })
 })
 
-
 // bad hexseed, too short
 describe('send #2o', () => {
   const args = [
@@ -571,8 +519,6 @@ describe('send #2o', () => {
     '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb1396',
     '-i',
     '1',
-    '-p',
-    'test321'
   ]
   let exitCode
   before(done => {
@@ -582,11 +528,10 @@ describe('send #2o', () => {
       done()
     })
   })
-  it('exit code should be non-0 if using a json source of output with a invalid hexseed', () => {
+  it('exit code should be non-0 if using a json source of output with a invalid hexseed - too short', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-
 
 // bad mnemonic too short
 describe('send #2p', () => {
@@ -599,8 +544,6 @@ describe('send #2p', () => {
     'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam',
     '-i',
     '1',
-    '-p',
-    'test321'
   ]
   let exitCode
   before(done => {
@@ -615,7 +558,6 @@ describe('send #2p', () => {
   })
 })
 
-
 // bad OTS
 describe('send #2q', () => {
   const args = [
@@ -627,8 +569,6 @@ describe('send #2q', () => {
     'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
     '-i',
     'a',
-    '-p',
-    'test321'
   ]
   let exitCode
   before(done => {
@@ -642,7 +582,6 @@ describe('send #2q', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-
 
 describe('send #2r', () => {
   const args = [
@@ -669,7 +608,6 @@ describe('send #2r', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-
 
 // message data over 80 bites
 describe('send #2s', () => {
@@ -705,7 +643,7 @@ describe('send #2t', () => {
   const args = [
     'send',
     '-F',
-    '/tmp/send_tx.json',
+    testSetup.sendTXOfflineFile,
     '-f',
     '1'
   ]
@@ -722,8 +660,31 @@ describe('send #2t', () => {
   })
 })
 
-// save to file with bad location - can not write to root
+
+// load from bad json offline file
 describe('send #2u', () => {
+  const args = [
+    'send',
+    '-F',
+    testSetup.badWallet,
+    '-f',
+    '1'
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if bad send content provided in JSON', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// save to file with bad location - can not write to root
+describe('send #2v', () => {
   const args = [
     'send',
     '10',
@@ -746,14 +707,98 @@ describe('send #2u', () => {
       done()
     })
   })
-  it('exit code should be non-0 if passed message with save location non-writable', () => {
+  it('exit code should be non-0 if saving to file with save location non-writable', () => {
     assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// successful send
+
+// save to file 
+describe('send #3a', () => {
+  const args = [
+    'send',
+    '0',
+    '-r',
+    'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
+    '-h',
+    'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
+    '-i',
+    '10',
+    '-t',
+    '-s',
+    '-T',
+    testSetup.sendTXOfflineFile
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if offline send tx saved to file', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+// save to file with enc wallet
+describe('send #3a', () => {
+  const args = [
+    'send',
+    '0',
+    '-r',
+    'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
+    '-w',
+    testSetup.aliceENCWalletLocation,
+    '-p',
+    testSetup.aliceEncPass,
+    '-i',
+    '10',
+    '-t',
+    '-s',
+    '-T',
+    testSetup.sendTXOfflineFile
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if offline send tx saved to file', () => {
+    assert.strictEqual(exitCode, 0)
   })
 })
 
 
 
-// successful send
+// load from a file 
+describe('send #3b', () => {
+  const args = [
+    'send',
+    '-F',
+    testSetup.sendTXOfflineFile,
+    '-t',
+  ]
+  let exitCode
+  before(done => {
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 if offline send tx saved to file', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+
+
 // Need funds in the test wallet for this to proceed
 /* 
 
@@ -765,7 +810,7 @@ describe('send #3a', () => {
     '-r',
     'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.walletFile,
     '-i',
     '10',
     '-t',
@@ -792,7 +837,7 @@ describe('send #3b', () => {
     '-r',
     'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.walletFile,
     '-i',
     '11',
     '-t',
@@ -819,7 +864,7 @@ describe('send #3c', () => {
     '-j',
     '{"tx":[{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"10"},{"to":"Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408","shor":"15"}]}',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.walletFile,
     '-i',
     '12',
     '-t',
@@ -849,7 +894,7 @@ describe('send #3d', () => {
     '-r',
     'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.walletFile,
     '-i',
     '13',
     '-t',
@@ -876,7 +921,7 @@ describe('send #3e', () => {
     '-r',
     'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
     '-w',
-    '/tmp/enc-wallet.json',
+    testSetup.encWalletFile,
     '-p',
     'test123',
     '-i',

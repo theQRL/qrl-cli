@@ -1,10 +1,13 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
+const testSetup = require('../test_setup')
+
 
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
+
 // lattice command without any flags
 describe('generate-lattice-keys #1', () => {
   const args = [
@@ -71,7 +74,7 @@ describe('generate-lattice-keys #3', () => {
   })
 })
 
-const fs = require('fs');
+
 
 // incorrect data in wallet.json
 describe('generate-lattice-keys #4', () => {
@@ -80,18 +83,11 @@ describe('generate-lattice-keys #4', () => {
     '-i',
     '1',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.badWallet,
     '-t',
   ]
   let exitCode
   before(done => {
-  	const content = 'Some content!'
-  	const createCode = ''
-	  fs.writeFile('/tmp/wallet.json', content, err => {
-      if (err) {
-        createCode(err)
-      }
-    })
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -161,7 +157,7 @@ describe('generate-lattice-keys #7', () => {
     '-t',
     '-j',
     '-e',
-    'testPassword',
+    testSetup.encPass,
   ]
   let exitCode
   before(done => {
@@ -181,11 +177,11 @@ describe('generate-lattice-keys #8', () => {
   const args = [
     'generate-lattice-keys',
     '-i',
-    '1',
+    '10',
     '-s',
     '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
     '-c',
-    '/tmp/ems.json',
+    testSetup.aliceTempLatticeKey,
     '-t',
   ]
   let exitCode
@@ -196,7 +192,7 @@ describe('generate-lattice-keys #8', () => {
       done()
     })
   })
-  it('exit code should be 0 with keys printed to file', () => {
+  it('exit code should be 0 with keys printed to file not broadcast', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
@@ -209,9 +205,9 @@ describe('generate-lattice-keys #9', () => {
     '-s',
     '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc77951272709d',
     '-c',
-    '/tmp/ems1.json',
+    testSetup.bobTempENCLatticeKey,
     '-e',
-    'test',
+    testSetup.bobEncPass,
     '-t',
   ]
   let exitCode
@@ -222,45 +218,22 @@ describe('generate-lattice-keys #9', () => {
       done()
     })
   })
-  it('exit code should be 0 with encrypted keys printed to file', () => {
+  it('exit code should be 0 with encrypted keys printed to file not broadcast', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
-// create a wallet file to use for next functions
-describe('generate-lattice-keys #10a - create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-f',
-    '/tmp/wallet.json',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with -h flag and a valid tree height', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
 
 
 // broadcast keys to testnet network and save crystals file
-describe('generate-lattice-keys #10', () => {
+describe('generate-lattice-keys #10 - Alice', () => {
   const args = [
     'generate-lattice-keys',
     '-i',
     '0',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.aliceTempPTWalletLocation,
     '-c',
-    '/tmp/lattice.json',
+    testSetup.aliceTempENCLatticeKey,
     '-t',
     '-b',
   ]
@@ -279,19 +252,21 @@ describe('generate-lattice-keys #10', () => {
 })
 
 // broadcast keys to testnet network and save crystals file encrypted
-describe('generate-lattice-keys #11', () => {
+describe('generate-lattice-keys #11 - Alice ENC', () => {
   const args = [
     'generate-lattice-keys',
     '-i',
-    '1',
+    '0',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.aliceTempENCWalletLocation,
+    '-p',
+    testSetup.aliceEncPass,
     '-c',
-    '/tmp/enc-lattice.json',
+    testSetup.aliceTempENCLatticeKey,
+    '-e',
+    testSetup.aliceEncPass,
     '-t',
     '-b',
-    '-e',
-    'testpassword',
   ]
 
   let exitCode
@@ -308,13 +283,13 @@ describe('generate-lattice-keys #11', () => {
 })
 
 // broadcast keys without saving to file
-describe('generate-lattice-keys #12', () => {
+describe('generate-lattice-keys #12 Bob', () => {
   const args = [
     'generate-lattice-keys',
     '-i',
-    '2',
+    '1',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.bobTempPTWalletLocation,
     '-t',
     '-b',
   ]
@@ -334,13 +309,13 @@ describe('generate-lattice-keys #12', () => {
 
 
 // broadcast keys without saving to file in json
-describe('generate-lattice-keys #13', () => {
+describe('generate-lattice-keys #13 Bob', () => {
   const args = [
     'generate-lattice-keys',
     '-i',
-    '3',
+    '2',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.bobTempPTWalletLocation,
     '-t',
     '-b',
     '-j',
@@ -359,19 +334,21 @@ describe('generate-lattice-keys #13', () => {
   })
 })
 
-// broadcast keys without saving to file in json
-describe('generate-lattice-keys #14', () => {
+// broadcast keys without saving to file in json, print encrypted json
+describe('generate-lattice-keys #14 bob', () => {
   const args = [
     'generate-lattice-keys',
     '-i',
-    '4',
+    '0',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.bobTempENCWalletLocation,
+    '-p',
+    testSetup.bobEncPass,
+    '-e',
+    testSetup.bobEncPass,
     '-t',
     '-b',
     '-j',
-    '-e',
-    'testPassword',
   ]
   
   let exitCode
@@ -386,31 +363,3 @@ describe('generate-lattice-keys #14', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
-/* not failing when ots is reused...
-
-// broadcast keys without saving to file and re-using ots key
-describe('generate-lattice-keys #10', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '0',
-    '-w',
-    '/tmp/wallet.json',
-    '-t',
-    '-b',
-  ]
-  
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exitCode should be 1 with a fail on reuse of OTS key', () => {
-    assert.notStrictEqual(exitCode, 0)
-  })
-})
-*/

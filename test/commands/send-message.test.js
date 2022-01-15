@@ -1,11 +1,19 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
+const testSetup = require('../test_setup')
+const fs = require('fs')
 
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
 
+const openFile = (path) => {
+  const contents = fs.readFileSync(path)
+  return JSON.parse(contents)
+}
+const wallet = openFile(testSetup.walletFile)
+const walletHexseed = wallet[0].hexseed
 
 describe('send-message #1', () => {
   const args = [
@@ -93,52 +101,6 @@ describe('send-message #4', () => {
 })
 
 
-// create a wallet file to use for next functions
-describe('Send-message create wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-f',
-    '/tmp/wallet.json',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if wallet created, wallet used in next functions', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-// create an encrypted wallet file to use for next functions
-describe('Send-message create encrypted wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-p',
-    'send-message-test-password',
-    '-f',
-    '/tmp/enc-wallet.json',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if wallet created, encryption pass: "send-message-test-password" wallet used in next functions', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-
 // wrong password given for encrypted wallet file
 describe('send-message #5', () => {
   const args = [
@@ -151,7 +113,7 @@ describe('send-message #5', () => {
     '-p',
     'send-message-test-NOT-password',
     '-w',
-    '/tmp/enc-wallet.json',
+    testSetup.encWalletFile,
   ]
   let exitCode
   before(done => {
@@ -176,7 +138,7 @@ describe('send-message #6', () => {
     '-r',
     'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.walletFile,
   ]
   let exitCode
   before(done => {
@@ -254,7 +216,7 @@ describe('send-message #9', () => {
     '-r',
     'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
     '-s',
-    '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc77951272709d',
+    walletHexseed,
   ]
   let exitCode
   before(done => {
@@ -279,7 +241,7 @@ describe('send-message #10', () => {
     '-r',
     'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
     '-s',
-    '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc77951272709d',
+    walletHexseed,
     '-i',
     'i',
   ]
@@ -308,7 +270,7 @@ describe('send-message #11', () => {
     '-r',
     'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
     '-s',
-    '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc77951272709d',
+    walletHexseed,
     '-i',
     '0',
     '-f',
@@ -335,7 +297,7 @@ describe('send-message #12', () => {
     '-r',
     'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
     '-s',
-    '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc77951272709d',
+    walletHexseed,
     '-i',
     '0',
     '-f',
@@ -356,7 +318,7 @@ describe('send-message #12', () => {
   })
 })
 
-// successful mesage send wallet file
+// successful message send wallet file
 describe('send-message #13', () => {
   const args = [
     'send-message',
@@ -366,7 +328,7 @@ describe('send-message #13', () => {
     '-r',
     'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
     '-w',
-    '/tmp/wallet.json',
+    testSetup.walletFile,
     '-i',
     '0',
   ]
@@ -393,11 +355,11 @@ describe('send-message #14', () => {
     '-r',
     'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
     '-w',
-    '/tmp/enc-wallet.json',
+    testSetup.encWalletFile,
+    '-p',
+    testSetup.encPass,
     '-i',
     '2',
-    '-p',
-    'send-message-test-password'
   ]
   let exitCode
   before(done => {
@@ -422,9 +384,9 @@ describe('send-message #15', () => {
     '-r',
     'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
     '-s',
-    '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc77951272709d',
+    walletHexseed,
     '-i',
-    '0',
+    '1',
   ]
   let exitCode
   before(done => {

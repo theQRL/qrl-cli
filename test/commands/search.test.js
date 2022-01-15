@@ -1,10 +1,21 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
+const fs = require('fs')
+
+const testSetup = require('../test_setup')
+
 
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
+
+const openFile = (path) => {
+  const contents = fs.readFileSync(path)
+  return JSON.parse(contents)
+}
+const aliceTX = openFile(testSetup.alicePubKeyFile)
+const aliceTxHash = aliceTX[1].txHash
 
 // search command without any flags
 describe('search #1', () => {
@@ -87,7 +98,7 @@ describe('search #4', () => {
 describe('search #5', () => {
   const args = [
     'search',
-    'ce14f14564be176a62794088bab55a095ac82fdfa0f390fe6e8df6d2f200b2e9',
+    aliceTxHash,
     '-g',
     'testnet-1.automated.theqrl.org:19009',
   ]
@@ -168,7 +179,7 @@ describe('search #8', () => {
 describe('search #9', () => {
   const args = [
     'search',
-    'ce14f14564be176a62794088bab55a095ac82fdfa0f390fe6e8df6d2f200b2e9',
+    aliceTxHash,
     '-j',
     '-t',
   ]
