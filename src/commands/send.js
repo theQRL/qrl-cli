@@ -372,7 +372,7 @@ class Send extends Command {
         this.exit(1)
       }
     }
-    let fee = 100 // default fee 100 Shor
+    let fee = 0 // default fee 100 Shor
     if (flags.fee) {
       const passedFee = parseInt(flags.fee, 10)
       if (passedFee) {
@@ -408,7 +408,6 @@ class Send extends Command {
         }
         xmssPK = Buffer.from(XMSS_OBJECT.getPK(), 'hex')
       }
-
       let tx
       let Qrlnetwork
       if (!flags.savetofile) {
@@ -427,7 +426,6 @@ class Send extends Command {
           i++
         }
         spinner1.succeed(`Connected!`)
-
         if (!flags.loadfromfile) {
           let request
           if (flags.message) {
@@ -447,9 +445,7 @@ class Send extends Command {
               xmss_pk: xmssPK,
             }
           }
-console.log(request)      
           tx = await Qrlnetwork.api('TransferCoins', request)
-
           spinner.succeed('Node correctly returned transaction for signing')
         } else {
           let txFromFile
@@ -459,7 +455,6 @@ console.log(request)
             this.log(`${red('⨉')} Invalid transaction file`)
             this.exit(1)
           }
-            console.log(txFromFile.tx.transfer.message_data)
           if (txFromFile.tx.transfer.message_data) {
             tx = {
               extended_transaction_unsigned: {
@@ -542,8 +537,6 @@ console.log(request)
 
         spinner.succeed('XMSS_OBJECT is created')
       }
-
-console.log(tx)
 
       let txnHash
       if (!flags.loadfromfile) {

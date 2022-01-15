@@ -169,7 +169,6 @@ function regenSharedKeys(input) {
   })
 }
 
-/*
 function fileRemove(dir) {
   let exitCode
   try {
@@ -180,7 +179,6 @@ function fileRemove(dir) {
   }
     return exitCode
 }
-*/
 
 // 
 // global testSetup for all tests Runs before tests are performed
@@ -250,12 +248,10 @@ exports.mochaHooks = {
     sendOfflineFileGen({ dir: testSetup.sendTXOfflineFile , walletFile: testSetup.walletFile })
   },
 
-
   //
   // One-time final cleanup run after all testing is complete
   //
   afterAll: function _After() {
-    /*
     fileRemove(testSetup.emptyText)
 
     fileRemove(testSetup.badWallet)
@@ -290,7 +286,6 @@ exports.mochaHooks = {
     fileRemove(testSetup.aliceCipherTextOut)
     fileRemove(testSetup.aliceTempCipherTextOut)
 
-
     fileRemove(testSetup.bobLatticeLocation)
     fileRemove(testSetup.bobTempLatticeKey)
     fileRemove(testSetup.bobENCLatticeLocation)
@@ -309,6 +304,6 @@ exports.mochaHooks = {
     fileRemove(testSetup.bobCipherTextOut)
     fileRemove(testSetup.bobTempCipherTextOut)
     fileRemove(testSetup.sendTXOfflineFile)
-    */
+
   }
 };

@@ -16,7 +16,7 @@ const emptyText = path.join(__dirname, '/test-wallet/empty.txt')
 
 const badWallet = path.join(__dirname, '/test-wallet/badWallet.json') // bad wallet json
 const notAWalletFile = path.join(__dirname, '/test-wallet/nope.json') // bad wallet nope
-const walletFile = path.join(__dirname, '/test-wallet/wallet.json') // plain text wallet. OTS: 0,
+const walletFile = path.join(__dirname, '/test-wallet/wallet.json') // plain text wallet. OTS: 0, 1
 const encWalletFile = path.join(__dirname, '/test-wallet/encWallet.json') // encrypted wallet. OTS: 0,
 
 // Alice
@@ -87,16 +87,6 @@ const bobTempRegenSharedKeyFile = path.join(__dirname, '/lattice/bob/bob-temp-re
 const bobCipherTextOut = path.join(__dirname, '/lattice/bob/bob-cipher-text.txt')
 const bobTempCipherTextOut = path.join(__dirname, '/lattice/bob/bob-temp-cipher-text.txt')
 
-
-
-
-
-
-
-
-
-
-
 // /////////
 // Send Test 
 // /////////
@@ -162,16 +152,7 @@ module.exports = {
   bobCipherTextOut,
   bobTempCipherTextOut,
 
-
-
-
-
-
   sendTXOfflineFile,
-
-
-
-
 
 } 
 

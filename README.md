@@ -515,7 +515,9 @@ ARGUMENTS
   ADDRESS  QRL address to validate
 
 OPTIONS
-  -q, --quiet  Quiet mode: no address details, just return validity via exit code
+  -i, --index=index        address index to validate if more than one in file {default = 0}
+  -p, --password=password  QRL Wallet encryption passphrase.
+  -q, --quiet              Quiet mode: no address details, just return validity via exit code
 
 DESCRIPTION
   ...
