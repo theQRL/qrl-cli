@@ -1,17 +1,51 @@
+// /* ////////////////////////
+// Generate Lattice Keys Tests
+// OTS Keys - 11-24
+// */ ///////////////////////
+
 const assert = require('assert')
 const {spawn} = require('child_process')
+const fs = require('fs');
+const setup = require('../test_setup')
+
+const openFile = (path) => {
+  const contents = fs.readFileSync(path)
+  return JSON.parse(contents)
+}
+
+let aliceWallet
+let bobWallet
 
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
-// lattice command without any flags
-describe('generate-lattice-keys #1', () => {
-  const args = [
-    'generate-lattice-keys',
-  ]
+
+
+// lattice command given without any flags
+describe('generate-lattice-keys setup', () => {
   let exitCode
   before(done => {
+    aliceWallet = openFile(setup.alicePTWalletLocation)
+    bobWallet = openFile(setup.bobPTWalletLocation) // 
+    done()
+  })
+  it('exit code should be non-0 if passed without any arguments/flags, requires xmss address and ots index', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// //////////////
+// Failing tests
+// //////////////
+
+// lattice command given without any flags
+describe('generate-lattice-keys #1 - lattice command without any flags', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -24,18 +58,17 @@ describe('generate-lattice-keys #1', () => {
 })
 
 // wrong grpc endpoint
-describe('generate-lattice-keys #2', () => {
+describe('generate-lattice-keys #2 - wrong grpc endpoint', () => {
+  let exitCode
+  before(done => {
   const args = [
     'generate-lattice-keys',
-    '-i',
-    '1',
-    '-s',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+    '-i', '12',
+    '-s', aliceWallet[0].hexseed,
     '-b',
     '-g',
   ]
-  let exitCode
-  before(done => {
+// console.log(`aliceWallet[0].hexseed: ${aliceWallet[0].hexseed}`)
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -47,19 +80,39 @@ describe('generate-lattice-keys #2', () => {
   })
 })
 
-
-// incorrect seed
-describe('generate-lattice-keys #3', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '1',
-    '-s',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb139',
-    '-t',
-  ]
+// bad grpc endpoint
+describe('generate-lattice-keys #2.a - bad grpc endpoint', () => {
   let exitCode
   before(done => {
+  const args = [
+    'generate-lattice-keys',
+    '-i', '12',
+    '-s', aliceWallet[0].hexseed,
+    '-b',
+    '-g', 'https://brooklyn.theqrl.org/nottheapi/'
+  ]
+// console.log(`aliceWallet[0].hexseed: ${aliceWallet[0].hexseed}`)
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with -g and missing grpc endpoint', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// incorrect seed length
+describe('generate-lattice-keys #3 - incorrect seed length', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '12',
+      '-s', '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb139',
+      '-t',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -71,27 +124,58 @@ describe('generate-lattice-keys #3', () => {
   })
 })
 
-const fs = require('fs');
-
-// incorrect data in wallet.json
-describe('generate-lattice-keys #4', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '1',
-    '-w',
-    '/tmp/wallet.json',
-    '-t',
-  ]
+// incorrect seed char
+describe('generate-lattice-keys #3.a - incorrect seed char', () => {
   let exitCode
   before(done => {
-  	const content = 'Some content!'
-  	const createCode = ''
-	  fs.writeFile('/tmp/wallet.json', content, err => {
-      if (err) {
-        createCode(err)
-      }
+    const args = [
+      'generate-lattice-keys',
+      '-i', '12',
+      '-s', '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb139HG',
+      '-t',
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
     })
+  })
+  it('exit code should be non-0 if passed with -s and incorrect hexseed', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// no seed 
+describe('generate-lattice-keys #3.b - no seed given', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '12',
+      '-s', '',
+      '-t',
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with -s and no hexseed', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// incorrect data in wallet.json
+describe('generate-lattice-keys #4 - incorrect data in wallet.json', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '12',
+      '-w', setup.badWallet,
+      '-t',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -103,18 +187,171 @@ describe('generate-lattice-keys #4', () => {
   })
 })
 
-// print keys to console if no file location given and not broadcast
-describe('generate-lattice-keys #5', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '1',
-    '-s',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-t',
-  ]
+// no wallet.json file
+describe('generate-lattice-keys #4.a - no wallet.json file', () => {
   let exitCode
   before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '12',
+      '-w', setup.notAWalletFile,
+      '-t',
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with -w and no wallet.json file', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// bad encryption password for enc wallet
+describe('generate-lattice-keys #4.b - bad encryption password', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '12',
+      '-w', setup.aliceENCWalletLocation,
+      '-p',
+      setup.bobEncPass,
+      '-t',
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with -w encrypted walelt and bad decryption password', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// no ots with broadcast
+describe('generate-lattice-keys #5 - broadcast with no OTS given', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-b',
+      '-w', setup.alicePTWalletLocation,
+      '-t',
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with -b and no OTS given', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// bad mnemonic
+describe('generate-lattice-keys #6 - bad mnemonic, too short', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '12',
+      '-s', 'action core power grief surge square attic mere thence scarce rigid broken parcel leper crew twelve bicker recall met smoky congo happy soup change awhile willow lick ignore inject solve costly this split', 
+      '-b',
+      '-t', 
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with -s and no mnemonic', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// bad mnemonic
+describe('generate-lattice-keys #6.a - mnemonic, no ots', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-s', aliceWallet[0].mnemonic, 
+      '-t', 
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with -s mnemonic no ots', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// bad ots
+describe('generate-lattice-keys #7 - bad ots (a)', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-s', aliceWallet[0].mnemonic, 
+      '-t',
+      '-i', 'a', 
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with -s mnemonic and bad ots', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// bad fee
+describe('generate-lattice-keys #8 - bad fee', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-s', aliceWallet[0].mnemonic, 
+      '-t',
+      '-i', '12',
+      '-f',
+      'a' 
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with bad fee', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// /////////
+// pass
+// /////////
+
+// print keys to console if no file location given and not broadcast
+describe('generate-lattice-keys #9 - print keys', () => {
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '11',
+      '-s', bobWallet[0].hexseed,
+      '-t',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -127,18 +364,16 @@ describe('generate-lattice-keys #5', () => {
 })
 
 // print keys to console in json if no file location given and not broadcast in json
-describe('generate-lattice-keys #6', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '1',
-    '-s',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-t',
-    '-j',
-  ]
+describe('generate-lattice-keys #10 - print keys json', () => {
   let exitCode
   before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '13',
+      '-s', bobWallet[0].hexseed,
+      '-t',
+      '-j',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -151,20 +386,17 @@ describe('generate-lattice-keys #6', () => {
 })
 
 // print keys to console in json encrypted if no file location given and not broadcast in json
-describe('generate-lattice-keys #7', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '1',
-    '-s',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-t',
-    '-j',
-    '-e',
-    'testPassword',
-  ]
+describe('generate-lattice-keys #11 - print keys to console in json encrypted', () => {
   let exitCode
   before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '14',
+      '-s', bobWallet[0].hexseed,
+      '-t',
+      '-j',
+      '-e', setup.bobEncPass,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -177,19 +409,16 @@ describe('generate-lattice-keys #7', () => {
 })
 
 // print keys to file location given
-describe('generate-lattice-keys #8', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '1',
-    '-s',
-    '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-    '-c',
-    '/tmp/ems.json',
-    '-t',
-  ]
+describe('generate-lattice-keys #12 - print keys to file', () => {
   let exitCode
   before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '15',
+      '-s', bobWallet[0].hexseed,
+      '-c', setup.bobTempLatticeKey,
+      '-t',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -200,22 +429,19 @@ describe('generate-lattice-keys #8', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
+
 // print keys to file location given with encryption
-describe('generate-lattice-keys #9', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '50',
-    '-s',
-    '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc77951272709d',
-    '-c',
-    '/tmp/ems1.json',
-    '-e',
-    'test',
-    '-t',
-  ]
+describe('generate-lattice-keys #13 - print keys to file encrypted', () => {
   let exitCode
   before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '16', // OTS index
+      '-s', bobWallet[0].hexseed, // hexseed to use for creation
+      '-c', setup.aliceTempENCLatticeKey,
+      '-e', setup.aliceEncPass, // encryption pass
+      '-t', // testnet
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -227,46 +453,18 @@ describe('generate-lattice-keys #9', () => {
   })
 })
 
-// create a wallet file to use for next functions
-describe('generate-lattice-keys #10a - create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-    '-f',
-    '/tmp/wallet.json',
-  ]
-  let exitCode
-  before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be 0 if passed with -h flag and a valid tree height', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-
-
 // broadcast keys to testnet network and save crystals file
-describe('generate-lattice-keys #10', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '0',
-    '-w',
-    '/tmp/wallet.json',
-    '-c',
-    '/tmp/lattice.json',
-    '-t',
-    '-b',
-  ]
-
+describe('generate-lattice-keys #14', () => {
   let exitCode
   before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '17',
+      '-w', setup.bobPTWalletLocation,
+      '-c', setup.bobTempLatticeKey,
+      '-t',
+      '-b', // broadcast
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -279,48 +477,41 @@ describe('generate-lattice-keys #10', () => {
 })
 
 // broadcast keys to testnet network and save crystals file encrypted
-describe('generate-lattice-keys #11', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '1',
-    '-w',
-    '/tmp/wallet.json',
-    '-c',
-    '/tmp/enc-lattice.json',
-    '-t',
-    '-b',
-    '-e',
-    'testpassword',
-  ]
-
+describe('generate-lattice-keys #15', () => {
   let exitCode
   before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '18',
+      '-w', setup.bobENCWalletLocation,
+      '-p', setup.bobEncPass, 
+      '-c', setup.bobTempENCLatticeKey,
+      '-t',
+      '-b',
+      '-e', setup.bobEncPass,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
     })
   })
-  it('exit code should be 0 with keys broadcast to network and encrypted keys saved into /tmp/enc-lattice.json file location', () => {
+  it('exit code should be 0 with keys broadcast to network from encrypted wallet and encrypted keys saved into /tmp/enc-lattice.json file location', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
 
 // broadcast keys without saving to file
-describe('generate-lattice-keys #12', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '2',
-    '-w',
-    '/tmp/wallet.json',
-    '-t',
-    '-b',
-  ]
-  
+describe('generate-lattice-keys #16', () => {
   let exitCode
   before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '19',
+      '-w', setup.bobPTWalletLocation,
+      '-t',
+      '-b',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -334,20 +525,17 @@ describe('generate-lattice-keys #12', () => {
 
 
 // broadcast keys without saving to file in json
-describe('generate-lattice-keys #13', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '3',
-    '-w',
-    '/tmp/wallet.json',
-    '-t',
-    '-b',
-    '-j',
-  ]
-  
+describe('generate-lattice-keys #17', () => {
   let exitCode
   before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '20',
+      '-w', setup.bobPTWalletLocation,
+      '-t',
+      '-b',
+      '-j',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -359,23 +547,20 @@ describe('generate-lattice-keys #13', () => {
   })
 })
 
-// broadcast keys without saving to file in json
-describe('generate-lattice-keys #14', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '4',
-    '-w',
-    '/tmp/wallet.json',
-    '-t',
-    '-b',
-    '-j',
-    '-e',
-    'testPassword',
-  ]
-  
+// broadcast encrypted keys without saving to file in json
+describe('generate-lattice-keys #18', () => {
   let exitCode
   before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '21',
+      '-w', setup.bobENCWalletLocation,
+      '-p', setup.bobEncPass,
+      '-t',
+      '-b',
+      '-j',
+      '-e', setup.bobEncPass,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -387,30 +572,50 @@ describe('generate-lattice-keys #14', () => {
   })
 })
 
-/* not failing when ots is reused...
-
-// broadcast keys without saving to file and re-using ots key
-describe('generate-lattice-keys #10', () => {
-  const args = [
-    'generate-lattice-keys',
-    '-i',
-    '0',
-    '-w',
-    '/tmp/wallet.json',
-    '-t',
-    '-b',
-  ]
-  
+// broadcast keys to testnet network and save crystals file
+describe('generate-lattice-keys #19', () => {
   let exitCode
   before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '22',
+      '-w', setup.alicePTWalletLocation,
+      '-c', setup.aliceTempLatticeKey,
+      '-t',
+      '-b',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
       done()
     })
   })
-  it('exitCode should be 1 with a fail on reuse of OTS key', () => {
-    assert.notStrictEqual(exitCode, 0)
+  it('exit code should be 0 with keys broadcast to network and saved into temp file location', () => {
+    assert.strictEqual(exitCode, 0)
   })
 })
-*/
+
+
+// broadcast keys to testnet network and save crystals file
+describe('generate-lattice-keys #20', () => {
+
+  let exitCode
+  before(done => {
+    const args = [
+      'generate-lattice-keys',
+      '-i', '23',
+      '-w', setup.bobPTWalletLocation,
+      '-c', setup.bobTempLatticeKey,
+      '-t',
+      '-b',
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be 0 with keys broadcast to network and saved into temp file location', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})

@@ -39,6 +39,15 @@ const toUint8Vector = (arr) => {
   return vec
 }
 
+// string to binary
+function string2Bin(str) {
+  const result = [];
+/* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
+  for (let i = 0; i < str.length; i++) {
+    result.push(str.charCodeAt(i));
+  }
+  return result;
+}
 
 // Convert bytes to hex
 function bytesToHex(byteArray) {
@@ -181,14 +190,33 @@ class Send extends Command {
       }
     } else { // eslint-disable-next-line no-lonely-if
       if (args.quantity || flags.fee || flags.file || flags.hexseed || flags.jsonObject ||
-        flags.otsindex || flags.password || flags.recipient || flags.shor || flags.wallet) {
+        flags.otsindex || flags.password || flags.recipient || flags.shor || flags.wallet || flags.message) {
           this.log(` ${red('›')}   Error: Only these flags are allowed with -F: -m, -t, -g`)
           this.exit(1)
       }
     }
     let text = flags.savetofile ? 'Transaction details:' : network
     this.log(white().bgBlue(text))
-    // setup quantity/ies and recipient(s)
+
+    let messageBytes 
+    let messageLength
+    if (flags.message) {
+      // check size of message MAX 80 bytes
+      messageBytes = string2Bin(flags.message)
+      messageLength = messageBytes.length
+      this.log(` ${red('›')} Message\t${flags.message}`)
+      this.log(` ${red('›')} Message Length\t${messageLength}`)
+      this.log(` ${red('›')} messageBytes \n${messageBytes}`)
+    // this.log(`Message Submitted: ${flags.message}`)
+      // this.log(`Message byte length: ${messageLength}`)
+      // over 80 bytes
+      if (messageLength > 80) {
+        this.log(`${red('⨉')} Message cannot be longer than 80 bytes`)
+        this.exit(1)
+      }
+    }
+
+    // setup quantities and recipient(s)
     let output = {}
     output.tx = []
     let sendMethods = 0
@@ -344,7 +372,7 @@ class Send extends Command {
         this.exit(1)
       }
     }
-    let fee = 100 // default fee 100 Shor
+    let fee = 0 // default fee 100 Shor
     if (flags.fee) {
       const passedFee = parseInt(flags.fee, 10)
       if (passedFee) {
@@ -364,6 +392,8 @@ class Send extends Command {
       thisAmounts.push(o.shor)
     })
     this.log(`Fee: ${fee} Shor`)
+
+    this.log(`output: ${JSON.stringify(output)}`)
     
     text = flags.savetofile ? 'QRLLIB loading...' : 'Sending unsigned transaction to node...'
     const spinner = ora({ text }).start()
@@ -378,7 +408,6 @@ class Send extends Command {
         }
         xmssPK = Buffer.from(XMSS_OBJECT.getPK(), 'hex')
       }
-
       let tx
       let Qrlnetwork
       if (!flags.savetofile) {
@@ -397,17 +426,26 @@ class Send extends Command {
           i++
         }
         spinner1.succeed(`Connected!`)
-
         if (!flags.loadfromfile) {
-          const request = {
-            addresses_to: thisAddressesTo,
-            amounts: thisAmounts,
-            fee,
-            xmss_pk: xmssPK,
+          let request
+          if (flags.message) {
+            request = {
+              addresses_to: thisAddressesTo,
+              amounts: thisAmounts,
+              fee,
+              message_data: messageBytes,
+              xmss_pk: xmssPK,
+            }
           }
-// console.log(request)      
+          else {
+            request = {
+              addresses_to: thisAddressesTo,
+              amounts: thisAmounts,
+              fee,
+              xmss_pk: xmssPK,
+            }
+          }
           tx = await Qrlnetwork.api('TransferCoins', request)
-
           spinner.succeed('Node correctly returned transaction for signing')
         } else {
           let txFromFile
@@ -417,54 +455,106 @@ class Send extends Command {
             this.log(`${red('⨉')} Invalid transaction file`)
             this.exit(1)
           }
-
-          tx = {
-            extended_transaction_unsigned: {
-              tx: {
-                fee: txFromFile.tx.fee,
-                public_key: Buffer.from(txFromFile.tx.public_key, 'hex'),
-                signature: Buffer.from(txFromFile.tx.signature, 'hex'),
-                transaction_hash: txFromFile.tx.transaction_hash,
-                transfer: {
-                  addrs_to: txFromFile.tx.transfer.addrs_to,
-                  amounts: txFromFile.tx.transfer.amounts,
-                  message_data: Buffer.from('')
-                },
-                master_addr: Buffer.from(''),
-                nonce: "0",
-                transactionType: "transfer"
+          if (txFromFile.tx.transfer.message_data) {
+            tx = {
+              extended_transaction_unsigned: {
+                tx: {
+                  fee: txFromFile.tx.fee,
+                  public_key: Buffer.from(txFromFile.tx.public_key, 'hex'),
+                  signature: Buffer.from(txFromFile.tx.signature, 'hex'),
+                  transaction_hash: txFromFile.tx.transaction_hash,
+                  transfer: {
+                    addrs_to: txFromFile.tx.transfer.addrs_to,
+                    amounts: txFromFile.tx.transfer.amounts,
+                    message_data: Buffer.from(txFromFile.tx.transfer.message_data),
+                  },
+                  master_addr: Buffer.from(''),
+                  nonce: "0",
+                  transactionType: "transfer"
+                }
               }
             }
-          }
 
+          }
+          else {
+            tx = {
+              extended_transaction_unsigned: {
+                tx: {
+                  fee: txFromFile.tx.fee,
+                  public_key: Buffer.from(txFromFile.tx.public_key, 'hex'),
+                  signature: Buffer.from(txFromFile.tx.signature, 'hex'),
+                  transaction_hash: txFromFile.tx.transaction_hash,
+                  transfer: {
+                    addrs_to: txFromFile.tx.transfer.addrs_to,
+                    amounts: txFromFile.tx.transfer.amounts,
+                  },
+                  master_addr: Buffer.from(''),
+                  nonce: "0",
+                  transactionType: "transfer"
+                }
+              }
+            }
+
+          }
           spinner.succeed(`Successfully loaded from the file: "${flags.loadfromfile}"`)
         }
       } else {
-        tx = {
-          extended_transaction_unsigned: {
-            tx: {
-              fee: String(fee),
-              public_key: {},
-              signature: {},
-              transaction_hash: {},
-              transfer: {
-                addrs_to: thisAddressesTo,
-                amounts: thisAmounts
+        // save to file
+        if (flags.message) {
+          tx = {
+            extended_transaction_unsigned: {
+              tx: {
+                fee: String(fee),
+                public_key: {},
+                signature: {},
+                transaction_hash: {},
+                transfer: {
+                  addrs_to: thisAddressesTo,
+                  amounts: thisAmounts,
+                  message_data: messageBytes,
+                }
+              }
+            }
+          }
+        }
+        else {
+          tx = {
+            extended_transaction_unsigned: {
+              tx: {
+                fee: String(fee),
+                public_key: {},
+                signature: {},
+                transaction_hash: {},
+                transfer: {
+                  addrs_to: thisAddressesTo,
+                  amounts: thisAmounts
+                }
               }
             }
           }
         }
 
+
         spinner.succeed('XMSS_OBJECT is created')
       }
+
       let txnHash
       if (!flags.loadfromfile) {
         const spinner2 = ora({ text: 'Signing transaction...' }).start()
-
-        let concatenatedArrays = concatenateTypedArrays(
-          Uint8Array,
-          toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee)
-        )
+        let concatenatedArrays
+        if (flags.message) {
+          concatenatedArrays = concatenateTypedArrays(
+            Uint8Array,
+            toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
+            messageBytes,
+          )
+        }
+        else {
+          concatenatedArrays = concatenateTypedArrays(
+            Uint8Array,
+            toBigendianUint64BytesUnsigned(tx.extended_transaction_unsigned.tx.fee),
+          )
+        }
 
         // Now append all recipient (outputs) to concatenatedArrays
         const addrsToRaw = tx.extended_transaction_unsigned.tx.transfer.addrs_to
@@ -526,7 +616,6 @@ class Send extends Command {
         addrsToFormatted.push(bufItem)
       })
       tx.extended_transaction_unsigned.tx.transfer.addrs_to = addrsToFormatted // eslint-disable-line camelcase
-
       if (!flags.savetofile) {
         const spinner3 = ora({ text: 'Pushing transaction to a node...' }).start()
         const pushTransactionReq = {
@@ -579,17 +668,27 @@ class Send extends Command {
           fs.writeFileSync(flags.savetofile, JSON.stringify(dataToSave))
           spinner3.succeed(`Transaction data has been saved to the file: "${flags.savetofile}"`)
         } catch(err) {
-          spinner3.fail('Unable to save data to TX file')
+          spinner3.fail(`Unable to save data to TX file ${err}`)
           this.log(err)
+          this.exit(1)
         }
       }
     })
   }
 }
 
-Send.description = `Send Quanta
-...
-TODO
+Send.description = `Send Quanta from a QRL address to QRL another address
+
+This function allows the transfer of Quanta between QRL addresses. Requires a wallet file or private keys and an unused OTS
+key index to sign the transaction.
+
+Offline signing enabled with the (-T) "Save To File" flag. This can sent using the (-F) "Load From File" flag. 
+Add message data to the transaction with the (-M) "Message" flag. This allows up to an 80 bytes message to be attached 
+to the transfer.
+
+Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet, or a custom defined node (-g) grpc endpoint. 
+Advanced: Append a (-M) Message to the transaction with max 80 bytes length
+
 `
 
 Send.args = [
@@ -609,22 +708,22 @@ Send.flags = {
   testnet: flags.boolean({
     char: 't',
     default: false,
-    description: 'uses testnet to send the transaction'
+    description: 'Use testnet to send the transaction'
   }),
   mainnet: flags.boolean({
     char: 'm',
     default: false,
-    description: 'uses mainnet to send the transaction'
+    description: 'Use mainnet to send the transaction'
   }),
   grpc: flags.string({
     char: 'g',
     required: false,
-    description: 'advanced: grpc endpoint (for devnet/custom QRL network deployments)',
+    description: 'Advanced: grpc endpoint (for devnet/custom QRL network deployments)',
   }),
   password: flags.string({
     char: 'p',
     required: false,
-    description: 'wallet file password'
+    description: 'Wallet file password'
   }),
   shor: flags.boolean({
     char: 's',
@@ -670,7 +769,12 @@ Send.flags = {
   hexseed: flags.string({
     char: 'h',
     required: false,
-    description: 'hexseed/mnemonic of wallet from where funds should be sent',
+    description: 'Hexseed/mnemonic of wallet from where funds should be sent',
+  }),
+  message: flags.string({
+    char: 'M',
+    default: false,
+    description: 'Message data to send (80 bytes)'
   }),
 }
 

@@ -1,19 +1,24 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
 
+const testSetup = require('../test_setup')
+
 const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
 
+// //////////////
+// Failed Tests
+// //////////////
 
 // no args given
 describe('receive #1', () => {
-  const args = [
-    'receive',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'receive',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -27,12 +32,12 @@ describe('receive #1', () => {
 
 // bad args given
 describe('receive #2', () => {
-  const args = [
-    'receive',
-    '/tmp/notafile'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'receive',
+      '/tmp/notafile'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -46,14 +51,14 @@ describe('receive #2', () => {
 
 // bad args given
 describe('receive #3', () => {
-  const args = [
-    'receive',
-    '/tmp/enc-wallet.json',
-    '-p',
-    'wrongPassword'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'receive',
+      testSetup.encWalletFile,
+      '-p',
+      'wrongPassword'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -67,12 +72,12 @@ describe('receive #3', () => {
 
 // bad address given
 describe('receive #4', () => {
-  const args = [
-    'receive',
-    'NotAQRLAddress',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'receive',
+      'NotAQRLAddress',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -84,13 +89,17 @@ describe('receive #4', () => {
   })
 })
 
+// //////////////
+// Passing Tests
+// /////////////
+
 describe('receive #5', () => {
-  const args = [
-    'receive',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'receive',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -103,12 +112,12 @@ describe('receive #5', () => {
 })
 
 describe('receive #6', () => {
-  const args = [
-    'receive',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'receive',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code

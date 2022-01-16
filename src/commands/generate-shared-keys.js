@@ -182,53 +182,58 @@ const checkSignedMessageJson = (signedMessage) => {
   }
   return valid
 }
+
 const checkLatticeJSON = (check) => {
   const valid = {}
   valid.status = true
-
-  if (check === undefined) {
-    valid.status = false
-    valid.error = 'array is undefined'
-    return valid
-  }
   const arrayLength = Object.keys(check).length
-  if (arrayLength === 0) {
-    valid.status = false
-    valid.error = 'length of array is 0'
-    return valid
-  }
   // is it a secret key? Array length of 1 (0)
   if (arrayLength === 1) {
     check.forEach((element, index) => {
       // check that the json has keys for kyber, dilithium, and ECDSA SK's 
+      if (!JSON.stringify(element).includes('encrypted')) {
+        valid.status = false
+        valid.error = `Secret output #${index} does not have a "encrypted" key`
+        return valid
+      }
+      if (!JSON.stringify(element).includes('tx_hash')) {
+        valid.status = false
+        valid.error = `Secret output #${index} does not have a "tx_hash" key`
+        return valid
+      }
+      if (!JSON.stringify(element).includes('network')) {
+        valid.status = false
+        valid.error = `Secret output #${index} does not have a "network" key`
+        return valid
+      }
       if (!JSON.stringify(element).includes('kyberPK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a kyberPK key`
+        valid.error = `Secret output #${index} does not have a kyberPK key`
         return valid
       }
       if (!JSON.stringify(element).includes('kyberSK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a kyberSK key`
+        valid.error = `Secret output #${index} does not have a kyberSK key`
         return valid
       }
       if (!JSON.stringify(element).includes('dilithiumSK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a dilithiumSK key`
+        valid.error = `Secret output #${index} does not have a dilithiumSK key`
         return valid
       }
       if (!JSON.stringify(element).includes('dilithiumPK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a dilithiumPK key`
+        valid.error = `Secret output #${index} does not have a dilithiumPK key`
         return valid
       }
       if (!JSON.stringify(element).includes('ecdsaSK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a ecdsaSK key`
+        valid.error = `Secret output #${index} does not have a ecdsaSK key`
         return valid
       }
       if (!JSON.stringify(element).includes('ecdsaPK')) {
         valid.status = false
-        valid.error = `Output #${index} does not have a ecdsaPK key`
+        valid.error = `Secret output #${index} does not have a ecdsaPK key`
         return valid
       }
       return valid
@@ -236,27 +241,37 @@ const checkLatticeJSON = (check) => {
     return valid
   }
   // is it a PUB key element? Array has 2 elements minimum ([0], [1])
-  if (arrayLength >= 1) {
+  if (arrayLength >= 2) {
     for (let i = 1; i < arrayLength; i++) { // eslint-disable-line
       // check that the json has keys for kyber, dilithium, and ECDSA SK's 
-        if (!JSON.stringify(check[i]).includes('pk1')) {
+        if (!JSON.stringify(check[1]).includes('pk1')) {
           valid.status = false
-          valid.error = `Output #${i} does not have a pk1 (kyberPK) key`
+          valid.error = `Output #${1} does not have a pk1 (kyberPK) key`
           return valid
         }
-        if (!JSON.stringify(check[i]).includes('pk2')) {
+        if (!JSON.stringify(check[1]).includes('pk2')) {
           valid.status = false
-          valid.error = `Output #${i} does not have a pk2 (dilithiumPK) key`
+          valid.error = `Output #${1} does not have a pk2 (dilithiumPK) key`
           return valid
         }
-        if (!JSON.stringify(check[i]).includes('pk3')) {
+        if (!JSON.stringify(check[1]).includes('pk3')) {
           valid.status = false
-          valid.error = `Output #${i} does not have a pk (ecdsaPK) key`
+          valid.error = `Output #${1} does not have a pk (ecdsaPK) key`
           return valid
         }     
-        if (!JSON.stringify(check[i]).includes('txHash')) {
+        if (!JSON.stringify(check[1]).includes('tx_hash')) {
           valid.status = false
-          valid.error = `Output #${i} does not have a txHash`
+          valid.error = `Output #${1} does not have a tx_hash`
+          return valid
+        }
+        if (!JSON.stringify(check[0]).includes('address')) {
+          valid.status = false
+          valid.error = `Output #${0} does not have a address`
+          return valid
+        }
+        if (!JSON.stringify(check[0]).includes('network')) {
+          valid.status = false
+          valid.error = `Output #${0} does not have a network`
           return valid
         }
       return valid
@@ -332,7 +347,7 @@ class LatticeShared extends Command {
         // file submitted, is file empty?
         isFileEmpty(args.latticeSK).then( (isEmpty) => {
           if (isEmpty) {
-            spinner.fail('Ciphertext File is empty...')
+            spinner.fail('File is empty...')
             this.exit(1)
           }
         })
@@ -380,7 +395,7 @@ class LatticeShared extends Command {
           latticeSK = JSON.parse(args.latticeSK)
         }
         catch (e) {
-          spinner.fail('Invalid JSON given...')
+          spinner.fail(`Invalid JSON given... ${e}`)
           this.exit(1)
         }
         if (latticeSK[0].encrypted === true) {
@@ -539,29 +554,25 @@ class LatticeShared extends Command {
             const signedMsg = DILOBJECT_SENDER.sign(Buffer.from(encSeed).toString('hex'))
             // save encrpytedCypherText and signedMsg to a local file
             const encCypherTextJson = ['[', JSON.stringify(encryptedCypherText), ']'].join('')
-            
             fs.writeFileSync(cypherText, encCypherTextJson)
-
             spinner.succeed(`Cyphertext file written to: ${cypherText}`)
-            
             const signedMsgJson = ['[', JSON.stringify(signedMsg), ']'].join('')
-            
             fs.writeFileSync(signedMessage, signedMsgJson)
-            
             spinner.succeed(`Signed Message File file written to: ${signedMessage}`)
             // 9 - Generate the next 1000 keys with Shake128 and shared secret seed
             waitForQRLLIB(async () => {
               const sBin = QRLLIB.hstr2bin(Buffer.from(Buffer.from(seed).toString('hex')))
               let keylist = QRLLIB.shake128(64000, sBin)
               if (flags.encryptPassword) {
-                keylist = aes256.encrypt(flags.encryptPassword, keylist)
+                keylist = aes256.encrypt(flags.encryptPassword, QRLLIB.bin2hstr(keylist))
+                fs.writeFileSync(sharedKeyListFile, keylist)
+                spinner.succeed(`Shared Key List file written to: ${sharedKeyListFile}`)
               }
-
-            
-              fs.writeFileSync(sharedKeyListFile, QRLLIB.bin2hstr(keylist))
-              
-              spinner.succeed(`Shared Key List file written to: ${sharedKeyListFile}`)
-            
+              else {
+                // Write the shared keylist file
+                fs.writeFileSync(sharedKeyListFile, QRLLIB.bin2hstr(keylist))
+                spinner.succeed(`Shared Key List file written to: ${sharedKeyListFile}`)
+              }
             })
           })
         })
