@@ -363,15 +363,15 @@ describe('send #2j', () => {
 describe('send #2k', () => {
   let exitCode
   before(done => {
+    const args = [
+      'send',
+      '10',
+      '-R', testSetup.badWallet,
+      '-h', '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
+      '-i', '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
-      const args = [
-        'send',
-        '10',
-        '-R', testSetup.badWallet,
-        '-h', '020200cb68ca52ae4aff1d2ac10a2cc03f2325b95ab4610d2c6fd2af684aa1427766ac0b96b05942734d254fb9dba5fcb13967',
-        '-i', '1',
-      ]
       exitCode = code
       done()
     })
