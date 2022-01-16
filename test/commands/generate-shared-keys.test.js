@@ -48,7 +48,7 @@ describe('generate-shared-keys setup', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-/*
+
 // generate-shared-keys command without any flags
 describe('generate-shared-keys #1 - no flags given', () => {
   let exitCode
