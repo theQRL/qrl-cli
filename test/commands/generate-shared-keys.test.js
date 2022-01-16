@@ -1260,4 +1260,3 @@ describe('generate-shared-keys #2d', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-*/
