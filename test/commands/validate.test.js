@@ -7,11 +7,11 @@ const processFlags = {
 }
 
 describe('validate', () => {
-  const args = [
-    'validate',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'validate',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -24,12 +24,12 @@ describe('validate', () => {
 })
 
 describe('validate', () => {
-  const args = [
-    'validate',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'validate',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -42,13 +42,13 @@ describe('validate', () => {
 })
 
 describe('validate', () => {
-  const args = [
-    'validate',
-    '-q',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'validate',
+      '-q',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -61,12 +61,12 @@ describe('validate', () => {
 })
 
 describe('validate', () => {
-  const args = [
-    'validate',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'validate',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -78,13 +78,13 @@ describe('validate', () => {
   })
 })
 describe('validate', () => {
-  const args = [
-    'validate',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
-    '-q',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'validate',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f4',
+      '-q',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code

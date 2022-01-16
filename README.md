@@ -232,12 +232,12 @@ Get lattice keys associated to a QRL address or transaction hash that have been 
 ```
 Get lattice keys associated to a QRL address or transaction hash that have been broadcast to the network
 
-Command requires that either a transaction hash or QRL address to lookup is given and the network must match where the transactionwas made.
+Command requires that either a transaction hash or QRL address to lookup is given and the network must match where the transaction was made.
 
-For general address lookups, use page number and items returned number to limit your search. 
+For general address lookup, use page number and items returned number to limit your search. 
 qrl-cli get-keys -i 1 -p 1 -a {ADDRESS} - will print the first key if found at that address. 
 
-Found public lattice keys can be writen to a json file with the (-f) flag, default will print lattice keys to stdout
+Found public lattice keys can be written to a json file with the (-f) flag, default will print lattice keys to stdout
 
 
 USAGE
@@ -256,12 +256,12 @@ OPTIONS
 
 DESCRIPTION
   Command requires that either a transaction hash or QRL address to lookup is given and the network must match where the 
-  transactionwas made.
+  transaction was made.
 
-  For general address lookups, use page number and items returned number to limit your search. 
+  For general address lookup, use page number and items returned number to limit your search. 
   qrl-cli get-keys -i 1 -p 1 -a {ADDRESS} - will print the first key if found at that address. 
 
-  Found public lattice keys can be writen to a json file with the (-f) flag, default will print lattice keys to stdout
+  Found public lattice keys can be written to a json file with the (-f) flag, default will print lattice keys to stdout
 ```
 
 _See code: [src/commands/get-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/get-keys.js)_
@@ -379,12 +379,21 @@ _See code: [src/commands/search.js](https://github.com/theqrl/qrl-cli/blob/v1.8.
 
 ## `qrl-cli send [QUANTITY]`
 
-Send Quanta
+Send Quanta from a QRL address to QRL another address
 
 ```
-Send Quanta
-...
-TODO
+Send Quanta from a QRL address to QRL another address
+
+This function allows the transfer of Quanta between QRL addresses. Requires a wallet file or private keys and an unused OTS
+key index to sign the transaction.
+
+Offline signing enabled with the (-T) "Save To File" flag. This can sent using the (-F) "Load From File" flag. 
+Add message data to the transaction with the (-M) "Message" flag. This allows up to an 80 bytes message to be attached 
+to the transfer.
+
+Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet, or a custom defined node (-g) grpc endpoint. 
+Advanced: Append a (-M) Message to the transaction with max 80 bytes length
+
 
 
 USAGE
@@ -395,23 +404,34 @@ ARGUMENTS
 
 OPTIONS
   -F, --loadfromfile=loadfromfile  Load saved transaction from the file and send)
+  -M, --message=message            Message data to send (80 bytes)
   -R, --file=file                  JSON file of recipients
   -T, --savetofile=savetofile      Save transaction to the file (offline mode)
   -f, --fee=fee                    Fee for transaction in Shor (defaults to 100 Shor)
-  -g, --grpc=grpc                  advanced: grpc endpoint (for devnet/custom QRL network deployments)
-  -h, --hexseed=hexseed            hexseed/mnemonic of wallet from where funds should be sent
+  -g, --grpc=grpc                  Advanced: grpc endpoint (for devnet/custom QRL network deployments)
+  -h, --hexseed=hexseed            Hexseed/mnemonic of wallet from where funds should be sent
   -i, --otsindex=otsindex          OTS key index
   -j, --jsonObject=jsonObject      Pass a JSON object of recipients/quantities for multi-output transactions
-  -m, --mainnet                    uses mainnet to send the transaction
-  -p, --password=password          wallet file password
+  -m, --mainnet                    Use mainnet to send the transaction
+  -p, --password=password          Wallet file password
   -r, --recipient=recipient        QRL address of recipient
   -s, --shor                       Send in Shor
-  -t, --testnet                    uses testnet to send the transaction
+  -t, --testnet                    Use testnet to send the transaction
   -w, --wallet=wallet              JSON file of wallet from where funds should be sent
 
 DESCRIPTION
-  ...
-  TODO
+  This function allows the transfer of Quanta between QRL addresses. Requires a wallet file or private keys and an 
+  unused OTS
+  key index to sign the transaction.
+
+  Offline signing enabled with the (-T) "Save To File" flag. This can sent using the (-F) "Load From File" flag. 
+  Add message data to the transaction with the (-M) "Message" flag. This allows up to an 80 bytes message to be attached 
+
+  to the transfer.
+
+  Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet, or a custom defined node (-g) grpc 
+  endpoint. 
+  Advanced: Append a (-M) Message to the transaction with max 80 bytes length
 ```
 
 _See code: [src/commands/send.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/send.js)_
@@ -531,7 +551,9 @@ ARGUMENTS
   ADDRESS  QRL address to validate
 
 OPTIONS
-  -q, --quiet  Quiet mode: no address details, just return validity via exit code
+  -i, --index=index        address index to validate if more than one in file {default = 0}
+  -p, --password=password  QRL Wallet encryption passphrase.
+  -q, --quiet              Quiet mode: no address details, just return validity via exit code
 
 DESCRIPTION
   ...

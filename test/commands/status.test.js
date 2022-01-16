@@ -7,11 +7,11 @@ const processFlags = {
 }
 
 describe('status #1', () => {
-  const args = [
-    'status',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'status',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -25,12 +25,12 @@ describe('status #1', () => {
 
 
 describe('status #2', () => {
-  const args = [
-    'status',
-    '-m',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'status',
+      '-m',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -43,9 +43,9 @@ describe('status #2', () => {
 })
 
 describe('status #3', () => {
-  const args = ['status', '-t']
   let exitCode
   before(done => {
+    const args = ['status', '-t']
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -75,9 +75,9 @@ describe('status #3', () => {
 
 
 describe('status #5', () => {
-  const args = ['status', '-g', 'mainnet-1.automated.theqrl.org:19009']
   let exitCode
   before(done => {
+    const args = ['status', '-g', 'mainnet-1.automated.theqrl.org:19009']
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -90,9 +90,9 @@ describe('status #5', () => {
 })
 
 describe('status #6', () => {
-  const args = ['status', '-g']
   let exitCode
   before(done => {
+    const args = ['status', '-g']
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -105,9 +105,9 @@ describe('status #6', () => {
 })
 
 describe('status #7', () => {
-  const args = ['status', '-g', 'invalid.theqrl.org']
   let exitCode
   before(done => {
+    const args = ['status', '-g', 'invalid.theqrl.org']
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
