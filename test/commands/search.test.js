@@ -24,7 +24,6 @@ describe('search setup', () => {
   before(done => {
     aliceLattice = openFile(testSetup.aliceLatticeLocation) // 
     aliceTxHash = aliceLattice[0].tx_hash
-    console.log( aliceTxHash)
     done()
   })
   it('exit code should be non-0 if passed without any arguments/flags, requires xmss address and ots index', () => {
