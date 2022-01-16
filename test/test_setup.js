@@ -54,6 +54,7 @@ const aliceTempSignedMessageOut = path.join(__dirname, '/lattice/alice/aliceTemp
 const aliceSharedKeyFile = path.join(__dirname, '/lattice/alice/alice-Shared-Key-List.txt')
 const aliceTempSharedKeyFile = path.join(__dirname, '/lattice/alice/aliceTempSharedKeyList.txt')
 const aliceENCSharedKeyFile = path.join(__dirname, '/lattice/alice/aliceENCSharedKeyList.txt')
+const aliceTempENCSharedKeyFile = path.join(__dirname, '/lattice/alice/aliceTempENCSharedKeyList.txt')
 const aliceRegenSharedKeyFile = path.join(__dirname, '/lattice/alice/aliceRegenSharedKey.txt')
 const aliceTempRegenSharedKeyFile = path.join(__dirname, '/lattice/alice/aliceTempRegenSharedKeyList.txt')
 // ciphertext
@@ -129,6 +130,7 @@ module.exports = {
   aliceSharedKeyFile,
   aliceTempSharedKeyFile,
   aliceENCSharedKeyFile,
+  aliceTempENCSharedKeyFile,
   aliceRegenSharedKeyFile,
   aliceTempRegenSharedKeyFile,
   aliceCipherTextOut,

@@ -216,34 +216,40 @@ exports.mochaHooks = {
     encWalletCreate({ dir: testSetup.encWalletFile, encPass: testSetup.encPass })
     // Alice Wallets
     walletCreate({dir: testSetup.alicePTWalletLocation})
-    walletCreate({dir: testSetup.aliceTempPTWalletLocation})
-    encWalletCreate({dir: testSetup.aliceENCWalletLocation, encPass: testSetup.aliceEncPass})
-    encWalletCreate({dir: testSetup.aliceTempENCWalletLocation, encPass: testSetup.aliceEncPass})
-    // Bob Wallets
-    walletCreate({dir: testSetup.bobPTWalletLocation})    
-    walletCreate({dir: testSetup.bobTempPTWalletLocation})    
-    encWalletCreate({dir: testSetup.bobENCWalletLocation, encPass: testSetup.bobEncPass})    
-    encWalletCreate({dir: testSetup.bobTempENCWalletLocation, encPass: testSetup.bobEncPass})    
-
-    // Alice lattice keys
+    // lattice keys
     latticeCreate({ wallet: testSetup.alicePTWalletLocation, outFile: testSetup.aliceLatticeLocation, index: '0', pubKeyFile: testSetup.alicePubKeyFile })
     encLatticeCreate({ wallet: testSetup.alicePTWalletLocation, outFile: testSetup.aliceENCLatticeLocation, index: '1', pass: testSetup.aliceEncPass, encPass: testSetup.aliceEncPass })
-    encLatticeCreate({ wallet: testSetup.aliceENCWalletLocation, outFile: testSetup.aliceTempENCLatticeKey, index: '0', pass: testSetup.aliceEncPass, encPass: testSetup.aliceEncPass })
     
-    // Bob lattice keys
+    encWalletCreate({dir: testSetup.aliceENCWalletLocation, encPass: testSetup.aliceEncPass})
+    encLatticeCreate({ wallet: testSetup.aliceENCWalletLocation, outFile: testSetup.aliceTempENCLatticeKey, index: '0', pass: testSetup.aliceEncPass, encPass: testSetup.aliceEncPass })
+
+
+
+    // Bob Wallets
+    walletCreate({dir: testSetup.bobPTWalletLocation})    
     latticeCreate({ wallet: testSetup.bobPTWalletLocation, outFile: testSetup.bobLatticeLocation, index: '0', pubKeyFile: testSetup.bobPubKeyFile })
     encLatticeCreate({ wallet: testSetup.bobPTWalletLocation, outFile: testSetup.bobENCLatticeLocation, index: '1', pass: testSetup.bobEncPass, encPass: testSetup.bobEncPass })
+    
+    encWalletCreate({dir: testSetup.bobENCWalletLocation, encPass: testSetup.bobEncPass})    
     encLatticeCreate({ wallet: testSetup.bobENCWalletLocation, outFile: testSetup.bobTempENCLatticeKey, index: '0', pass: testSetup.bobEncPass, encPass: testSetup.bobEncPass })
+    
+
+    walletCreate({dir: testSetup.aliceTempPTWalletLocation})
+    encWalletCreate({dir: testSetup.aliceTempENCWalletLocation, encPass: testSetup.aliceEncPass})
+
+    walletCreate({dir: testSetup.bobTempPTWalletLocation})    
+    encWalletCreate({dir: testSetup.bobTempENCWalletLocation, encPass: testSetup.bobEncPass})    
+
 
     // Generate Alice's shared key list from her secret lattice keys + bob's public lattice keys
     sharedKeys({ pubkey: testSetup.bobPubKeyFile, seckey: testSetup.aliceLatticeLocation, cipherText: testSetup.aliceCipherTextOut, sharedKeyFile: testSetup.aliceSharedKeyFile, signedMessage: testSetup.aliceSignedMessageOut })
-    // Re-Generate Bob's Shared Key file from Alice's cyphertext, signedMessage and pub keys + bob's Secret Lattice Keys
-    regenSharedKeys({ pubkey: testSetup.alicePubKeyFile, seckey: testSetup.bobLatticeLocation, cipherText: testSetup.aliceCipherTextOut, sharedKeyFile: testSetup.bobRegenSharedKeyFile, signedMessage: testSetup.aliceSignedMessageOut })
-    
     // Generate bob's shared key file from his secret lattice keys + Alice's public lattice keys
     sharedKeys({ pubkey: testSetup.alicePubKeyFile, seckey: testSetup.bobLatticeLocation, cipherText: testSetup.bobCipherTextOut, sharedKeyFile: testSetup.bobSharedKeyFile, signedMessage: testSetup.bobSignedMessageOut })
+    
     // Re-Generate Alice's Shared Key file from bob's cyphertext, signedMessage and pub keys + Alice's Secret Lattice Keys
     regenSharedKeys({ pubkey: testSetup.bobPubKeyFile, seckey: testSetup.aliceLatticeLocation, cipherText: testSetup.bobCipherTextOut, sharedKeyFile: testSetup.aliceRegenSharedKeyFile, signedMessage: testSetup.bobSignedMessageOut })
+    // Re-Generate Bob's Shared Key file from Alice's cyphertext, signedMessage and pub keys + bob's Secret Lattice Keys
+    regenSharedKeys({ pubkey: testSetup.alicePubKeyFile, seckey: testSetup.bobLatticeLocation, cipherText: testSetup.aliceCipherTextOut, sharedKeyFile: testSetup.bobRegenSharedKeyFile, signedMessage: testSetup.aliceSignedMessageOut })
 
     sendOfflineFileGen({ dir: testSetup.sendTXOfflineFile , walletFile: testSetup.walletFile })
   },
@@ -252,7 +258,6 @@ exports.mochaHooks = {
   // One-time final cleanup run after all testing is complete
   //
   afterAll: function _After() {
-    /*
     fileRemove(testSetup.emptyText)
 
     fileRemove(testSetup.badWallet)
@@ -282,6 +287,7 @@ exports.mochaHooks = {
     fileRemove(testSetup.aliceSharedKeyFile)
     fileRemove(testSetup.aliceTempSharedKeyFile)
     fileRemove(testSetup.aliceENCSharedKeyFile)
+    fileRemove(testSetup.aliceTempENCSharedKeyFile)
     fileRemove(testSetup.aliceRegenSharedKeyFile)
     fileRemove(testSetup.aliceTempRegenSharedKeyFile)
     fileRemove(testSetup.aliceCipherTextOut)
@@ -305,6 +311,5 @@ exports.mochaHooks = {
     fileRemove(testSetup.bobCipherTextOut)
     fileRemove(testSetup.bobTempCipherTextOut)
     fileRemove(testSetup.sendTXOfflineFile)
-*/
   }
 };
