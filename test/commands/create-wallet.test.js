@@ -14,12 +14,12 @@ const processFlags = {
 
 // fail with no file location given
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-f',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-f',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -33,14 +33,14 @@ describe('create-wallet', () => {
 
 // fail missing password to encrypt wallet
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-f',
-    testSetup.bobTempENCWalletLocation,
-    '-p',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-f',
+      testSetup.bobTempENCWalletLocation,
+      '-p',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -54,12 +54,12 @@ describe('create-wallet', () => {
 
 // fail missing height
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-h',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -73,13 +73,13 @@ describe('create-wallet', () => {
 
 // fail create with height 3 
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '3',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-h',
+      '3',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -93,13 +93,13 @@ describe('create-wallet', () => {
 
 // fail height too large
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '22',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-h',
+      '22',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -113,13 +113,13 @@ describe('create-wallet', () => {
 
 // failed on treeheight
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '13',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-h',
+      '13',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -133,13 +133,13 @@ describe('create-wallet', () => {
 
 // fail multiple hash functions
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-3',
-    '-2',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-3',
+      '-2',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -158,11 +158,11 @@ describe('create-wallet', () => {
 
 // pass create default wallet to stdout
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -176,13 +176,13 @@ describe('create-wallet', () => {
 
 // pass create default wallet to file
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-f',
-    testSetup.bobTempPTWalletLocation,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-f',
+      testSetup.bobTempPTWalletLocation,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -197,15 +197,15 @@ describe('create-wallet', () => {
 
 // pass create encrypted wallet
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-f',
-    testSetup.bobTempENCWalletLocation,
-    '-p',
-    testSetup.bobEncPass,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-f',
+      testSetup.bobTempENCWalletLocation,
+      '-p',
+      testSetup.bobEncPass,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -220,13 +220,13 @@ describe('create-wallet', () => {
 
 // pass valid treeheight
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-h',
-    '4',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-h',
+      '4',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -240,12 +240,12 @@ describe('create-wallet', () => {
 
 // pass hash selection 1
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -259,12 +259,12 @@ describe('create-wallet', () => {
 
 // pass hash 2
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-2',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-2',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -278,12 +278,12 @@ describe('create-wallet', () => {
 
 // pass hash selection 3
 describe('create-wallet', () => {
-  const args = [
-    'create-wallet',
-    '-3',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'create-wallet',
+      '-3',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code

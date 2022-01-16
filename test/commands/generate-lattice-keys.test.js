@@ -256,14 +256,13 @@ describe('generate-lattice-keys #5 - broadcast with no OTS given', () => {
 describe('generate-lattice-keys #6 - bad mnemonic, too short', () => {
   let exitCode
   before(done => {
-  const args = [
-    'generate-lattice-keys',
-    '-i', '12',
-    '-s', 'action core power grief surge square attic mere thence scarce rigid broken parcel leper crew twelve bicker recall met smoky congo happy soup change awhile willow lick ignore inject solve costly this split', 
-    '-b',
-    '-t', 
-  ]
-// console.log(`aliceWallet[0].hexseed: ${aliceWallet[0].hexseed}`)
+    const args = [
+      'generate-lattice-keys',
+      '-i', '12',
+      '-s', 'action core power grief surge square attic mere thence scarce rigid broken parcel leper crew twelve bicker recall met smoky congo happy soup change awhile willow lick ignore inject solve costly this split', 
+      '-b',
+      '-t', 
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -279,12 +278,11 @@ describe('generate-lattice-keys #6 - bad mnemonic, too short', () => {
 describe('generate-lattice-keys #6.a - mnemonic, no ots', () => {
   let exitCode
   before(done => {
-  const args = [
-    'generate-lattice-keys',
-    '-s', aliceWallet[0].mnemonic, 
-    '-t', 
-  ]
-// console.log(`aliceWallet[0].hexseed: ${aliceWallet[0].hexseed}`)
+    const args = [
+      'generate-lattice-keys',
+      '-s', aliceWallet[0].mnemonic, 
+      '-t', 
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -300,13 +298,12 @@ describe('generate-lattice-keys #6.a - mnemonic, no ots', () => {
 describe('generate-lattice-keys #7 - bad ots (a)', () => {
   let exitCode
   before(done => {
-  const args = [
-    'generate-lattice-keys',
-    '-s', aliceWallet[0].mnemonic, 
-    '-t',
-    '-i', 'a', 
-  ]
-// console.log(`aliceWallet[0].hexseed: ${aliceWallet[0].hexseed}`)
+    const args = [
+      'generate-lattice-keys',
+      '-s', aliceWallet[0].mnemonic, 
+      '-t',
+      '-i', 'a', 
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -322,15 +319,14 @@ describe('generate-lattice-keys #7 - bad ots (a)', () => {
 describe('generate-lattice-keys #8 - bad fee', () => {
   let exitCode
   before(done => {
-  const args = [
-    'generate-lattice-keys',
-    '-s', aliceWallet[0].mnemonic, 
-    '-t',
-    '-i', '12',
-    '-f',
-    'a' 
-  ]
-// console.log(`aliceWallet[0].hexseed: ${aliceWallet[0].hexseed}`)
+    const args = [
+      'generate-lattice-keys',
+      '-s', aliceWallet[0].mnemonic, 
+      '-t',
+      '-i', '12',
+      '-f',
+      'a' 
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
