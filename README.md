@@ -22,7 +22,7 @@ $ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-@theqrl/cli/1.8.0 linux-x64 node-v10.16.3
+@theqrl/cli/1.8.0 darwin-x64 node-v16.13.1
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND
@@ -42,6 +42,7 @@ USAGE
 * [`qrl-cli search SEARCH`](#qrl-cli-search-search)
 * [`qrl-cli send [QUANTITY]`](#qrl-cli-send-quantity)
 * [`qrl-cli send-message`](#qrl-cli-send-message)
+* [`qrl-cli sign-tx-offline QUANTITY OUTPUT`](#qrl-cli-sign-tx-offline-quantity-output)
 * [`qrl-cli status`](#qrl-cli-status)
 * [`qrl-cli validate ADDRESS`](#qrl-cli-validate-address)
 
@@ -471,6 +472,41 @@ DESCRIPTION
 ```
 
 _See code: [src/commands/send-message.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/send-message.js)_
+
+## `qrl-cli sign-tx-offline QUANTITY OUTPUT`
+
+Send Quanta
+
+```
+Send Quanta
+...
+TODO
+
+
+USAGE
+  $ qrl-cli sign-tx-offline QUANTITY OUTPUT
+
+ARGUMENTS
+  QUANTITY  Number of Quanta (Shor if -s flag set) to send
+  OUTPUT    JSON file of the signed transaction
+
+OPTIONS
+  -R, --file=file              JSON file of recipients
+  -f, --fee=fee                Fee for transaction in Shor (defaults to 100 Shor)
+  -h, --hexseed=hexseed        hexseed/mnemonic of wallet from where funds should be sent
+  -i, --otsindex=otsindex      (required) OTS key index
+  -j, --jsonObject=jsonObject  Pass a JSON object of recipients/quantities for multi-output transactions
+  -p, --password=password      wallet file password
+  -r, --recipient=recipient    QRL address of recipient
+  -s, --shor                   Send in Shor
+  -w, --wallet=wallet          JSON file of wallet from where funds should be sent
+
+DESCRIPTION
+  ...
+  TODO
+```
+
+_See code: [src/commands/sign-tx-offline.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/sign-tx-offline.js)_
 
 ## `qrl-cli status`
 

@@ -15,7 +15,7 @@
     "@oclif/plugin-help": "^2",
     "@semantic-release/git": "^9.0.0",
     "@theqrl/explorer-helpers": "2.0.0",
-    "@theqrl/qrl-proto-sha256": "^3.3.0",
+    "@theqrl/qrl-proto-sha256": "^3.4.1",
     "@theqrl/qrlbase.proto": "^1.1.0",
     "@theqrl/validate-qrl-address": "^1.1.0",
     "acorn": "^7.2.0",
@@ -32,7 +32,7 @@
     "grpc-js-kit": "^0.1.0",
     "kleur": "^3.0.3",
     "moment": "^2.24.0",
-    "node": "10.16.3",
+    "node": "^16.13.1",
     "ora": "^3.4.0",
     "qrcode-terminal": "^0.12.0",
     "qrllib": "^1.1.7",
@@ -71,6 +71,9 @@
   "license": "MIT",
   "main": "src/index.js",
   "oclif": {
+    "macos": {
+      "identifier": "com.theqrl.qrl-cli"
+    },
     "commands": "./src/commands",
     "bin": "qrl-cli",
     "plugins": [
@@ -97,7 +100,7 @@
     "test-validate": "nyc mocha --forbid-only -t 50000 \"test/commands/validate.test.js\"",
     "version": "oclif-dev readme && git add README.md",
     "cov": "nyc report --reporter=text-lcov > coverage.lcov && ./node_modules/.bin/codecov -t $CODECOV_TOKEN",
-    "make-binaries": "pkg . -t node10-macos-x64 -o dist/macos/qrl-cli && pkg . -t node10-win-x64 -o dist/win/qrl-cli && pkg . -t node10-linux-x64 -o dist/linux/qrl-cli && cp ./assets/macos/ecdh.node dist/macos && cp ./assets/linux/ecdh.node dist/linux && cp ./assets/win/ecdh.node dist/win"
+    "make-binaries": "pkg . -t node12-macos-x64 -o dist/macos/qrl-cli && pkg . -t node12-win-x64 -o dist/win/qrl-cli && pkg . -t node12-linux-x64 -o dist/linux/qrl-cli && cp ./assets/macos/ecdh.node dist/macos && cp ./assets/linux/ecdh.node dist/linux && cp ./assets/win/ecdh.node dist/win"
   },
   "pkg": {
     "scripts": [
