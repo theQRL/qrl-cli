@@ -9,27 +9,16 @@ const processFlags = {
   detached: true,
   stdio: 'inherit',
 }
-
 const openFile = (path) => {
   const contents = fs.readFileSync(path)
   return JSON.parse(contents)
 }
 
-let aliceTX
+
+let aliceLattice
 let aliceTxHash
 
 //
-describe('setup', () => {
-  let exitCode
-  before(done => {
-    aliceTX = openFile(testSetup.alicePubKeyFile)
-    aliceTxHash = aliceTX[1].txHash
-    done()
-  })
-  it('exit code should be non-0 if passed without any arguments/flags, requires xmss address and ots index', () => {
-    assert.notStrictEqual(exitCode, 0)
-  })
-})
 
 
 // search command without any flags
@@ -111,6 +100,8 @@ describe('search #4', () => {
 
 // search command tx lookup grpc to testnet
 describe('search #5', () => {
+  aliceLattice = openFile(testSetup.aliceLatticeLocation) // 
+  aliceTxHash = aliceLattice[0].tx_hash
   const args = [
     'search',
     aliceTxHash,
@@ -129,7 +120,6 @@ describe('search #5', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-
 
 // search command with txHash that does not exist
 describe('search #6', () => {
@@ -192,6 +182,8 @@ describe('search #8', () => {
 
 // search command tx lookup with json flag
 describe('search #9', () => {
+  aliceLattice = openFile(testSetup.aliceLatticeLocation) // 
+  aliceTxHash = aliceLattice[0].tx_hash
   const args = [
     'search',
     aliceTxHash,
@@ -272,3 +264,4 @@ describe('search #12', () => {
 })
 
 // txHash ce14f14564be176a62794088bab55a095ac82fdfa0f390fe6e8df6d2f200b2e9
+

@@ -222,6 +222,8 @@ describe('send-message #8', () => {
 
 // no OTS given for hexseed file
 describe('send-message #9', () => {
+  wallet = openFile(testSetup.walletFile)
+  walletHexseed = wallet[0].hexseed
   const args = [
     'send-message',
     '-t',
@@ -247,6 +249,8 @@ describe('send-message #9', () => {
 
 // bad OTS given for hexseed file
 describe('send-message #10', () => {
+  wallet = openFile(testSetup.walletFile)
+  walletHexseed = wallet[0].hexseed
   const args = [
     'send-message',
     '-t',
@@ -276,6 +280,8 @@ describe('send-message #10', () => {
 
 // bad OTS given for hexseed file
 describe('send-message #11', () => {
+  wallet = openFile(testSetup.walletFile)
+  walletHexseed = wallet[0].hexseed
   const args = [
     'send-message',
     '-t',
@@ -304,6 +310,8 @@ describe('send-message #11', () => {
 })
 
 describe('send-message #12', () => {
+  wallet = openFile(testSetup.walletFile)
+  walletHexseed = wallet[0].hexseed
   const args = [
     'send-message',
     '-M',
@@ -390,6 +398,8 @@ describe('send-message #14', () => {
 
 // successful mesage send hex seed
 describe('send-message #15', () => {
+  wallet = openFile(testSetup.walletFile)
+  walletHexseed = wallet[0].hexseed
   const args = [
     'send-message',
     '-t',
