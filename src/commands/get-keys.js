@@ -4,7 +4,6 @@ const { red, white, black } = require('kleur')
 const ora = require('ora')
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
-// const helpers = require('@theqrl/explorer-helpers')
 const Qrlnode = require('../functions/grpc')
 
 
@@ -22,7 +21,6 @@ function bytesToHex(byteArray) {
 class keySearch extends Command {
   async run() {
     const {flags} = this.parse(keySearch)
-
     let address
     if(flags.address) {
       address = flags.address
@@ -70,12 +68,11 @@ class keySearch extends Command {
       grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
+
     this.log(`Fetching Lattice keys on ${white().bgBlue(network)}`)
     const spinner = ora({ text: 'Fetching Ephemeral keys...\n', }).start()
-
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     await Qrlnetwork.connect()
-
     // verify we have connected and try again if not
     let i = 0
     const count = 5
@@ -88,7 +85,6 @@ class keySearch extends Command {
     }
     let latticeKeys = {}
      latticeKeys.tx = []
-
     if (flags.txhash) {
       const TXHash = flags.txhash
       const response = await Qrlnetwork.api('GetObject', {
@@ -99,30 +95,45 @@ class keySearch extends Command {
         this.exit(1)
       } else {
         spinner.succeed('Transaction found')
-
         if (!response.transaction.tx.latticePK) {
           // not a lattice transaction. Fail
           spinner.fail('Not a lattice transaction')
           this.exit(1)
         }
         address = `Q${bytesToHex(response.transaction.addr_from)}`
-        // const txHash =  bytesToHex(response.transaction.tx.transaction_hash)
-// console.log(JSON.stringify(response))
         latticeKeys = [{
           address,
           network,
         }]
+
+    // /////////////////////////////////////
+    // Validate the keys returned are good!
+    // /////////////////////////////////////
+        spinner.succeed(`tx_hash: ${TXHash}`)
+        const GetTransactionReq = {
+        tx_hash: Buffer.from(TXHash, 'hex'),
+      }
+        const latticeMetaData = await Qrlnetwork.api('GetTransaction', GetTransactionReq)
+        spinner.succeed(`latticeMetaData masterAddr: ${JSON.stringify(latticeMetaData.tx.master_addr)}`)
+        const pubKey = bytesToHex(latticeMetaData.tx.public_key)
+        spinner.succeed(`pubKey: ${JSON.stringify(pubKey)}`)
+        const sig = bytesToHex(latticeMetaData.tx.signature)
+        spinner.succeed(`sig: ${JSON.stringify(sig)}`)
+        const transactionHash = bytesToHex(latticeMetaData.tx.transaction_hash)
+        spinner.succeed(`transaction_hash: ${JSON.stringify(transactionHash)}`)
+        const blockHeaderHash = bytesToHex(latticeMetaData.block_header_hash)
+        spinner.succeed(`blockHeaderHash: ${JSON.stringify(blockHeaderHash)}`)
+
         latticeKeys.push({ 
           pk1: bytesToHex(response.transaction.tx.latticePK.pk1),
           pk2: bytesToHex(response.transaction.tx.latticePK.pk2),
           pk3: bytesToHex(response.transaction.tx.latticePK.pk3),
-          txHash: bytesToHex(response.transaction.tx.transaction_hash),
+          tx_hash: bytesToHex(response.transaction.tx.transaction_hash),
         })
       }
     }
 
     if (flags.address) {
-
       const getTransactionsByAddressReq = {
         address: Buffer.from(address.substring(1), 'hex'),
         item_per_page: itemPerPage,
@@ -133,7 +144,6 @@ class keySearch extends Command {
         spinner.succeed(`No keys found for address: ${address} on ${network}`)
         this.exit(0)
       }
-
       latticeKeys = [{
         address,
         network,
@@ -141,61 +151,60 @@ class keySearch extends Command {
       /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
       for (let i = 0; i < response.lattice_pks_detail.length; i++) {
 
+        // /////////////////////////////////////
+        // Validate the keys returned are good!
+        // /////////////////////////////////////
         latticeKeys.push({ 
           pk1: bytesToHex(response.lattice_pks_detail[i].pk1),
           pk2: bytesToHex(response.lattice_pks_detail[i].pk2),
           pk3: bytesToHex(response.lattice_pks_detail[i].pk3),
-          txHash: bytesToHex(response.lattice_pks_detail[i].tx_hash),
+          tx_hash: bytesToHex(response.lattice_pks_detail[i].tx_hash),
         })
-
       }
       spinner.succeed(`Total Keys Found: ${JSON.stringify(response.lattice_pks_detail.length)}`)
     }
-
-      // output keys to file if flag passed
-      if (flags.pub_key_file) {
-        const PubLatticeKeysJson = [JSON.stringify(latticeKeys)].join('')
-        fs.writeFileSync(flags.pub_key_file, PubLatticeKeysJson)
-        spinner.succeed(`Ephemeral public keys written to ${flags.pub_key_file}`)
-      }
-      if (flags.json && !flags.pub_key_file) {
-        // console.log(JSON.stringify(latticeKeys))
-      }
-      else if (!flags.txhash) {
-        this.log(` ${black().bgWhite('address:')}  ${address}`)
-        this.log(` ${black().bgWhite('network:')}  ${network}`)
-        // console.log(latticeKeys)
-        for (let i = 0; i < latticeKeys.length; i++) {
-          if (i > 0) {
-            this.log(` ${black().bgWhite('key #' + i + ':')} `) // eslint-disable-line
-            this.log(` ${black().bgWhite('pk1:')}  ${latticeKeys[i].pk1}`)
-            this.log(` ${black().bgWhite('pk2:')}  ${latticeKeys[i].pk2}`)
-            this.log(` ${black().bgWhite('pk3:')}  ${latticeKeys[i].pk3}`)
-            this.log(` ${black().bgWhite('txHash:')}  ${latticeKeys[i].txHash}`)
-          }
+    // output keys to file if flag passed
+    if (flags.pub_key_file) {
+      const PubLatticeKeysJson = [JSON.stringify(latticeKeys)].join('')
+      fs.writeFileSync(flags.pub_key_file, PubLatticeKeysJson)
+      spinner.succeed(`Ephemeral public keys written to ${flags.pub_key_file}`)
+    }
+    if (flags.json && !flags.pub_key_file) {
+      // console.log(JSON.stringify(latticeKeys))
+    }
+    else if (!flags.txhash) {
+      this.log(` ${black().bgWhite('address:')}  ${address}`)
+      this.log(` ${black().bgWhite('network:')}  ${network}`)
+      // console.log(latticeKeys)
+      for (let i = 0; i < latticeKeys.length; i++) {
+        if (i > 0) {
+          this.log(` ${black().bgWhite('key #' + i + ':')} `) // eslint-disable-line
+          this.log(` ${black().bgWhite('pk1:')}  ${latticeKeys[i].pk1}`)
+          this.log(` ${black().bgWhite('pk2:')}  ${latticeKeys[i].pk2}`)
+          this.log(` ${black().bgWhite('pk3:')}  ${latticeKeys[i].pk3}`)
+          this.log(` ${black().bgWhite('tx_hash:')}  ${latticeKeys[i].txHash}`)
         }
       }
-      else {
-        this.log(` ${black().bgWhite('address:')}  ${address}`)
-        this.log(` ${black().bgWhite('network:')}  ${network}`)
-        this.log(` ${black().bgWhite('pk1:')}  ${latticeKeys[1].pk1}`)
-        this.log(` ${black().bgWhite('pk2:')}  ${latticeKeys[1].pk2}`)
-        this.log(` ${black().bgWhite('pk3:')}  ${latticeKeys[1].pk3}`)
-        this.log(` ${black().bgWhite('txHash:')}  ${latticeKeys[1].txHash}`)
-      }
+    }
+    else {
+      this.log(` ${black().bgWhite('address:')}  ${address}`)
+      this.log(` ${black().bgWhite('network:')}  ${network}`)
+      this.log(` ${black().bgWhite('pk1:')}  ${latticeKeys[1].pk1}`)
+      this.log(` ${black().bgWhite('pk2:')}  ${latticeKeys[1].pk2}`)
+      this.log(` ${black().bgWhite('pk3:')}  ${latticeKeys[1].pk3}`)
+      this.log(` ${black().bgWhite('tx_hash:')}  ${latticeKeys[1].txHash}`)
+    }
   }
-
-
 }
 
 keySearch.description = `Get lattice keys associated to a QRL address or transaction hash that have been broadcast to the network
 
-Command requires that either a transaction hash or QRL address to lookup is given and the network must match where the transactionwas made.
+Command requires that either a transaction hash or QRL address to lookup is given and the network must match where the transaction was made.
 
-For general address lookups, use page number and items returned number to limit your search. 
+For general address lookup, use page number and items returned number to limit your search. 
 qrl-cli get-keys -i 1 -p 1 -a {ADDRESS} - will print the first key if found at that address. 
 
-Found public lattice keys can be writen to a json file with the (-f) flag, default will print lattice keys to stdout
+Found public lattice keys can be written to a json file with the (-f) flag, default will print lattice keys to stdout
 `
 keySearch.flags = {
 
