@@ -270,7 +270,3 @@ describe('search #12', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-
-// txHash ce14f14564be176a62794088bab55a095ac82fdfa0f390fe6e8df6d2f200b2e9
-
-*/
