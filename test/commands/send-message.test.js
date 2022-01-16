@@ -117,20 +117,20 @@ describe('send-message #4', () => {
 
 // wrong password given for encrypted wallet file
 describe('send-message #5', () => {
-  const args = [
-    'send-message',
-    '-t',
-    '-M',
-    'Hey There qrl-cli',
-    '-r',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
-    '-p',
-    'send-message-test-NOT-password',
-    '-w',
-    testSetup.encWalletFile,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send-message',
+      '-t',
+      '-M',
+      'Hey There qrl-cli',
+      '-r',
+      'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+      '-p',
+      'send-message-test-NOT-password',
+      '-w',
+      testSetup.encWalletFile,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -144,18 +144,18 @@ describe('send-message #5', () => {
 
 // no OTS given for wallet file
 describe('send-message #6', () => {
-  const args = [
-    'send-message',
-    '-t',
-    '-M',
-    'Hey There qrl-cli',
-    '-r',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
-    '-w',
-    testSetup.walletFile,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send-message',
+      '-t',
+      '-M',
+      'Hey There qrl-cli',
+      '-r',
+      'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+      '-w',
+      testSetup.walletFile,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -222,20 +222,18 @@ describe('send-message #8', () => {
 
 // no OTS given for hexseed file
 describe('send-message #9', () => {
-  wallet = openFile(testSetup.walletFile)
-  walletHexseed = wallet[0].hexseed
-  const args = [
-    'send-message',
-    '-t',
-    '-M',
-    'Hey There qrl-cli',
-    '-r',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
-    '-s',
-    walletHexseed,
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send-message',
+      '-t',
+      '-M',
+      'Hey There qrl-cli',
+      '-r',
+      'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+      '-s',
+      walletHexseed,
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -249,22 +247,20 @@ describe('send-message #9', () => {
 
 // bad OTS given for hexseed file
 describe('send-message #10', () => {
-  wallet = openFile(testSetup.walletFile)
-  walletHexseed = wallet[0].hexseed
-  const args = [
-    'send-message',
-    '-t',
-    '-M',
-    'Hey There qrl-cli',
-    '-r',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
-    '-s',
-    walletHexseed,
-    '-i',
-    'i',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send-message',
+      '-t',
+      '-M',
+      'Hey There qrl-cli',
+      '-r',
+      'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+      '-s',
+      walletHexseed,
+      '-i',
+      'i',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -280,24 +276,22 @@ describe('send-message #10', () => {
 
 // bad OTS given for hexseed file
 describe('send-message #11', () => {
-  wallet = openFile(testSetup.walletFile)
-  walletHexseed = wallet[0].hexseed
-  const args = [
-    'send-message',
-    '-t',
-    '-M',
-    'Hey There qrl-cli',
-    '-r',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
-    '-s',
-    walletHexseed,
-    '-i',
-    '0',
-    '-f',
-    'none'
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send-message',
+      '-t',
+      '-M',
+      'Hey There qrl-cli',
+      '-r',
+      'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+      '-s',
+      walletHexseed,
+      '-i',
+      '0',
+      '-f',
+      'none'
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -310,25 +304,23 @@ describe('send-message #11', () => {
 })
 
 describe('send-message #12', () => {
-  wallet = openFile(testSetup.walletFile)
-  walletHexseed = wallet[0].hexseed
-  const args = [
-    'send-message',
-    '-M',
-    'Hey There qrl-cli',
-    '-r',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
-    '-s',
-    walletHexseed,
-    '-i',
-    '0',
-    '-f',
-    '0',
-    '-g',
-    'https://brooklyn.theqrl.org/nottheapi/',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send-message',
+      '-M',
+      'Hey There qrl-cli',
+      '-r',
+      'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+      '-s',
+      walletHexseed,
+      '-i',
+      '0',
+      '-f',
+      '0',
+      '-g',
+      'https://brooklyn.theqrl.org/nottheapi/',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -342,20 +334,20 @@ describe('send-message #12', () => {
 
 // successful message send wallet file
 describe('send-message #13', () => {
-  const args = [
-    'send-message',
-    '-t',
-    '-M',
-    'qrl-cli test',
-    '-r',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
-    '-w',
-    testSetup.walletFile,
-    '-i',
-    '0',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send-message',
+      '-t',
+      '-M',
+      'qrl-cli test',
+      '-r',
+      'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+      '-w',
+      testSetup.walletFile,
+      '-i',
+      '0',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -369,22 +361,22 @@ describe('send-message #13', () => {
 
 // successful mesage send encrypted wallet file
 describe('send-message #14', () => {
-  const args = [
-    'send-message',
-    '-t',
-    '-M',
-    'qrl-cli test 1',
-    '-r',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
-    '-w',
-    testSetup.encWalletFile,
-    '-p',
-    testSetup.encPass,
-    '-i',
-    '2',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send-message',
+      '-t',
+      '-M',
+      'qrl-cli test 1',
+      '-r',
+      'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+      '-w',
+      testSetup.encWalletFile,
+      '-p',
+      testSetup.encPass,
+      '-i',
+      '2',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -398,22 +390,20 @@ describe('send-message #14', () => {
 
 // successful mesage send hex seed
 describe('send-message #15', () => {
-  wallet = openFile(testSetup.walletFile)
-  walletHexseed = wallet[0].hexseed
-  const args = [
-    'send-message',
-    '-t',
-    '-M',
-    'qrl-cli test 2',
-    '-r',
-    'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
-    '-s',
-    walletHexseed,
-    '-i',
-    '1',
-  ]
   let exitCode
   before(done => {
+    const args = [
+      'send-message',
+      '-t',
+      '-M',
+      'qrl-cli test 2',
+      '-r',
+      'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+      '-s',
+      walletHexseed,
+      '-i',
+      '1',
+    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
