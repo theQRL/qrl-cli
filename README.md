@@ -22,7 +22,7 @@ $ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-@theqrl/cli/1.8.0 darwin-x64 node-v16.13.1
+@theqrl/cli/1.8.0 linux-x64 node-v16.13.2
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND
@@ -37,6 +37,7 @@ USAGE
 * [`qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXT] [SIGNEDMESSAGE]`](#qrl-cli-generate-shared-keys-latticepk-latticesk-cyphertext-signedmessage)
 * [`qrl-cli get-keys`](#qrl-cli-get-keys)
 * [`qrl-cli help [COMMAND]`](#qrl-cli-help-command)
+* [`qrl-cli notarize DATAHASH`](#qrl-cli-notarize-datahash)
 * [`qrl-cli ots ADDRESS`](#qrl-cli-ots-address)
 * [`qrl-cli receive ADDRESS`](#qrl-cli-receive-address)
 * [`qrl-cli search SEARCH`](#qrl-cli-search-search)
@@ -284,6 +285,45 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
+
+## `qrl-cli notarize DATAHASH`
+
+Notarise a document or file on the blockchain
+
+```
+Notarise a document or file on the blockchain
+
+Notarise data onto the blockchain. Takes a sha256 hash of a file and submits it to the network using
+the wallet address given.
+
+Advanced: you can use a custom defined node to broadcast the notarization. Use the (-g) grpc endpoint.
+
+
+USAGE
+  $ qrl-cli notarize DATAHASH
+
+ARGUMENTS
+  DATAHASH  File sha256 Hash
+
+OPTIONS
+  -M, --message=message    Additional (M)essage data to send (max 45 char)
+  -f, --fee=fee            QRL (f)ee for transaction in Shor (defaults to 0 Shor)
+  -g, --grpc=grpc          advanced: grpc endpoint (for devnet/custom QRL network deployments)
+  -h, --hexseed=hexseed    Secret (h)exseed/mnemonic of address notarization should be sent from
+  -i, --otsindex=otsindex  Unused OTS key (i)ndex for message transaction
+  -m, --mainnet            uses mainnet for the notarization
+  -p, --password=password  Encrypted QRL wallet file (p)assword
+  -t, --testnet            uses testnet for the notarization
+  -w, --wallet=wallet      JSON (w)allet file notarization will be sent from
+
+DESCRIPTION
+  Notarise data onto the blockchain. Takes a sha256 hash of a file and submits it to the network using
+  the wallet address given.
+
+  Advanced: you can use a custom defined node to broadcast the notarization. Use the (-g) grpc endpoint.
+```
+
+_See code: [src/commands/notarize.js](https://github.com/theqrl/qrl-cli/blob/v1.8.0/src/commands/notarize.js)_
 
 ## `qrl-cli ots ADDRESS`
 
@@ -551,9 +591,7 @@ ARGUMENTS
   ADDRESS  QRL address to validate
 
 OPTIONS
-  -i, --index=index        address index to validate if more than one in file {default = 0}
-  -p, --password=password  QRL Wallet encryption passphrase.
-  -q, --quiet              Quiet mode: no address details, just return validity via exit code
+  -q, --quiet  Quiet mode: no address details, just return validity via exit code
 
 DESCRIPTION
   ...

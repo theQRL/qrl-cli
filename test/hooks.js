@@ -258,6 +258,7 @@ exports.mochaHooks = {
   // One-time final cleanup run after all testing is complete
   //
   afterAll: function _After() {
+    /*
     fileRemove(testSetup.emptyText)
 
     fileRemove(testSetup.badWallet)
@@ -311,5 +312,6 @@ exports.mochaHooks = {
     fileRemove(testSetup.bobCipherTextOut)
     fileRemove(testSetup.bobTempCipherTextOut)
     fileRemove(testSetup.sendTXOfflineFile)
+    */
   }
 };
