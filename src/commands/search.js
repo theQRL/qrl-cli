@@ -102,22 +102,20 @@ class Search extends Command {
     }).start()
 
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
-    await Qrlnetwork.connect()
-    
-    // verify we have connected and try again if not
-    let i = 0
-    const count = 5
-    while (Qrlnetwork.connection === false && i < count) {
-      spinner.succeed(`retry connection attempt: ${i}...`)
-      // eslint-disable-next-line no-await-in-loop
+    try {
       await Qrlnetwork.connect()
-      // eslint-disable-next-line no-plusplus
-      i++
-    }
-
-    if (Qrlnetwork.connection === false) {
-      // wait a sec and retry the connection
-      spinner.fail('GRPC Connection failed, try again')
+      // verify we have connected and try again if not
+      let i = 0
+      const count = 5
+      while (Qrlnetwork.connection === false && i < count) {
+        spinner.succeed(`retry connection attempt: ${i}...`)
+        // eslint-disable-next-line no-await-in-loop
+        await Qrlnetwork.connect()
+        // eslint-disable-next-line no-plusplus
+        i++
+      }
+    } catch (e) {
+      spinner.fail(`Failed to connect to node. Check network connection & parameters.\n${e}`)
       this.exit(1)
     }
 

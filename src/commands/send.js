@@ -412,18 +412,22 @@ class Send extends Command {
       let Qrlnetwork
       if (!flags.savetofile) {
         Qrlnetwork = await new Qrlnode(grpcEndpoint)
-        await Qrlnetwork.connect()
-
         const spinner1 = ora({ text: 'attempting conenction to node...' }).start()
-        // verify we have connected and try again if not
-        let i = 0
-        const count = 5
-        while (Qrlnetwork.connection === false && i < count) {
-          spinner1.succeed(`retry connection attempt: ${i}...`)
-          // eslint-disable-next-line no-await-in-loop
+        try {
           await Qrlnetwork.connect()
-          // eslint-disable-next-line no-plusplus
-          i++
+          // verify we have connected and try again if not
+          let i = 0
+          const count = 5
+          while (Qrlnetwork.connection === false && i < count) {
+            spinner1.succeed(`retry connection attempt: ${i}...`)
+            // eslint-disable-next-line no-await-in-loop
+            await Qrlnetwork.connect()
+            // eslint-disable-next-line no-plusplus
+            i++
+          }
+        } catch (e) {
+          spinner1.fail(`Failed to connect to node. Check network connection & parameters.\n${e}`)
+          this.exit(1)
         }
         spinner1.succeed(`Connected!`)
         if (!flags.loadfromfile) {
