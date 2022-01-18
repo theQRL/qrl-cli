@@ -22,11 +22,11 @@ const encWalletFile = path.join(__dirname, '/test-wallet/encWallet.json') // enc
 // Alice
 const alicePTWalletLocation = path.join(__dirname, '/test-wallet/alice-wallet-PT.json') // plain text wallet. OTS: 0,1,
 const aliceTempPTWalletLocation = path.join(__dirname, '/test-wallet/alice-temp-wallet-PT.json') // plain test wallet. OTS: 0,
-const aliceENCWalletLocation = path.join(__dirname, '/test-wallet/alice-wallet-ENC.json') // encrypted wallet. OTS: 0,
+const aliceENCWalletLocation = path.join(__dirname, '/test-wallet/alice-wallet-ENC.json') // encrypted wallet. OTS: 0,1
 const aliceTempENCWalletLocation = path.join(__dirname, '/test-wallet/alice-temp-wallet-ENC.json') // encrypted wallet. OTS: 0,
 
 // Bob
-const bobPTWalletLocation = path.join(__dirname, '/test-wallet/bob-wallet-PT.json') // plain text wallet OTS: 0,1,
+const bobPTWalletLocation = path.join(__dirname, '/test-wallet/bob-wallet-PT.json') // plain text wallet OTS: 0,1,2,3
 const bobTempPTWalletLocation = path.join(__dirname, '/test-wallet/bob-temp-wallet-PT.json') // plain test wallet OTS: 0,1,2
 const bobENCWalletLocation = path.join(__dirname, '/test-wallet/bob-wallet-ENC.json') // encrypted wallet OTS: 0,
 const bobTempENCWalletLocation = path.join(__dirname, '/test-wallet/bob-temp-wallet-ENC.json') // encrypted wallet. OTS: 0,

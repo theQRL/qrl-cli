@@ -31,10 +31,8 @@ describe('setup', () => {
 
 describe('send-message #1', () => {
   let exitCode
+  const args = ['send-message',]
   before(done => {
-    const args = [
-      'send-message',
-    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -49,11 +47,11 @@ describe('send-message #1', () => {
 // message is longer than 80 bites
 describe('send-message #2', () => {
   let exitCode
+  const args = [
+  'send-message',
+  '-M', 'This Message Is Over 80 bytes and will throw an error in the console'
+]
   before(done => {
-    const args = [
-      'send-message',
-      '-M', 'This Message Is Over 80 bytes and will throw an error in the console'
-    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -70,13 +68,13 @@ describe('send-message #2', () => {
 
 describe('send-message #3', () => {
   let exitCode
+  const args = [
+    'send-message',
+    '-t',
+    '-M', 'Hey There qrl-cli 3',
+    '-r', 'Q000500b5ea246980f3ff4ee42f399e4a79598d6844e66373eb61ab59d1a1e6cfe8e963eb4bcd'
+  ]
   before(done => {
-    const args = [
-      'send-message',
-      '-t',
-      '-M', 'Hey There qrl-cli',
-      '-r', 'Q000500b5ea246980f3ff4ee42f399e4a79598d6844e66373eb61ab59d1a1e6cfe8e963eb4bcd'
-    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -91,13 +89,13 @@ describe('send-message #3', () => {
 // no private keys given
 describe('send-message #4', () => {
   let exitCode
+  const args = [
+    'send-message',
+    '-t',
+    '-M', 'Hey There qrl-cli 4',
+    '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
+  ]
   before(done => {
-    const args = [
-      'send-message',
-      '-t',
-      '-M', 'Hey There qrl-cli',
-      '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
-    ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {
       exitCode = code
@@ -117,7 +115,7 @@ describe('send-message #5', () => {
     const args = [
       'send-message',
       '-t',
-      '-M', 'Hey There qrl-cli',
+      '-M', 'Hey There qrl-cli 5',
       '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
       '-p', 'send-message-test-NOT-password',
       '-w', testSetup.encWalletFile,
@@ -140,7 +138,7 @@ describe('send-message #6', () => {
     const args = [
       'send-message',
       '-t',
-      '-M', 'Hey There qrl-cli',
+      '-M', 'Hey There qrl-cli 6',
       '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
       '-w', testSetup.walletFile,
     ]
@@ -162,7 +160,7 @@ describe('send-message #7', () => {
     const args = [
       'send-message',
       '-t',
-      '-M', 'Hey There qrl-cli',
+      '-M', 'Hey There qrl-cli 7',
       '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
       '-s', '0005000d4b37e849aa5e3c2e27de0d51131d9a26b4b458e60f9be62951441fdd6867efc10d7b2f696982c788bc779512727',
     ]
@@ -185,7 +183,7 @@ describe('send-message #8', () => {
     const args = [
       'send-message',
       '-t',
-      '-M', 'Hey There qrl-cli',
+      '-M', 'Hey There qrl-cli 8',
       '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
       '-s', 'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam',
     ]
@@ -209,7 +207,7 @@ describe('send-message #9', () => {
     const args = [
       'send-message',
       '-t',
-      '-M', 'Hey There qrl-cli',
+      '-M', 'Hey There qrl-cli 9',
       '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
       '-s',
       walletHexseed,
@@ -232,7 +230,7 @@ describe('send-message #10', () => {
     const args = [
       'send-message',
       '-t',
-      '-M', 'Hey There qrl-cli',
+      '-M', 'Hey There qrl-cli 10',
       '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
       '-s', walletHexseed,
       '-i', 'i',
@@ -257,7 +255,7 @@ describe('send-message #11', () => {
     const args = [
       'send-message',
       '-t',
-      '-M', 'Hey There qrl-cli',
+      '-M', 'Hey There qrl-cli 11',
       '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
       '-s', walletHexseed,
       '-i', '0',
@@ -279,7 +277,7 @@ describe('send-message #12', () => {
   before(done => {
     const args = [
       'send-message',
-      '-M', 'Hey There qrl-cli',
+      '-M', 'Hey There qrl-cli 12',
       '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
       '-s', walletHexseed,
       '-i', '0',
@@ -303,7 +301,7 @@ describe('send-message #13', () => {
   before(done => {
     const args = [
       'send-message',
-      '-M', 'qrl-cli test',
+      '-M', 'qrl-cli test 13',
       '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
       '-w', testSetup.walletFile,
       '-i', '0',
@@ -326,7 +324,7 @@ describe('send-message #14', () => {
   before(done => {
     const args = [
       'send-message',
-      '-M', 'qrl-cli test 1',
+      '-M', 'qrl-cli test 14',
       '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
       '-w', testSetup.encWalletFile,
       '-p', testSetup.encPass,
@@ -350,7 +348,7 @@ describe('send-message #15', () => {
   before(done => {
     const args = [
       'send-message',
-      '-M', 'qrl-cli test 2',
+      '-M', 'qrl-cli test 15',
       '-r', 'Q020200cf30b98939844cecbaa20e47d16b83aa8de58581ec0fda34d83a42a5a665b49986c4b832',
       '-s', walletHexseed,
       '-i', '1',
