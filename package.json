@@ -1,7 +1,7 @@
 {
   "name": "@theqrl/cli",
   "description": "QRL CLI functions",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "author": "JP Lomas <jp@theqrl.org>, The QRL Foundation",
   "bin": {
     "qrl-cli": "./bin/run"
@@ -13,7 +13,7 @@
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/plugin-help": "^2",
-    "@semantic-release/git": "^9.0.0",
+    "@semantic-release/git": "^10.0.1",
     "@theqrl/explorer-helpers": "2.0.0",
     "@theqrl/qrl-proto-sha256": "^3.4.1",
     "@theqrl/qrlbase.proto": "^1.1.0",
@@ -91,6 +91,7 @@
     "test-generate-lattice-keys": "nyc mocha --require test/hooks.js --forbid-only -t 50000 \"test/commands/generate-lattice-keys.test.js\"",
     "test-generate-shared-keys": "nyc mocha --require test/hooks.js --forbid-only -t 50000 \"test/commands/generate-shared-keys.test.js\"",
     "test-get-keys": "nyc mocha --forbid-only -t 50000 \"test/commands/get-keys.test.js\"",
+    "test-notarize": "nyc mocha --require test/hooks.js --forbid-only -t 50000 \"test/commands/notarize.test.js\"",
     "test-ots": "nyc mocha --forbid-only -t 50000 \"test/commands/ots.test.js\"",
     "test-receive": "nyc mocha --forbid-only -t 50000 \"test/commands/receive.test.js\"",
     "test-search": "nyc mocha --require test/hooks.js --forbid-only -t 50000 \"test/commands/search.test.js\"",

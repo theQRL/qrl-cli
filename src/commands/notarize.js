@@ -1,18 +1,47 @@
 /* global QRLLIB */
 /* eslint new-cap: 0 */
+
+/*
+// Notarization requires a sha256 hash of the data intended to hash. This can be acquired prior using 
+//   something like `sha256sum {FILE}` on a typical *nix system
+*/
+
 const { Command, flags } = require('@oclif/command')
-const { white, red } = require('kleur')
+const { white, black } = require('kleur')
 const ora = require('ora')
-// const moment = require('moment')
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const aes256 = require('aes256')
 const { cli } = require('cli-ux')
 const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl') // eslint-disable-line no-unused-vars
-// const { BigNumber } = require('bignumber.js')
-const helpers = require('@theqrl/explorer-helpers')
-
+// const CryptoJS = require("crypto-js");
 const Qrlnode = require('../functions/grpc')
+
+// open wallet file
+const openWalletFile = (path) => {
+  const contents = fs.readFileSync(path)
+  return JSON.parse(contents)[0]
+}
+
+function stringToBytes(str) {
+  const result = [];
+  /* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
+  for (let i = 0; i < str.length; i++) {
+    result.push(str.charCodeAt(i));
+  }
+  return result;
+}
+
+// Convert bytes to hex
+function bytesToHex(byteArray) {
+  return [...byteArray]
+    /* eslint-disable */
+    .map((byte) => {
+      return ('00' + (byte & 0xff).toString(16)).slice(-2)
+    })
+    /* eslint-enable */
+    .join('')
+}
 
 let QRLLIBLoaded = false
 
@@ -28,35 +57,6 @@ const waitForQRLLIB = (callBack) => {
     }
     return false
   }, 50)
-}
-
-function string2Bin(str) {
-  const result = [];
-/* eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }] */
-  for (let i = 0; i < str.length; i++) {
-    result.push(str.charCodeAt(i));
-  }
-  return result;
-}
-
-const toUint8Vector = (arr) => {
-  const vec = new QRLLIB.Uint8Vector()
-  for (let i = 0; i < arr.length; i += 1) {
-    vec.push_back(arr[i])
-  }
-  return vec
-}
-
-
-// Convert bytes to hex
-function bytesToHex(byteArray) {
-  return [...byteArray]
-    /* eslint-disable */
-    .map((byte) => {
-      return ('00' + (byte & 0xff).toString(16)).slice(-2)
-    })
-    /* eslint-enable */
-    .join('')
 }
 
 // Concatenates multiple typed arrays into one.
@@ -76,6 +76,36 @@ function concatenateTypedArrays(resultConstructor, ...arrays) {
   return result
 }
 
+// toUint8Vector
+const toUint8Vector = (arr) => {
+  const vec = new QRLLIB.Uint8Vector()
+  for (let i = 0; i < arr.length; i += 1) {
+    vec.push_back(arr[i])
+  }
+  return vec
+}
+
+// Take input and convert to unsigned uint64 bigendian bytes
+function toBigendianUint64BytesUnsigned(i, bufferResponse = false) {
+  let input = i
+  if (!Number.isInteger(input)) {
+    input = parseInt(input, 10)
+  }
+  const byteArray = [0, 0, 0, 0, 0, 0, 0, 0]
+  for (let index = 0; index < byteArray.length; index += 1) {
+    const byte = input & 0xff // eslint-disable-line no-bitwise
+    byteArray[index] = byte
+    input = (input - byte) / 256
+  }
+  byteArray.reverse()
+  if (bufferResponse === true) {
+    const result = Buffer.from(byteArray)
+    return result
+  }
+  const result = new Uint8Array(byteArray)
+  return result
+}
+
 // Convert Binary object to Bytes
 function binaryToBytes(convertMe) {
   const thisBytes = new Uint8Array(convertMe.size())
@@ -85,45 +115,21 @@ function binaryToBytes(convertMe) {
   return thisBytes
 }
 
-// Take input and convert to unsigned uint64 bigendian bytes
-function toBigendianUint64BytesUnsigned(i, bufferResponse = false) {
-  let input = i
-  if (!Number.isInteger(input)) {
-    input = parseInt(input, 10)
-  }
-
-  const byteArray = [0, 0, 0, 0, 0, 0, 0, 0]
-
-  for (let index = 0; index < byteArray.length; index += 1) {
-    const byte = input & 0xff // eslint-disable-line no-bitwise
-    byteArray[index] = byte
-    input = (input - byte) / 256
-  }
-
-  byteArray.reverse()
-
-  if (bufferResponse === true) {
-    const result = Buffer.from(byteArray)
-    return result
-  }
-  const result = new Uint8Array(byteArray)
-  return result
-}
-
-const openWalletFile = (path) => {
-  const contents = fs.readFileSync(path)
-  return JSON.parse(contents)[0]
-}
-
-function byteCount(s) {
-    return encodeURI(s).split(/%..|./).length - 1;
-}
-
-class SendMessage extends Command {
+class Notarise extends Command {
   async run() {
-    const { flags } = this.parse(SendMessage)
+    const { args, flags } = this.parse(Notarise)
+    // let dataHash
+    let messageData
+    let messageHex
+    let notarization = 'AFAFA'
+    let hexseed
+    let address
+    let notarialHash
+
+    // network stuff, defaults to mainnet
     let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
     let network = 'Mainnet'
+
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
       network = `Custom GRPC endpoint: [${flags.grpc}]`
@@ -137,39 +143,43 @@ class SendMessage extends Command {
       network = 'Mainnet'
     }
     this.log(white().bgBlue(network))
-
-    if (!flags.message) {
-      this.log(`${red('⨉')} No message given`)
-      this.exit(1)
-    }
-    // check size of message MAX 80 bytes
-    const messageBytes = string2Bin(flags.message)
-    const messageLength = byteCount(messageBytes)
-    
-    this.log(`Message Submitted: ${flags.message}`)
-    this.log(`Message byte length: ${messageLength}`)
-
-    if (messageLength > 80) {
-      this.log(`${red('⨉')} Message cannot be longer than 80 bytes`)
-      this.exit(1)
-    }
-    const thisAddressesTo = []
-    if (flags.recipient) {
-      // passed as an -r flag
-      if (!validateQrlAddress.hexString(flags.recipient).result) {
-        this.log(`${red('⨉')} Unable to send: invalid recipient address`)
+    // the data to notarise here, can be a file submitted (path) or a string passed on cli
+    const spinner = ora({ text: 'Notarising Data...\n', }).start()
+    if (args.dataHash) {
+      const sha256regex = /^\b[A-Fa-f0-9]{64}\b/.test(args.dataHash)
+      // is the passed data the correct length? should be a sha256 sum hash
+      if (args.dataHash.length !== 64 || !sha256regex ) {
+        // either length is wrong or regex not matching
+        spinner.fail(`${black().bgRed(`notarization data hash invalid...`)}` )
         this.exit(1)
       }
-      // set recipient here
-      thisAddressesTo.push(helpers.hexAddressToRawAddress(flags.recipient))
+      notarialHash = args.dataHash
     }
+    notarization += `2${notarialHash}`
+    spinner.succeed(`notarization: ${notarization}`)
+    // additional data to send with the notary - user defined
+    
+    if (flags.message) {
+      messageData = flags.message.toString()
+      if (messageData.length > 45) {
+        spinner.fail(`${black().bgRed(`Message cannot be longer than 45 characters.`)} Message Length: ${messageData.length}` )
+        this.exit(1)
+      }
+      spinner.succeed(`Message data received: ${messageData}`)
+      // Convert string to hex to append to the hash
+      const messageDataBytes = stringToBytes(messageData)
+      // spinner.succeed(`messageDataBytes: ${messageDataBytes}`)
+      messageHex = bytesToHex(messageDataBytes)
+      // Construct final hex string for notarization appending message hex
+      notarization += messageHex
+    }
+    spinner.succeed(`final notarization hex: ${notarization}`)
+    // get wallet private details for transaction
     if (!flags.wallet && !flags.hexseed) {
-      this.log(`${red('⨉')} Unable to send: no wallet json file or hexseed specified`)
+      spinner.fail(`${black().bgRed(`No wallet.json file (-w) or hexseed (-h) specified...`)}` )
       this.exit(1)
     }
-    // wallet functions
-    let hexseed = ''
-    let address = ''
+
     // open wallet file
     if (flags.wallet) {
       let isValidFile = false
@@ -194,19 +204,21 @@ class SendMessage extends Command {
             isValidFile = true
           } 
           else {
-            this.log(`${red('⨉')} Unable to open wallet file: invalid password`)
+            spinner.fail(`${black().bgRed(`Unable to open wallet file: Invalid password...`)}` )
             this.exit(1)
           }
         }
-      } catch (error) {
+      }
+      catch (error) {
         isValidFile = false
       }
       if (!isValidFile) {
-        this.log(`${red('⨉')} Unable to open wallet file: invalid wallet file`)
+        spinner.fail(`${black().bgRed(`Unable to open wallet file: Invalid wallet file...`)}` )
         this.exit(1)
       }
       if (!flags.otsindex ) {
-        this.log(`${red('⨉')} no OTS index given`)
+        spinner.fail(`${black().bgRed(`No OTS index (-i) given...`)}` )
+        spinner.fail(``)
         this.exit(1)
       }
     }
@@ -218,19 +230,19 @@ class SendMessage extends Command {
       if (hexseed.match(' ') === null) {
         // hexseed: correct length?
         if (hexseed.length !== 102) {
-          this.log(`${red('⨉')} Hexseed invalid: too short`)
+          spinner.fail(`${black().bgRed(`Hexseed invalid: too short...`)}` )
           this.exit(1)
         }
       } else {
         // mnemonic: correct number of words?
         // eslint-disable-next-line no-lonely-if
         if (hexseed.split(' ').length !== 34) {
-          this.log(`${red('⨉')} Mnemonic phrase invalid: too short`)
+          spinner.fail(`${black().bgRed(`Mnemonic phrase invalid: too short...`)}` )
           this.exit(1)
         }
       }
       if (!flags.otsindex ) {
-        this.log(`${red('⨉')} no OTS index given`)
+        spinner.fail(`${black().bgRed(`No OTS index (-i) given...`)}` )
         this.exit(1)
       }
     }
@@ -238,28 +250,29 @@ class SendMessage extends Command {
     if (flags.otsindex) {
       const passedOts = parseInt(flags.otsindex, 10)
       if (!passedOts && passedOts !== 0) {
-        this.log(`${red('⨉')} OTS key is invalid`)
+        spinner.fail(`${black().bgRed(`OTS key is invalid...`)}` )
         this.exit(1)
       }
     }
     // set the fee to default or flag
-    let fee = 0 // default fee 100 Shor
+    let fee = 0 // default fee 0 Shor
     if (flags.fee) {
       const passedFee = parseInt(flags.fee, 10)
       if (passedFee) {
         fee = passedFee
       } else {
-        this.log(`${red('⨉')} Fee is invalid`)
+        spinner.fail(`${black().bgRed(`Fee is invalid...`)}` )
         this.exit(1)
       }
     }
 
-    const spinner = ora({ text: 'Sending Message to network...' }).start()
+    // sign and send transaction
     waitForQRLLIB(async () => {
       let XMSS_OBJECT
       if (hexseed.match(' ') === null) {
         XMSS_OBJECT = await new QRLLIB.Xmss.fromHexSeed(hexseed)
-      } else {
+      } 
+      else {
         XMSS_OBJECT = await new QRLLIB.Xmss.fromMnemonic(hexseed)
       }
       const xmssPK = Buffer.from(XMSS_OBJECT.getPK(), 'hex')
@@ -281,42 +294,30 @@ class SendMessage extends Command {
         spinner.fail(`Failed to connect to node. Check network connection & parameters.\n${e}`)
         this.exit(1)
       }
-
-      const spinner2 = ora({ text: 'Network Connect....' }).start()
-      let thisAddress = []
-      if (flags.recipient) {
-
-        [ thisAddress ] = thisAddressesTo
-      }
-
+      // get message hex into bytes for transaction
+      const messageBytes = Buffer.from(notarization, 'hex')
       const request = {
         master_addr: Buffer.from('', 'hex'),
         message: messageBytes,
-        addr_to: thisAddress,
         fee,
         xmss_pk: xmssPK,
       }
+      // send the message transaction with the notarise encoding to the node
       const message = await Qrlnetwork.api('GetMessageTxn', request)
 
-      spinner2.succeed('Node correctly returned transaction for signing')
       const spinner3 = ora({ text: 'Signing transaction...' }).start()
 
       const concatenatedArrays = concatenateTypedArrays(
         Uint8Array,
         toBigendianUint64BytesUnsigned(message.extended_transaction_unsigned.tx.fee), // fee
         messageBytes,
-        thisAddress,
       )
-
       // Convert Uint8Array to VectorUChar
       const hashableBytes = toUint8Vector(concatenatedArrays)
-
       // Create sha256 sum of concatenated array
       const shaSum = QRLLIB.sha2_256(hashableBytes)
-
       XMSS_OBJECT.setIndex(parseInt(flags.otsindex, 10))
       const signature = binaryToBytes(XMSS_OBJECT.sign(shaSum))
-
       // Calculate transaction hash
       const txnHashConcat = concatenateTypedArrays(Uint8Array, binaryToBytes(shaSum), signature, xmssPK)
       // tx hash bytes..
@@ -340,7 +341,7 @@ class SendMessage extends Command {
         } else {
           errorMessage = `Node rejected signed message: has OTS key ${flags.otsindex} been reused?`
         }
-        spinner4.fail(`${errorMessage}]`)
+        spinner.fail(`${black().bgRed(`Qrlnetwork.api error: ${response.error_code}`)} ${errorMessage}` )
         this.exit(1)
       }
       const pushTransactionRes = JSON.stringify(response.tx_hash)
@@ -358,40 +359,41 @@ class SendMessage extends Command {
         // this.exit(0)
       } 
       else {
-        spinner4.fail(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)
+        spinner.fail(`${black().bgRed(`Node transaction hash ${bytesToHex(txhash.data)} does not match`)}` )
         this.exit(1)
       }
     })
   }
 }
 
-SendMessage.description = `Send up to 80 byte message on the network
+Notarise.description = `Notarise a document or file on the blockchain
 
-Message can be sent to a recipient with the (-r) flag
-You can select either (-m) mainnet or (-t) testnet
+Notarise data onto the blockchain. Takes a sha256 hash of a file and submits it to the network using
+the wallet address given.
 
-Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
+Advanced: you can use a custom defined node to broadcast the notarization. Use the (-g) grpc endpoint.
 `
 
-// Status.args = [
-//   {
-//     name: 'message',
-//     description: 'message to send',
-//     required: true,
-//   },
-// ]
+Notarise.args = [
+   {
+     name: 'dataHash',
+     description: 'File sha256 Hash',
+     required: true,
+   },
+ ]
 
-SendMessage.flags = {
+Notarise.flags = {
+
   testnet: flags.boolean({
     char: 't',
     default: false,
-    description: 'queries testnet for the OTS state'
+    description: 'uses testnet for the notarization'
   }),
 
   mainnet: flags.boolean({
     char: 'm',
     default: false,
-    description: 'queries mainnet for the OTS state'
+    description: 'uses mainnet for the notarization'
   }),
 
   grpc: flags.string({
@@ -403,13 +405,13 @@ SendMessage.flags = {
   message: flags.string({
     char: 'M',
     default: false,
-    description: 'Message data to send'
+    description: 'Additional (M)essage data to send (max 45 char)'
   }),
 
   wallet: flags.string({
     char: 'w',
     required: false,
-    description: 'JSON (w)allet file message will be sent from',
+    description: 'JSON (w)allet file notarization will be sent from',
   }),
 
  password: flags.string({
@@ -419,21 +421,15 @@ SendMessage.flags = {
   }),
 
   hexseed: flags.string({
-    char: 's',
+    char: 'h',
     required: false,
-    description: 'Secret hex(s)eed/mnemonic of address message should be sent from',
-  }),
-
-  recipient: flags.string({
-    char: 'r',
-    required: false,
-    description: 'QRL address of recipient'
+    description: 'Secret (h)exseed/mnemonic of address notarization should be sent from',
   }),
 
   fee: flags.string({
     char: 'f',
     required: false,
-    description: 'QRL (f)ee for transaction in Shor (defaults to 100 Shor)'
+    description: 'QRL (f)ee for transaction in Shor (defaults to 0 Shor)'
   }),
 
   otsindex: flags.string({ 
@@ -443,4 +439,4 @@ SendMessage.flags = {
   }),
 }
 
-module.exports = { SendMessage }
+module.exports = { Notarise }
