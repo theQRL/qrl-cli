@@ -142,7 +142,9 @@ class Notarise extends Command {
       grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
-    this.log(white().bgBlue(network))
+    if (!flags.json){
+      this.log(white().bgBlue(network))
+    }
     // the data to notarise here, can be a file submitted (path) or a string passed on cli
     const spinner = ora({ text: 'Notarising Data...\n', }).start()
     if (args.dataHash) {
@@ -347,14 +349,20 @@ class Notarise extends Command {
       const pushTransactionRes = JSON.stringify(response.tx_hash)
       const txhash = JSON.parse(pushTransactionRes)
       if (txnHash === bytesToHex(txhash.data)) {
-        spinner4.succeed(`Transaction submitted to node: transaction ID: ${bytesToHex(txhash.data)}`)
-        
         // return link to explorer
         if (network === 'Mainnet') {
+          spinner4.succeed(`Transaction submitted to Mainnet node: transaction ID: ${bytesToHex(txhash.data)}`)
           spinner3.succeed(`https://explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+          if (flags.json){
+            this.log(`[{"tx_id":"${bytesToHex(txhash.data)}"}]`)
+          }
         }
         else if (network === 'Testnet') {
+          spinner4.succeed(`Transaction submitted to Testnet node: transaction ID: ${bytesToHex(txhash.data)}`)
           spinner3.succeed(`https://testnet-explorer.theqrl.org/tx/${bytesToHex(txhash.data)}`)
+          if (flags.json){
+            this.log(`[{"tx_id":"${bytesToHex(txhash.data)}"}]`)
+          }
         }
         // this.exit(0)
       } 
@@ -395,6 +403,13 @@ Notarise.flags = {
     default: false,
     description: 'uses mainnet for the notarization'
   }),
+
+  json: flags.boolean({
+    char: 'j',
+    default: false,
+    description: 'Return JSON response'
+  }),
+
 
   grpc: flags.string({
     char: 'g',
