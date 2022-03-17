@@ -80,8 +80,11 @@ class OTSKey extends Command {
       grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
-    this.log(white().bgBlue(network))
-    const spinner = ora({text: 'Fetching OTS from API...'}).start()
+    let spinner = ""
+    if (!flags.json) {
+        this.log(white().bgBlue(network))
+        spinner = ora({text: 'Fetching OTS from API...'}).start()
+    }
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     try {
       await Qrlnetwork.connect()
@@ -89,22 +92,27 @@ class OTSKey extends Command {
       let i = 0
       const count = 5
       while (Qrlnetwork.connection === false && i < count) {
-        spinner.succeed(`retry connection attempt: ${i}...`)
+        if (!flags.json) {
+            spinner.succeed(`retry connection attempt: ${i}...`)
+        }
         // eslint-disable-next-line no-await-in-loop
         await Qrlnetwork.connect()
         // eslint-disable-next-line no-plusplus
         i++
       }
     } catch (e) {
-      spinner.fail(`Failed to connect to node. Check network connection & parameters.\n${e}`)
+      this.log(`Failed to connect to node. Check network connection & parameters.\n${e}`)
       this.exit(1)
     }
 
     const request = { address: Buffer.from(address.substring(1), 'hex') }
     const response = await Qrlnetwork.api('GetOTS', request)
-    if (response.unused_ots_index_found) {
-      spinner.succeed(`Next unused OTS key: ${response.next_unused_ots_index}`)
+    if (response.unused_ots_index_found && flags.json) {
+      this.log(`[{"next_key": ${response.next_unused_ots_index}}]`)
       this.exit(0)
+    } else if (response.unused_ots_index_found && !flags.json) {
+        spinner.succeed(`Next unused OTS key: ${response.next_unused_ots_index}`)
+        this.exit(0)
     } else {
         this.log(`${red('⨉')} Unable to fetch an OTS key`)
         this.exit(1)
@@ -149,6 +157,12 @@ OTSKey.flags = {
   required: false,
   description: 'wallet file password if encrypted'
 }),
+  json: flags.boolean({
+  char: 'j',
+  required: false,
+  description: 'Output in JSON'
+}),
+
 }
 
 module.exports = {OTSKey}

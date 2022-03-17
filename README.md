@@ -22,7 +22,7 @@ $ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-@theqrl/cli/1.9.0 linux-x64 node-v16.13.1
+@theqrl/cli/1.9.0 linux-x64 node-v16.13.2
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND
@@ -311,6 +311,7 @@ OPTIONS
   -g, --grpc=grpc          advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -h, --hexseed=hexseed    Secret (h)exseed/mnemonic of address notarization should be sent from
   -i, --otsindex=otsindex  Unused OTS key (i)ndex for message transaction
+  -j, --json               Return JSON response
   -m, --mainnet            uses mainnet for the notarization
   -p, --password=password  Encrypted QRL wallet file (p)assword
   -t, --testnet            uses testnet for the notarization
@@ -346,6 +347,7 @@ ARGUMENTS
 
 OPTIONS
   -g, --grpc=grpc          Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
+  -j, --json               Output in JSON
   -m, --mainnet            (default) Queries mainnet for the OTS state
   -p, --password=password  wallet file password if encrypted
   -t, --testnet            Queries testnet for the OTS state
