@@ -1,7 +1,7 @@
 {
   "name": "@theqrl/cli",
   "description": "QRL CLI functions",
-  "version": "1.10.0",
+  "version": "1.10.2",
   "author": "JP Lomas <jp@theqrl.org>, The QRL Foundation",
   "bin": {
     "qrl-cli": "./bin/run"
@@ -32,7 +32,6 @@
     "grpc-js-kit": "^0.1.0",
     "kleur": "^3.0.3",
     "moment": "^2.24.0",
-    "node": "^16.13.1",
     "ora": "^3.4.0",
     "qrcode-terminal": "^0.12.0",
     "qrllib": "^1.1.7",
