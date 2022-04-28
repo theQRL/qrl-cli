@@ -22,7 +22,7 @@ $ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-@theqrl/cli/1.9.0 linux-x64 node-v16.13.1
+@theqrl/cli/1.10.0 linux-x64 node-v16.13.1
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND
@@ -81,7 +81,7 @@ DESCRIPTION
   Documentation at https://docs.theqrl.org/developers/qrl-cli
 ```
 
-_See code: [src/commands/balance.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/balance.js)_
+_See code: [src/commands/balance.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/balance.js)_
 
 ## `qrl-cli create-wallet`
 
@@ -114,7 +114,7 @@ DESCRIPTION
   Documentation at https://docs.theqrl.org/developers/qrl-cli
 ```
 
-_See code: [src/commands/create-wallet.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/create-wallet.js)_
+_See code: [src/commands/create-wallet.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/create-wallet.js)_
 
 ## `qrl-cli generate-lattice-keys`
 
@@ -168,7 +168,7 @@ DESCRIPTION
   Documentation at https://docs.theqrl.org/developers/qrl-cli
 ```
 
-_See code: [src/commands/generate-lattice-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/generate-lattice-keys.js)_
+_See code: [src/commands/generate-lattice-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/generate-lattice-keys.js)_
 
 ## `qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXT] [SIGNEDMESSAGE]`
 
@@ -224,7 +224,7 @@ DESCRIPTION
        - Shared keylist from secret key and shake128 (optional password protected)
 ```
 
-_See code: [src/commands/generate-shared-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/generate-shared-keys.js)_
+_See code: [src/commands/generate-shared-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/generate-shared-keys.js)_
 
 ## `qrl-cli get-keys`
 
@@ -265,7 +265,7 @@ DESCRIPTION
   Found public lattice keys can be written to a json file with the (-f) flag, default will print lattice keys to stdout
 ```
 
-_See code: [src/commands/get-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/get-keys.js)_
+_See code: [src/commands/get-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/get-keys.js)_
 
 ## `qrl-cli help [COMMAND]`
 
@@ -311,6 +311,7 @@ OPTIONS
   -g, --grpc=grpc          advanced: grpc endpoint (for devnet/custom QRL network deployments)
   -h, --hexseed=hexseed    Secret (h)exseed/mnemonic of address notarization should be sent from
   -i, --otsindex=otsindex  Unused OTS key (i)ndex for message transaction
+  -j, --json               Return JSON response
   -m, --mainnet            uses mainnet for the notarization
   -p, --password=password  Encrypted QRL wallet file (p)assword
   -t, --testnet            uses testnet for the notarization
@@ -323,7 +324,7 @@ DESCRIPTION
   Advanced: you can use a custom defined node to broadcast the notarization. Use the (-g) grpc endpoint.
 ```
 
-_See code: [src/commands/notarize.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/notarize.js)_
+_See code: [src/commands/notarize.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/notarize.js)_
 
 ## `qrl-cli ots ADDRESS`
 
@@ -346,6 +347,7 @@ ARGUMENTS
 
 OPTIONS
   -g, --grpc=grpc          Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
+  -j, --json               Output in JSON
   -m, --mainnet            (default) Queries mainnet for the OTS state
   -p, --password=password  wallet file password if encrypted
   -t, --testnet            Queries testnet for the OTS state
@@ -357,7 +359,7 @@ DESCRIPTION
   If the wallet file is encrypted use the -p flag to pass the wallet file encryption password.
 ```
 
-_See code: [src/commands/ots.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/ots.js)_
+_See code: [src/commands/ots.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/ots.js)_
 
 ## `qrl-cli receive ADDRESS`
 
@@ -384,7 +386,7 @@ DESCRIPTION
   If using an encrypted wallet file pass the encryption password with the (-p) flag.
 ```
 
-_See code: [src/commands/receive.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/receive.js)_
+_See code: [src/commands/receive.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/receive.js)_
 
 ## `qrl-cli search SEARCH`
 
@@ -415,7 +417,7 @@ DESCRIPTION
   Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 ```
 
-_See code: [src/commands/search.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/search.js)_
+_See code: [src/commands/search.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/search.js)_
 
 ## `qrl-cli send [QUANTITY]`
 
@@ -474,7 +476,7 @@ DESCRIPTION
   Advanced: Append a (-M) Message to the transaction with max 80 bytes length
 ```
 
-_See code: [src/commands/send.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/send.js)_
+_See code: [src/commands/send.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/send.js)_
 
 ## `qrl-cli send-message`
 
@@ -511,7 +513,7 @@ DESCRIPTION
   Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 ```
 
-_See code: [src/commands/send-message.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/send-message.js)_
+_See code: [src/commands/send-message.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/send-message.js)_
 
 ## `qrl-cli sign-tx-offline QUANTITY OUTPUT`
 
@@ -546,7 +548,7 @@ DESCRIPTION
   TODO
 ```
 
-_See code: [src/commands/sign-tx-offline.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/sign-tx-offline.js)_
+_See code: [src/commands/sign-tx-offline.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/sign-tx-offline.js)_
 
 ## `qrl-cli status`
 
@@ -572,7 +574,7 @@ DESCRIPTION
   Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
 ```
 
-_See code: [src/commands/status.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/status.js)_
+_See code: [src/commands/status.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/status.js)_
 
 ## `qrl-cli validate ADDRESS`
 
@@ -598,5 +600,5 @@ DESCRIPTION
   when passed a QRL address in hexstring (preceded by 'Q'), will return details about the addresses validity.
 ```
 
-_See code: [src/commands/validate.js](https://github.com/theqrl/qrl-cli/blob/v1.9.0/src/commands/validate.js)_
+_See code: [src/commands/validate.js](https://github.com/theqrl/qrl-cli/blob/v1.10.0/src/commands/validate.js)_
 <!-- commandsstop -->
