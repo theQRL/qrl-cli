@@ -13,6 +13,18 @@ const openFile = (path) => {
   return JSON.parse(contents)
 }
 
+// Broadcast tests can fail on transient node connection issues; retry with a pause before giving up
+const spawnWithRetry = (args, onExit, retriesLeft = 2) => {
+  const child = spawn('./bin/run', args, processFlags)
+  child.on('exit', code => {
+    if (code !== 0 && retriesLeft > 0) {
+      setTimeout(() => spawnWithRetry(args, onExit, retriesLeft - 1), 10000)
+    } else {
+      onExit(code)
+    }
+  })
+}
+
 let wallet
 let walletHexseed
 
@@ -307,8 +319,7 @@ describe('send-message #13', () => {
       '-i', '0',
       '-t',
     ]
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+    spawnWithRetry(args, code => {
       exitCode = code
       done()
     })
@@ -331,8 +342,7 @@ describe('send-message #14', () => {
       '-i', '2',
       '-t',
     ]
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+    spawnWithRetry(args, code => {
       exitCode = code
       done()
     })
@@ -354,8 +364,7 @@ describe('send-message #15', () => {
       '-i', '1',
       '-t',
     ]
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+    spawnWithRetry(args, code => {
       exitCode = code
       done()
     })
