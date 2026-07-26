@@ -20,7 +20,7 @@ let hexString
 
 const processFlags = {
   detached: true,
-  stdio: 'inherit',
+  stdio: ['ignore', 'inherit', 'inherit'],
 }
 
 const openFile = (path) => {

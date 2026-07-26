@@ -51,6 +51,7 @@ const Crypto = require('crypto')
 const aesjs = require('aes-js')
 const eccrypto = require('../utils/silent-eccrypto')
 const Qrlnode = require('../functions/grpc')
+const { getNetworkSetup } = require('../functions/network-helper')
 
 let KYBLIBLoaded = false
 let DILLIBLoaded = false
@@ -77,7 +78,7 @@ const waitForQRLLIB = (callBack) => {
     return false
   }, 50)
 }
-const waitForKYBLIB = callBack => {
+const waitForKYBLIB = (callBack) => {
   setTimeout(() => {
     // Test the KYBLIB object has the getString function.
     // This is sufficient to tell us KYBLIB has loaded.
@@ -85,13 +86,13 @@ const waitForKYBLIB = callBack => {
       callBack()
     } else {
       KYBLIBLoaded = true
-          return waitForKYBLIB(callBack)
+      return waitForKYBLIB(callBack)
     }
     return false
   }, 50)
 }
 
-const waitForDILLIB = callBack => {
+const waitForDILLIB = (callBack) => {
   setTimeout(() => {
     // Test the DILLIB object has the getString function.
     // This is sufficient to tell us DILLIB has loaded.
@@ -104,6 +105,8 @@ const waitForDILLIB = callBack => {
     return false
   }, 50)
 }
+
+
 
 // Convert bytes to hex
 function bytesToHex(byteArray) {
@@ -307,24 +310,7 @@ class LatticeShared extends Command {
       sharedKeyListFile = flags.sharedKeyListFile
     }
 
-// /////////////////////////
-// network stuff
-// /////////////////////////
-    let grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
-    let network = 'Mainnet'
-
-    if (flags.grpc) {
-      grpcEndpoint = flags.grpc
-      network = `Custom GRPC endpoint: [${flags.grpc}]`
-    }
-    if (flags.testnet) {
-      grpcEndpoint = 'testnet-3.automated.theqrl.org:19009'
-      network = 'Testnet'
-    }
-    if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
-      network = 'Mainnet'
-    }
+    const { grpcEndpoint, network } = getNetworkSetup(flags)
     this.log(`Generate Lattice Shared_Keys...`)
     const spinner = ora({ text: 'Fetching Lattice keys...\n', }).start()
 

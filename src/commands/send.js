@@ -160,33 +160,102 @@ const checkTxJSON = (check) => {
 class Send extends Command {
   async run() {
     const { args, flags } = this.parse(Send)
-    // network
-    let grpcEndpoint = 'testnet-3.automated.theqrl.org:19009' // eslint-disable-line no-unused-vars
-    let network = 'Testnet'
-    if (flags.grpc) {
-      grpcEndpoint = flags.grpc
-      network = `Custom GRPC endpoint: [${flags.grpc}]`
-    }
-    if (flags.testnet) {
-      grpcEndpoint = 'testnet-3.automated.theqrl.org:19009'
-      network = 'Testnet'
-    }
-    if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
-      network = 'Mainnet'
-    }
+    const { getNetworkSetup } = require('../functions/network-helper') // eslint-disable-line global-require
+    const { grpcEndpoint, network } = getNetworkSetup(flags)
+
+    const prompts = require('prompts') // eslint-disable-line global-require
+    const isInteractive = process.stdout.isTTY && process.stdin.isTTY
+
     if (!flags.loadfromfile) {
-      if (!args.quantity) {
-        this.log(` ${red('›')}   Error: Missing 1 required arg:`)
-        this.log(` ${red('›')}   ${Send.args[0].name}  ${Send.args[0].description}`)
-        this.log(` ${red('›')}   See more help with --help`)
-        this.exit(1)
+      if (!flags.recipient && !flags.jsonObject && !flags.file) {
+        if (!isInteractive) {
+          this.log(` ${red('›')}   Error: Missing recipient address. Use -r flag.`)
+          this.exit(1)
+        }
+        const response = await prompts({
+          type: 'text',
+          name: 'recipient',
+          message: 'Enter recipient QRL address:',
+          validate: value => validateQrlAddress.hexString(value).result ? true : 'Invalid QRL address'
+        })
+        flags.recipient = response.recipient
+        if (!flags.recipient) {
+          this.log(`${red('⨉')} Operation cancelled.`)
+          this.exit(1)
+        }
       }
+
+      if (!args.quantity) {
+        if (!isInteractive) {
+          this.log(` ${red('›')}   Error: Missing required argument: quantity`)
+          this.exit(1)
+        }
+        const response = await prompts({
+          type: 'number',
+          name: 'quantity',
+          message: 'Enter amount to send (in Quanta, or Shor if -s flag is set):',
+          validate: value => value > 0 ? true : 'Quantity must be positive'
+        })
+        args.quantity = response.quantity.toString()
+        if (!args.quantity) {
+          this.log(`${red('⨉')} Operation cancelled.`)
+          this.exit(1)
+        }
+      }
+
       if (!flags.otsindex) {
-        this.log(` ${red('›')}   Error: Missing required flag:`)
-        this.log(` ${red('›')}    -${Send.flags.otsindex.char}, --otsindex OTSINDEX  ${white(Send.flags.otsindex.description)}`)
-        this.log(` ${red('›')}   See more help with --help`)
-        this.exit(1)
+        if (!isInteractive) {
+          this.log(` ${red('›')}   Error: Missing required flag: --otsindex`)
+          this.exit(1)
+        }
+        const response = await prompts({
+          type: 'number',
+          name: 'otsindex',
+          message: 'Enter OTS key index (e.g. 0):',
+          validate: value => value >= 0 ? true : 'OTS index must be 0 or greater'
+        })
+        flags.otsindex = response.otsindex.toString()
+        if (!flags.otsindex) {
+          this.log(`${red('⨉')} Operation cancelled.`)
+          this.exit(1)
+        }
+      }
+
+      if (!flags.wallet && !flags.hexseed) {
+        if (!isInteractive) {
+          this.log(` ${red('›')}   Error: Missing sender wallet file (-w) or hexseed (-h).`)
+          this.exit(1)
+        }
+        const response = await prompts({
+          type: 'select',
+          name: 'walletType',
+          message: 'How would you like to specify the sender wallet?',
+          choices: [
+            { title: 'Wallet file (wallet.json)', value: 'file' },
+            { title: 'Hexseed / Mnemonic phrase', value: 'seed' }
+          ]
+        })
+        if (response.walletType === 'file') {
+          const fileResp = await prompts({
+            type: 'text',
+            name: 'walletFile',
+            message: 'Enter path to wallet file:',
+            initial: 'wallet.json',
+            validate: value => fs.existsSync(value) ? true : 'File does not exist'
+          })
+          flags.wallet = fileResp.walletFile
+        } else if (response.walletType === 'seed') {
+          const seedResp = await prompts({
+            type: 'text',
+            name: 'hexseed',
+            message: 'Enter wallet Hexseed or Mnemonic:',
+            validate: value => value.trim().length > 0 ? true : 'Hexseed/Mnemonic is required'
+          })
+          flags.hexseed = seedResp.hexseed
+        } else {
+          this.log(`${red('⨉')} Operation cancelled.`)
+          this.exit(1)
+        }
       }
     } else { // eslint-disable-next-line no-lonely-if
       if (args.quantity || flags.fee || flags.file || flags.hexseed || flags.jsonObject ||

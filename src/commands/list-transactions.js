@@ -17,14 +17,10 @@ const openWalletFile = (path) => {
   return JSON.parse(contents)[0]
 }
 
-const addressForAPI = (address) => {
-  return Buffer.from(address.substring(1), 'hex')
-}
+const addressForAPI = (address) => Buffer.from(address.substring(1), 'hex')
 
 // Sleep function for rate limiting
-const sleep = (ms) => {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
+const sleep = (ms) => new Promise(resolve => { setTimeout(resolve, ms) })
 
 // Format transaction data for console output
 const formatTransactionForConsole = (tx, index, queryAddress) => {
@@ -165,6 +161,35 @@ class ListTransactions extends Command {
   async run() {
     const { args, flags } = this.parse(ListTransactions)
     let { address } = args
+
+    const { readStdin } = require('../functions/stdin-helper') // eslint-disable-line global-require
+    const prompts = require('prompts') // eslint-disable-line global-require
+
+    const isInteractive = process.stdout.isTTY && process.stdin.isTTY
+
+    // Support reading from STDIN if address is "-" or omitted in a pipe
+    if (address === '-' || (!address && !process.stdin.isTTY)) {
+      address = await readStdin()
+    }
+
+    // Empathic prompt if address is still missing
+    if (!address) {
+      if (!isInteractive) {
+        this.log(` ${red('›')}   Error: Missing QRL address or wallet file.`)
+        this.exit(1)
+      }
+      const response = await prompts({
+        type: 'text',
+        name: 'address',
+        message: 'Enter a QRL address or path to wallet.json file:',
+        validate: value => value.length > 0 ? true : 'Address/File is required'
+      })
+      address = response.address
+      if (!address) {
+        this.log(`${red('⨉')} Operation cancelled.`)
+        this.exit(1)
+      }
+    }
     
     // Handle wallet file or address validation
     if (!validateQrlAddress.hexString(address).result) {
@@ -209,7 +234,9 @@ class ListTransactions extends Command {
           this.log(`${red('⨉')} Error decrypting wallet: ${error.message}`)
           this.exit(1)
         }
-        this.log(`${black().bgWhite(address)}`)
+        if (!flags.json) {
+          this.log(`${black().bgWhite(address)}`)
+        }
       }
       if (isValidFile === false) {
         this.log(`${red('⨉')} Unable to list transactions: invalid QRL address/wallet file`)
@@ -218,25 +245,18 @@ class ListTransactions extends Command {
     }
 
     // Network configuration
-    let grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
-    let network = 'Mainnet'
-    if (flags.grpc) {
-      grpcEndpoint = flags.grpc
-      network = `Custom GRPC endpoint: [${flags.grpc}]`
-    }
-    if (flags.testnet) {
-      grpcEndpoint = 'testnet-3.automated.theqrl.org:19009'
-      network = 'Testnet'
-    }
-    if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
-      network = 'Mainnet'
+    const { getNetworkSetup } = require('../functions/network-helper') // eslint-disable-line global-require
+    const { grpcEndpoint, network } = getNetworkSetup(flags)
+
+    if (!flags.json) {
+      this.log(white().bgBlue(network))
+      this.log(`${black().bgWhite('Address:')} ${address}`)
     }
 
-    this.log(white().bgBlue(network))
-    this.log(`${black().bgWhite('Address:')} ${address}`)
-
-    const spinner = ora({ text: 'Connecting to node...' }).start()
+    let spinner
+    if (!flags.json) {
+      spinner = ora({ text: 'Connecting to node...' }).start()
+    }
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     
     try {
@@ -245,26 +265,35 @@ class ListTransactions extends Command {
       let i = 0
       const count = 5
       while (Qrlnetwork.connection === false && i < count) {
-        spinner.text = `retry connection attempt: ${i}...`
+        if (spinner) {
+          spinner.text = `retry connection attempt: ${i}...`
+        }
         // eslint-disable-next-line no-await-in-loop
         await Qrlnetwork.connect()
         // eslint-disable-next-line no-plusplus
         i++
       }
     } catch (e) {
-      spinner.fail(`Failed to connect to node. Check network connection & parameters.\n${e}`)
+      if (spinner) {
+        spinner.fail(`Failed to connect to node. Check network connection & parameters.\n${e}`)
+      } else {
+        this.log(`${red('⨉')} Failed to connect to node: ${e}`)
+      }
       this.exit(1)
     }
 
     if (Qrlnetwork.connection === false) {
-      spinner.fail('Failed to establish connection to node')
+      if (spinner) spinner.fail('Failed to establish connection to node')
       this.exit(1)
     }
 
-    spinner.succeed('Connected to node')
+    if (spinner) spinner.succeed('Connected to node')
 
     // Get the exact transaction count for this address
-    const stateSpinner = ora({ text: 'Getting transaction count...' }).start()
+    let stateSpinner
+    if (!flags.json) {
+      stateSpinner = ora({ text: 'Getting transaction count...' }).start()
+    }
     let totalTransactionCount = 0
     let estimatedTotal = null
     let estimatedPages = null
@@ -280,17 +309,19 @@ class ListTransactions extends Command {
         if (totalTransactionCount > 0) {
           estimatedTotal = totalTransactionCount
           estimatedPages = Math.ceil(totalTransactionCount / (flags.limit || 100))
-          stateSpinner.succeed(`Found ${totalTransactionCount} transactions (${estimatedPages} pages)`)
+          if (stateSpinner) stateSpinner.succeed(`Found ${totalTransactionCount} transactions (${estimatedPages} pages)`)
         } else {
-          stateSpinner.succeed('No transactions found for this address')
-          this.log(`${green('✓')} No transactions found for address ${address}`)
+          if (stateSpinner) stateSpinner.succeed('No transactions found for this address')
+          if (!flags.json) {
+            this.log(`${green('✓')} No transactions found for address ${address}`)
+          } else {
+            this.log('[]')
+          }
           return
         }
-      } else {
-        stateSpinner.succeed('Address found (transaction count will be determined during fetch)')
-      }
+      } else if (stateSpinner) stateSpinner.succeed('Address found (transaction count will be determined during fetch)')
     } catch (error) {
-      stateSpinner.warn(`Could not get address state (${error.message}) - continuing with fetch`)
+      if (stateSpinner) stateSpinner.warn(`Could not get address state (${error.message}) - continuing with fetch`)
     }
 
     // Fetch transactions with pagination
@@ -301,7 +332,9 @@ class ListTransactions extends Command {
     let totalFetched = 0
     // estimatedTotal and estimatedPages are set above from transaction_hash_count
 
-    this.log(`${white().bgBlue(' Fetching Transactions ')}\n`)
+    if (!flags.json) {
+      this.log(`${white().bgBlue(' Fetching Transactions ')}\n`)
+    }
 
     while (hasMorePages) {
       let progressText = `${white('Page')} ${green(currentPage.toString())}`
@@ -318,7 +351,10 @@ class ListTransactions extends Command {
       
       progressText += ` ${white('transactions')}`
       
-      const fetchSpinner = ora({ text: progressText }).start()
+      let fetchSpinner
+      if (!flags.json) {
+        fetchSpinner = ora({ text: progressText }).start()
+      }
 
       try {
         const request = {
@@ -367,53 +403,79 @@ class ListTransactions extends Command {
           
           successText += ` total`
           
-          fetchSpinner.succeed(successText)
-          
-          // Check if we have more pages
-          if (response.transactions_detail.length < itemsPerPage) {
+          if (fetchSpinner) {
+            fetchSpinner.succeed(successText)
+            
+            // Check if we have more pages
+            if (response.transactions_detail.length < itemsPerPage) {
+              hasMorePages = false
+              // Update final counts now that we know the actual total
+              estimatedTotal = totalFetched
+              estimatedPages = currentPage
+            } else {
+              currentPage += 1
+              // Rate limiting: 5 second pause between pages
+              if (hasMorePages) {
+                let countdown = 5
+                let pauseSpinner
+                if (!flags.json) {
+                  pauseSpinner = ora({ 
+                    text: `${white('Pausing')} ${green(countdown.toString())} ${white('seconds to respect API limits...')}` 
+                  }).start()
+                }
+                
+                const countdownInterval = setInterval(() => {
+                  countdown -= 1
+                  if (pauseSpinner) {
+                    if (countdown > 0) {
+                      pauseSpinner.text = `${white('Pausing')} ${green(countdown.toString())} ${white('seconds to respect API limits...')}`
+                    } else {
+                      clearInterval(countdownInterval)
+                      pauseSpinner.succeed('Ready for next page')
+                    }
+                  } else if (countdown <= 0) {
+                    clearInterval(countdownInterval)
+                  }
+                }, 1000)
+                
+                // eslint-disable-next-line no-await-in-loop
+                await sleep(5000)
+              }
+            }
+          } else if (response.transactions_detail.length < itemsPerPage) {
             hasMorePages = false
-            // Update final counts now that we know the actual total
-            estimatedTotal = totalFetched
-            estimatedPages = currentPage
           } else {
             currentPage += 1
-            // Rate limiting: 5 second pause between pages
-            if (hasMorePages) {
-              let countdown = 5
-              const pauseSpinner = ora({ 
-                text: `${white('Pausing')} ${green(countdown.toString())} ${white('seconds to respect API limits...')}` 
-              }).start()
-              
-              const countdownInterval = setInterval(() => {
-                countdown -= 1
-                if (countdown > 0) {
-                  pauseSpinner.text = `${white('Pausing')} ${green(countdown.toString())} ${white('seconds to respect API limits...')}`
-                } else {
-                  clearInterval(countdownInterval)
-                  pauseSpinner.succeed('Ready for next page')
-                }
-              }, 1000)
-              
-              // eslint-disable-next-line no-await-in-loop
-              await sleep(5000)
-            }
+            // eslint-disable-next-line no-await-in-loop
+            await sleep(5000)
           }
         } else {
           hasMorePages = false
-          if (currentPage === 1) {
-            fetchSpinner.succeed('No transactions found for this address')
-          } else {
-            fetchSpinner.succeed(
-              `Page ${currentPage.toString()} │ ` +
-              `0 new transactions │ ` +
-              `${totalFetched.toString()} total │ End of data`
-            )
+          if (fetchSpinner) {
+            if (currentPage === 1) {
+              fetchSpinner.succeed('No transactions found for this address')
+            } else {
+              fetchSpinner.succeed(
+                `Page ${currentPage.toString()} │ ` +
+                `0 new transactions │ ` +
+                `${totalFetched.toString()} total │ End of data`
+              )
+            }
           }
         }
       } catch (error) {
-        fetchSpinner.fail(`Page ${currentPage.toString()} │ ${error.message}`)
+        if (fetchSpinner) {
+          fetchSpinner.fail(`Page ${currentPage.toString()} │ ${error.message}`)
+        } else {
+          this.log(`${red('⨉')} Error fetching transactions page ${currentPage}: ${error.message}`)
+        }
         this.exit(1)
       }
+    }
+
+    if (flags.json) {
+      this.log(JSON.stringify(allTransactions, null, 2))
+      this.exit(0)
     }
 
     if (allTransactions.length === 0) {
@@ -472,7 +534,7 @@ ListTransactions.args = [
   {
     name: 'address',
     description: 'QRL address or wallet.json file to list transactions for',
-    required: true,
+    required: false,
   },
 ]
 
@@ -511,6 +573,11 @@ ListTransactions.flags = {
     char: 'q',
     default: false,
     description: 'Suppress console output when using CSV export',
+  }),
+  json: flags.boolean({
+    char: 'j',
+    default: false,
+    description: 'Output transaction list in JSON format'
   }),
 }
 

@@ -3,7 +3,7 @@ const { spawn } = require('child_process')
 
 const processFlags = {
   detached: true,
-  stdio: 'inherit',
+  stdio: ['ignore', 'inherit', 'inherit'],
 }
 // no args
 describe('ots #1', () => {

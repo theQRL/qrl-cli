@@ -1,32 +1,28 @@
 /* eslint new-cap: 0 */
 const { Command, flags } = require('@oclif/command')
-const { white, black } = require('kleur')
+const { red, white, black } = require('kleur')
 const ora = require('ora')
 const moment = require('moment')
 
 const Qrlnode = require('../functions/grpc')
+const { getNetworkSetup } = require('../functions/network-helper')
 
 const shorPerQuanta = 10 ** 9
 
 class Status extends Command {
   async run() {
     const { flags } = this.parse(Status)
-    let grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
-    let network = 'Mainnet'
-    if (flags.grpc) {
-      grpcEndpoint = flags.grpc
-      network = `Custom GRPC endpoint: [${flags.grpc}]`
+    const { grpcEndpoint, network } = getNetworkSetup(flags)
+
+    if (!flags.json) {
+      this.log(white().bgBlue(network))
     }
-    if (flags.testnet) {
-      grpcEndpoint = 'testnet-3.automated.theqrl.org:19009'
-      network = 'Testnet'
+
+    let spinner
+    if (!flags.json) {
+      spinner = ora({ text: 'Fetching status from node...' }).start()
     }
-    if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
-      network = 'Mainnet'
-    }
-    this.log(white().bgBlue(network))
-    const spinner = ora({ text: 'Fetching status from node...' }).start()
+
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     try {
       await Qrlnetwork.connect()
@@ -34,41 +30,72 @@ class Status extends Command {
       let i = 0
       const count = 5
       while (Qrlnetwork.connection === false && i < count) {
-        spinner.succeed(`retry connection attempt: ${i}...`)
+        if (spinner) {
+          spinner.succeed(`retry connection attempt: ${i}...`)
+        }
         // eslint-disable-next-line no-await-in-loop
         await Qrlnetwork.connect()
         // eslint-disable-next-line no-plusplus
         i++
       }
     } catch (e) {
-      spinner.fail(`Failed to connect to node. Check network connection & parameters.\n${e}`)
+      if (spinner) {
+        spinner.fail(`Failed to connect to node. Check network connection & parameters.\n${e}`)
+      } else {
+        this.log(`${red('⨉')} Failed to connect to node: ${e}`)
+      }
       this.exit(1)
     }
 
     const response = await Qrlnetwork.api('GetStats')
-    spinner.succeed('Network status:')
-    this.log(`    ${black().bgWhite('Network id')} ${response.node_info.network_id}`)
-    this.log(
-      `    ${black().bgWhite('Network uptime')} ${Math.floor(
-        moment.duration(parseInt(response.uptime_network, 10), 'seconds').asDays()
-      )} days`
-    )
-    this.log(`    ${black().bgWhite('Epoch')} ${response.epoch}`)
-    this.log(`    ${black().bgWhite('Coins emitted')} ${response.coins_emitted / shorPerQuanta}`)
-    this.log(`    ${black().bgWhite('Total coin supply')} ${response.coins_total_supply}`)
-    this.log(`    ${black().bgWhite('Last block reward')} ${response.block_last_reward / shorPerQuanta}`)
-    const spinnerNode = ora().start()
-    spinnerNode.succeed('Node status:')
-    this.log(`    ${black().bgWhite('Version')} ${response.node_info.version}`)
-    this.log(`    ${black().bgWhite('State')} ${response.node_info.state}`)
-    this.log(`    ${black().bgWhite('Connections')} ${response.node_info.num_connections}`)
-    this.log(`    ${black().bgWhite('Known peers')} ${response.node_info.num_known_peers}`)
-    this.log(
-      `    ${black().bgWhite('Node uptime')} ${Math.floor(
-        moment.duration(parseInt(response.node_info.uptime, 10), 'seconds').asDays()
-      )} days`
-    )
-    this.log(`    ${black().bgWhite('Block height')} ${response.node_info.block_height}`)
+    if (spinner) {
+      spinner.succeed('Network status:')
+    }
+
+    if (flags.json) {
+      const output = {
+        network: {
+          id: response.node_info.network_id,
+          uptime_days: Math.floor(moment.duration(parseInt(response.uptime_network, 10), 'seconds').asDays()),
+          epoch: response.epoch,
+          coins_emitted: response.coins_emitted / shorPerQuanta,
+          coins_total_supply: response.coins_total_supply,
+          last_block_reward: response.block_last_reward / shorPerQuanta,
+        },
+        node: {
+          version: response.node_info.version,
+          state: response.node_info.state,
+          connections: response.node_info.num_connections,
+          known_peers: response.node_info.num_known_peers,
+          uptime_days: Math.floor(moment.duration(parseInt(response.node_info.uptime, 10), 'seconds').asDays()),
+          block_height: response.node_info.block_height,
+        }
+      }
+      console.log(JSON.stringify(output, null, 2)) // eslint-disable-line no-console
+    } else {
+      this.log(`    ${black().bgWhite('Network id')} ${response.node_info.network_id}`)
+      this.log(
+        `    ${black().bgWhite('Network uptime')} ${Math.floor(
+          moment.duration(parseInt(response.uptime_network, 10), 'seconds').asDays()
+        )} days`
+      )
+      this.log(`    ${black().bgWhite('Epoch')} ${response.epoch}`)
+      this.log(`    ${black().bgWhite('Coins emitted')} ${response.coins_emitted / shorPerQuanta}`)
+      this.log(`    ${black().bgWhite('Total coin supply')} ${response.coins_total_supply}`)
+      this.log(`    ${black().bgWhite('Last block reward')} ${response.block_last_reward / shorPerQuanta}`)
+      const spinnerNode = ora().start()
+      spinnerNode.succeed('Node status:')
+      this.log(`    ${black().bgWhite('Version')} ${response.node_info.version}`)
+      this.log(`    ${black().bgWhite('State')} ${response.node_info.state}`)
+      this.log(`    ${black().bgWhite('Connections')} ${response.node_info.num_connections}`)
+      this.log(`    ${black().bgWhite('Known peers')} ${response.node_info.num_known_peers}`)
+      this.log(
+        `    ${black().bgWhite('Node uptime')} ${Math.floor(
+          moment.duration(parseInt(response.node_info.uptime, 10), 'seconds').asDays()
+        )} days`
+      )
+      this.log(`    ${black().bgWhite('Block height')} ${response.node_info.block_height}`)
+    }
   }
 }
 
@@ -101,6 +128,11 @@ Status.flags = {
     char: 'g',
     required: false,
     description: 'Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)',
+  }),
+  json: flags.boolean({
+    char: 'j',
+    default: false,
+    description: 'Print result output in JSON format'
   }),
 }
 

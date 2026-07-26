@@ -22,7 +22,7 @@ $ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-@theqrl/cli/1.10.2 darwin-arm64 node-v16.13.1
+@theqrl/cli/1.10.2 darwin-arm64 node-v24.13.0
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND
@@ -31,43 +31,40 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`qrl-cli balance ADDRESS`](#qrl-cli-balance-address)
+* [`qrl-cli balance [ADDRESS]`](#qrl-cli-balance-address)
+* [`qrl-cli config [ACTION] [KEY] [VALUE]`](#qrl-cli-config-action-key-value)
 * [`qrl-cli create-wallet`](#qrl-cli-create-wallet)
 * [`qrl-cli generate-lattice-keys`](#qrl-cli-generate-lattice-keys)
 * [`qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXT] [SIGNEDMESSAGE]`](#qrl-cli-generate-shared-keys-latticepk-latticesk-cyphertext-signedmessage)
 * [`qrl-cli get-keys`](#qrl-cli-get-keys)
 * [`qrl-cli help [COMMAND]`](#qrl-cli-help-command)
+* [`qrl-cli list-transactions [ADDRESS]`](#qrl-cli-list-transactions-address)
 * [`qrl-cli notarize DATAHASH`](#qrl-cli-notarize-datahash)
-* [`qrl-cli ots ADDRESS`](#qrl-cli-ots-address)
+* [`qrl-cli ots [ADDRESS]`](#qrl-cli-ots-address)
 * [`qrl-cli receive ADDRESS`](#qrl-cli-receive-address)
 * [`qrl-cli search SEARCH`](#qrl-cli-search-search)
 * [`qrl-cli send [QUANTITY]`](#qrl-cli-send-quantity)
 * [`qrl-cli send-message`](#qrl-cli-send-message)
 * [`qrl-cli sign-tx-offline QUANTITY OUTPUT`](#qrl-cli-sign-tx-offline-quantity-output)
 * [`qrl-cli status`](#qrl-cli-status)
-* [`qrl-cli validate ADDRESS`](#qrl-cli-validate-address)
+* [`qrl-cli token:create`](#qrl-cli-tokencreate)
+* [`qrl-cli token:transfer`](#qrl-cli-tokentransfer)
+* [`qrl-cli validate [ADDRESS]`](#qrl-cli-validate-address)
 
-## `qrl-cli balance ADDRESS`
+## `qrl-cli balance [ADDRESS]`
 
 Get a wallet balance from the network for an address
 
 ```
-Get a wallet balance from the network for an address
-
-Queries the balance of the wallet.json file or address. 
-Use the (-p) flag to pass the password of encrypted wallet file.
-
-Documentation at https://docs.theqrl.org/developers/qrl-cli
-
-
 USAGE
-  $ qrl-cli balance ADDRESS
+  $ qrl-cli balance [ADDRESS]
 
 ARGUMENTS
   ADDRESS  QRL address or wallet.json file to return a balance for
 
 OPTIONS
   -g, --grpc=grpc          Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
+  -j, --json               Output balance information in JSON format
   -m, --mainnet            Queries mainnet network for the address balance
   -p, --password=password  Encrypted QRL wallet.json password to decrypt
   -q, --quanta             Reports the QRL address balance in Quanta
@@ -83,19 +80,30 @@ DESCRIPTION
 
 _See code: [src/commands/balance.js](https://github.com/theqrl/qrl-cli/blob/v1.10.2/src/commands/balance.js)_
 
+## `qrl-cli config [ACTION] [KEY] [VALUE]`
+
+Get, set, delete, or list CLI configurations
+
+```
+USAGE
+  $ qrl-cli config [ACTION] [KEY] [VALUE]
+
+ARGUMENTS
+  ACTION  Action to perform: get, set, list, delete
+  KEY     Configuration key
+  VALUE   Configuration value
+
+DESCRIPTION
+  Allows you to persist settings like default-network and grpc-endpoint across CLI runs.
+```
+
+_See code: [src/commands/config.js](https://github.com/theqrl/qrl-cli/blob/v1.10.2/src/commands/config.js)_
+
 ## `qrl-cli create-wallet`
 
 Create a new QRL wallet
 
 ```
-Create a new QRL wallet
-
-QRL addresses can be created with various tree height (-h) and hashing mechanisms (1-3)
-You can output to a file (-f) in JSON and encrypt with a user set password (-p).
-
-Documentation at https://docs.theqrl.org/developers/qrl-cli
-
-
 USAGE
   $ qrl-cli create-wallet
 
@@ -121,21 +129,6 @@ _See code: [src/commands/create-wallet.js](https://github.com/theqrl/qrl-cli/blo
 Generate new Kyber & Dilithium lattice key pairs aliong with an ECDSA key and (optionally) broadcast them onto the network.
 
 ```
-Generate new Kyber & Dilithium lattice key pairs aliong with an ECDSA key and (optionally) broadcast them onto the network.
-    
-This function REQUIRES a valid QRL wallet file or private keys (hexseed/mnemonic) to use 
-for generating and validating these lattice keys. Pass only one, wallet.json file OR hexseed/mnemonic.
-
-By default generate-lattice-keys will print new lattice keys to stdout.
-
-Save lattice keys to a file with the (-c) --crystalsFile flag and a file name. Encrypt the file with
-the (-e) flag and give the new AES encryption passphrase. The output file will be encrypted using this passphrase.
-
-Use the broadcast (-b) flag and a valid otsindex (-i) to broadcast the lattice keys to the QRL network using the addres provided.
-
-Documentation at https://docs.theqrl.org/developers/qrl-cli
-
-
 USAGE
   $ qrl-cli generate-lattice-keys
 
@@ -175,21 +168,6 @@ _See code: [src/commands/generate-lattice-keys.js](https://github.com/theqrl/qrl
 Generate shared_key files from lattice keys (user_1 public) and (user_2 secret)
 
 ```
-Generate shared_key files from lattice keys (user_1 public) and (user_2 secret)
-
-Generate new shared_keys and shared_keylist from transaction hash and private lattice keys    
-  Generates:
-    - kyber encrypted shared_key
-    - shared_key encrypted secret
-    - key_list from secret, through shake128 (optional password protected)
-
-Re-generate shared_keys from encrypted secrets
-  Generates:
-    - Decrypted shared key
-    - Decrypted cyphertext (shared_secret)
-    - Shared keylist from secret key and shake128 (optional password protected)
-
-
 USAGE
   $ qrl-cli generate-shared-keys LATTICEPK LATTICESK [CYPHERTEXT] [SIGNEDMESSAGE]
 
@@ -212,16 +190,16 @@ OPTIONS
 
 DESCRIPTION
   Generate new shared_keys and shared_keylist from transaction hash and private lattice keys    
-     Generates:
-       - kyber encrypted shared_key
-       - shared_key encrypted secret
-       - key_list from secret, through shake128 (optional password protected)
+    Generates:
+      - kyber encrypted shared_key
+      - shared_key encrypted secret
+      - key_list from secret, through shake128 (optional password protected)
 
   Re-generate shared_keys from encrypted secrets
-     Generates:
-       - Decrypted shared key
-       - Decrypted cyphertext (shared_secret)
-       - Shared keylist from secret key and shake128 (optional password protected)
+    Generates:
+      - Decrypted shared key
+      - Decrypted cyphertext (shared_secret)
+      - Shared keylist from secret key and shake128 (optional password protected)
 ```
 
 _See code: [src/commands/generate-shared-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.10.2/src/commands/generate-shared-keys.js)_
@@ -231,16 +209,6 @@ _See code: [src/commands/generate-shared-keys.js](https://github.com/theqrl/qrl-
 Get lattice keys associated to a QRL address or transaction hash that have been broadcast to the network
 
 ```
-Get lattice keys associated to a QRL address or transaction hash that have been broadcast to the network
-
-Command requires that either a transaction hash or QRL address to lookup is given and the network must match where the transaction was made.
-
-For general address lookup, use page number and items returned number to limit your search. 
-qrl-cli get-keys -i 1 -p 1 -a {ADDRESS} - will print the first key if found at that address. 
-
-Found public lattice keys can be written to a json file with the (-f) flag, default will print lattice keys to stdout
-
-
 USAGE
   $ qrl-cli get-keys
 
@@ -256,8 +224,8 @@ OPTIONS
   -t, --testnet                      Queries testnet for the lattice keys
 
 DESCRIPTION
-  Command requires that either a transaction hash or QRL address to lookup is given and the network must match where the 
-  transaction was made.
+  Command requires that either a transaction hash or QRL address to lookup is given and the network must match where the
+   transaction was made.
 
   For general address lookup, use page number and items returned number to limit your search. 
   qrl-cli get-keys -i 1 -p 1 -a {ADDRESS} - will print the first key if found at that address. 
@@ -272,8 +240,6 @@ _See code: [src/commands/get-keys.js](https://github.com/theqrl/qrl-cli/blob/v1.
 display help for qrl-cli
 
 ```
-display help for <%= config.bin %>
-
 USAGE
   $ qrl-cli help [COMMAND]
 
@@ -284,21 +250,46 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.18/src/commands/help.ts)_
+
+## `qrl-cli list-transactions [ADDRESS]`
+
+List transaction history for a QRL address to console and optionally to CSV file
+
+```
+USAGE
+  $ qrl-cli list-transactions [ADDRESS]
+
+ARGUMENTS
+  ADDRESS  QRL address or wallet.json file to list transactions for
+
+OPTIONS
+  -c, --csv=csv            Export transactions to CSV file (provide filename)
+  -g, --grpc=grpc          Custom grpc endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
+  -j, --json               Output transaction list in JSON format
+  -l, --limit=limit        [default: 100] Number of transactions to fetch per API call (default: 100)
+  -m, --mainnet            Query mainnet network for transactions
+  -p, --password=password  Encrypted QRL wallet.json password to decrypt
+  -q, --quiet              Suppress console output when using CSV export
+  -t, --testnet            Query testnet network for transactions
+
+DESCRIPTION
+  Fetches all transactions for a given QRL address and displays them in a formatted table.
+  Supports exporting to CSV format and includes rate limiting to avoid overwhelming the API.
+
+  The command implements a 5-second pause between API pages to respect rate limits.
+  Use the --limit flag to control how many transactions are fetched per API call.
+
+  Documentation at https://docs.theqrl.org/developers/qrl-cli
+```
+
+_See code: [src/commands/list-transactions.js](https://github.com/theqrl/qrl-cli/blob/v1.10.2/src/commands/list-transactions.js)_
 
 ## `qrl-cli notarize DATAHASH`
 
 Notarise a document or file on the blockchain
 
 ```
-Notarise a document or file on the blockchain
-
-Notarise data onto the blockchain. Takes a sha256 hash of a file and submits it to the network using
-the wallet address given.
-
-Advanced: you can use a custom defined node to broadcast the notarization. Use the (-g) grpc endpoint.
-
-
 USAGE
   $ qrl-cli notarize DATAHASH
 
@@ -326,21 +317,13 @@ DESCRIPTION
 
 _See code: [src/commands/notarize.js](https://github.com/theqrl/qrl-cli/blob/v1.10.2/src/commands/notarize.js)_
 
-## `qrl-cli ots ADDRESS`
+## `qrl-cli ots [ADDRESS]`
 
-Get a address's OTS state from the network
+Get an address's OTS state from the network
 
 ```
-Get a address's OTS state from the network
-
-Reports the next unused available OTS key. Pass either an address starting with 
-QQ0004 or a wallet.json file to se the next OTS. You can set the network flag with either (-t) testnet or (-m) mainnet
-
-If the wallet file is encrypted use the -p flag to pass the wallet file encryption password.
-
-
 USAGE
-  $ qrl-cli ots ADDRESS
+  $ qrl-cli ots [ADDRESS]
 
 ARGUMENTS
   ADDRESS  QRL address to return OTS state for
@@ -348,13 +331,14 @@ ARGUMENTS
 OPTIONS
   -g, --grpc=grpc          Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
   -j, --json               Output in JSON
-  -m, --mainnet            (default) Queries mainnet for the OTS state
+  -m, --mainnet            Queries mainnet for the OTS state
   -p, --password=password  wallet file password if encrypted
   -t, --testnet            Queries testnet for the OTS state
 
 DESCRIPTION
   Reports the next unused available OTS key. Pass either an address starting with 
-  QQ0004 or a wallet.json file to se the next OTS. You can set the network flag with either (-t) testnet or (-m) mainnet
+  QQ0004 or a wallet.json file to see the next OTS. You can set the network flag with either (-t) testnet or (-m) 
+  mainnet
 
   If the wallet file is encrypted use the -p flag to pass the wallet file encryption password.
 ```
@@ -366,12 +350,6 @@ _See code: [src/commands/ots.js](https://github.com/theqrl/qrl-cli/blob/v1.10.2/
 Displays a QR code of the QRL address to receive a transaction
 
 ```
-Displays a QR code of the QRL address to receive a transaction
-
-Prints the QRL address in both textual and QR format. Pass either an address or a wallet.json file
-If using an encrypted wallet file pass the encryption password with the (-p) flag.
-
-
 USAGE
   $ qrl-cli receive ADDRESS
 
@@ -393,12 +371,6 @@ _See code: [src/commands/receive.js](https://github.com/theqrl/qrl-cli/blob/v1.1
 Searches for a transaction, block or address
 
 ```
-Searches for a transaction, block or address
-
-Fetches data about queried transaction/block/address. Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet. 
-Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
-
-
 USAGE
   $ qrl-cli search SEARCH
 
@@ -424,20 +396,6 @@ _See code: [src/commands/search.js](https://github.com/theqrl/qrl-cli/blob/v1.10
 Send Quanta from a QRL address to QRL another address
 
 ```
-Send Quanta from a QRL address to QRL another address
-
-This function allows the transfer of Quanta between QRL addresses. Requires a wallet file or private keys and an unused OTS
-key index to sign the transaction.
-
-Offline signing enabled with the (-T) "Save To File" flag. This can sent using the (-F) "Load From File" flag. 
-Add message data to the transaction with the (-M) "Message" flag. This allows up to an 80 bytes message to be attached 
-to the transfer.
-
-Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet, or a custom defined node (-g) grpc endpoint. 
-Advanced: Append a (-M) Message to the transaction with max 80 bytes length
-
-
-
 USAGE
   $ qrl-cli send [QUANTITY]
 
@@ -467,8 +425,8 @@ DESCRIPTION
   key index to sign the transaction.
 
   Offline signing enabled with the (-T) "Save To File" flag. This can sent using the (-F) "Load From File" flag. 
-  Add message data to the transaction with the (-M) "Message" flag. This allows up to an 80 bytes message to be attached 
-
+  Add message data to the transaction with the (-M) "Message" flag. This allows up to an 80 bytes message to be attached
+ 
   to the transfer.
 
   Defaults to mainnet; network selection flags are (-m) mainnet, (-t) testnet, or a custom defined node (-g) grpc 
@@ -483,14 +441,6 @@ _See code: [src/commands/send.js](https://github.com/theqrl/qrl-cli/blob/v1.10.2
 Send up to 80 byte message on the network
 
 ```
-Send up to 80 byte message on the network
-
-Message can be sent to a recipient with the (-r) flag
-You can select either (-m) mainnet or (-t) testnet
-
-Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
-
-
 USAGE
   $ qrl-cli send-message
 
@@ -520,11 +470,6 @@ _See code: [src/commands/send-message.js](https://github.com/theqrl/qrl-cli/blob
 Send Quanta
 
 ```
-Send Quanta
-...
-TODO
-
-
 USAGE
   $ qrl-cli sign-tx-offline QUANTITY OUTPUT
 
@@ -555,17 +500,12 @@ _See code: [src/commands/sign-tx-offline.js](https://github.com/theqrl/qrl-cli/b
 Gets the network status from a node
 
 ```
-Gets the network status from a node
-
-Reports network status from the node queried. You can select either (-m) mainnet or (-t) testnet
-Advanced: you can use a custom defined node to query for status. Use the (-g) grpc endpoint.
-
-
 USAGE
   $ qrl-cli status
 
 OPTIONS
   -g, --grpc=grpc  Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)
+  -j, --json       Print result output in JSON format
   -m, --mainnet    queries mainnet for the OTS state
   -t, --testnet    queries testnet for the OTS state
 
@@ -576,28 +516,74 @@ DESCRIPTION
 
 _See code: [src/commands/status.js](https://github.com/theqrl/qrl-cli/blob/v1.10.2/src/commands/status.js)_
 
-## `qrl-cli validate ADDRESS`
+## `qrl-cli token:create`
+
+Create a new Token on the QRL network (QRL v1.0 XMSS/gRPC)
+
+```
+USAGE
+  $ qrl-cli token:create
+
+OPTIONS
+  -H, --holder=holder      Allocations of initial token balances (Format: Qaddress:Amount)
+  -d, --decimals=decimals  Decimal precision for token (0 to 9, default: 9)
+  -f, --fee=fee            Fee for transaction in Shor (defaults to 100 Shor)
+  -g, --grpc=grpc          Custom grpc endpoint (-g 127.0.0.1:19009)
+  -h, --hexseed=hexseed    Hexseed or mnemonic phrase of wallet to sign transaction from
+  -i, --otsindex=otsindex  OTS key index to sign with
+  -j, --json               Print result output in JSON format
+  -m, --mainnet            Queries mainnet network
+  -n, --name=name          Token name (e.g. Test Token, max 30 chars)
+  -p, --password=password  Password if the wallet.json is encrypted
+  -s, --symbol=symbol      Token ticker symbol (e.g. TOK, max 10 chars)
+  -t, --testnet            Queries testnet network
+  -w, --wallet=wallet      JSON file of wallet to sign transaction from
+```
+
+_See code: [src/commands/token/create.js](https://github.com/theqrl/qrl-cli/blob/v1.10.2/src/commands/token/create.js)_
+
+## `qrl-cli token:transfer`
+
+Transfer existing tokens on the QRL network (QRL v1.0 XMSS/gRPC)
+
+```
+USAGE
+  $ qrl-cli token:transfer
+
+OPTIONS
+  -a, --amount=amount        Amount of tokens to transfer
+  -f, --fee=fee              Fee for transaction in Shor (defaults to 100 Shor)
+  -g, --grpc=grpc            Custom grpc endpoint (-g 127.0.0.1:19009)
+  -h, --hexseed=hexseed      Hexseed or mnemonic phrase of wallet to sign transaction from
+  -i, --otsindex=otsindex    OTS key index to sign with
+  -j, --json                 Print result output in JSON format
+  -m, --mainnet              Queries mainnet network
+  -p, --password=password    Password if the wallet.json is encrypted
+  -r, --recipient=recipient  Recipient QRL address (starting with Q)
+  -t, --testnet              Queries testnet network
+  -w, --wallet=wallet        JSON file of wallet to sign transaction from
+  -x, --tokenHash=tokenHash  Transaction ID of the token creation
+```
+
+_See code: [src/commands/token/transfer.js](https://github.com/theqrl/qrl-cli/blob/v1.10.2/src/commands/token/transfer.js)_
+
+## `qrl-cli validate [ADDRESS]`
 
 Validate a QRL address
 
 ```
-Validate a QRL address
-...
-when passed a QRL address in hexstring (preceded by 'Q'), will return details about the addresses validity.
-
-
 USAGE
-  $ qrl-cli validate ADDRESS
+  $ qrl-cli validate [ADDRESS]
 
 ARGUMENTS
   ADDRESS  QRL address to validate
 
 OPTIONS
+  -j, --json   Output address validation details in JSON format
   -q, --quiet  Quiet mode: no address details, just return validity via exit code
 
 DESCRIPTION
-  ...
-  when passed a QRL address in hexstring (preceded by 'Q'), will return details about the addresses validity.
+  When passed a QRL address in hexstring (preceded by 'Q'), will return details about the address's validity.
 ```
 
 _See code: [src/commands/validate.js](https://github.com/theqrl/qrl-cli/blob/v1.10.2/src/commands/validate.js)_

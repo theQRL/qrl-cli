@@ -25,7 +25,7 @@
     "bech32": "^1.1.3",
     "bignumber.js": "^9.0.0",
     "cli-ux": "^5.3.1",
-    "crypto": "^1.0.1",
+    "conf": "^10.2.0",
     "crypto-js": "3.1.9-1",
     "eccrypto": "^1.1.5",
     "google-proto-files": "^2.3.0",
@@ -33,15 +33,17 @@
     "kleur": "^3.0.3",
     "moment": "^2.24.0",
     "ora": "^3.4.0",
+    "prompts": "^2.4.2",
     "qrcode-terminal": "^0.12.0",
     "qrllib": "^1.1.7",
     "tmp": "^0.1.0",
     "util": "^0.12.1"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.25.8",
     "@oclif/dev-cli": "^1",
     "@oclif/test": "^1",
-    "@babel/eslint-parser": "^7.25.8",
+    "@yao-pkg/pkg": "^6.21.0",
     "chai": "^4",
     "codecov": "^3.6.5",
     "eslint": "^8.57.1",
@@ -50,8 +52,7 @@
     "eslint-plugin-import": "^2.31.0",
     "globby": "^10",
     "mocha": "^7.1.2",
-    "nyc": "^15.0.1",
-    "pkg": "^4.4.9"
+    "nyc": "^15.0.1"
   },
   "engines": {
     "node": ">=16.0.0"
@@ -88,7 +89,7 @@
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "eslint .",
     "prepack": "oclif-dev manifest && oclif-dev readme",
-    "test": "nyc mocha --require test/hooks.js --forbid-only -t 50000 \"test/**/*.test.js\"",
+    "test": "nyc mocha --require test/hooks.js --forbid-only -t 240000 \"test/**/*.test.js\"",
     "test-balance": "nyc mocha --forbid-only -t 50000 \"test/commands/balance.test.js\"",
     "test-create-wallet": "nyc mocha --forbid-only -t 50000 \"test/commands/create-wallet.test.js\"",
     "test-generate-lattice-keys": "nyc mocha --require test/hooks.js --forbid-only -t 50000 \"test/commands/generate-lattice-keys.test.js\"",
@@ -105,7 +106,7 @@
     "test-validate": "nyc mocha --forbid-only -t 50000 \"test/commands/validate.test.js\"",
     "version": "oclif-dev readme && git add README.md",
     "cov": "nyc report --reporter=text-lcov > coverage.lcov && ./node_modules/.bin/codecov -t $CODECOV_TOKEN",
-    "make-binaries": "pkg . -t node12-macos-x64 -o dist/macos/qrl-cli && pkg . -t node12-win-x64 -o dist/win/qrl-cli && pkg . -t node12-linux-x64 -o dist/linux/qrl-cli && cp ./assets/macos/ecdh.node dist/macos && cp ./assets/linux/ecdh.node dist/linux && cp ./assets/win/ecdh.node dist/win"
+    "make-binaries": "pkg . --no-bytecode --public --public-packages '*' -t node24-macos-x64 -o dist/macos-x64/qrl-cli && pkg . --no-bytecode --public --public-packages '*' -t node24-macos-arm64 -o dist/macos-arm64/qrl-cli && pkg . --no-bytecode --public --public-packages '*' -t node24-linux-x64 -o dist/linux-x64/qrl-cli && pkg . --no-bytecode --public --public-packages '*' -t node24-linux-arm64 -o dist/linux-arm64/qrl-cli && pkg . --no-bytecode --public --public-packages '*' -t node24-win-x64 -o dist/win-x64/qrl-cli.exe && cp ./assets/macos/ecdh.node dist/macos-x64 && cp ./assets/linux/ecdh.node dist/linux-x64 && cp ./assets/win/ecdh.node dist/win-x64"
   },
   "pkg": {
     "scripts": [

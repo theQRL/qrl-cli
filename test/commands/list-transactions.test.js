@@ -200,7 +200,7 @@ describe('list-transactions #6', () => {
 describe('list-transactions #7', () => {
   let exitCode
   before(async function listTransactionsTest7() {
-    this.timeout(15000)
+    this.timeout(60000)
     await delay(5000) // 5 second delay to prevent API rate limiting
     const args = [
       'list-transactions',
@@ -225,7 +225,7 @@ describe('list-transactions #7', () => {
 describe('list-transactions #8', () => {
   let exitCode
   before(async function listTransactionsTest8() {
-    this.timeout(15000)
+    this.timeout(60000)
     await delay(5000) // 5 second delay to prevent API rate limiting
     const args = [
       'list-transactions',
@@ -248,7 +248,7 @@ describe('list-transactions #8', () => {
 describe('list-transactions #9', () => {
   let exitCode
   before(async function listTransactionsTest9() {
-    this.timeout(15000)
+    this.timeout(60000)
     await delay(5000) // 5 second delay to prevent API rate limiting
     const args = [
       'list-transactions', 
@@ -272,13 +272,14 @@ describe('list-transactions #9', () => {
 describe('list-transactions #10', () => {
   let exitCode
   before(async function listTransactionsTest10() {
-    this.timeout(30000) // Increased timeout to account for API delays and multiple pages
+    this.timeout(240000) // Increased timeout to account for API delays and multiple pages
     await delay(5000) // 5 second delay to prevent API rate limiting
     const args = [
       'list-transactions',
-      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+      'Q000400e9910eb0b8ff824a017b400b8ea743a32ee35e958575a898eeb1fe796d6f14eb3f51897b',
       '--limit',
       '10',
+      '-t',
     ]
     const childProcess = spawn('./bin/run', args, processFlags)
     activeProcesses.push(childProcess)
@@ -306,7 +307,7 @@ describe('list-transactions #10', () => {
 describe('list-transactions #11', () => {
   let exitCode
   before(async function listTransactionsTest11() {
-    this.timeout(30000)
+    this.timeout(60000)
     await delay(5000) // 5 second delay to prevent API rate limiting
     const args = ['list-transactions', 'Q000400e9910eb0b8ff824a017b400b8ea743a32ee35e958575a898eeb1fe796d6f14eb3f51897b', '-t']
     const process = spawn('./bin/run', args, processFlags)
@@ -326,7 +327,7 @@ describe('list-transactions #11', () => {
 describe('list-transactions #12', () => {
   let exitCode
   before(async function listTransactionsTest12() {
-    this.timeout(15000)
+    this.timeout(60000)
     await delay(5000) // 5 second delay to prevent API rate limiting
     const args = [
       'list-transactions', 
@@ -350,7 +351,7 @@ describe('list-transactions #12', () => {
 describe('list-transactions #13', () => {
   let exitCode
   before(async function listTransactionsTest13() {
-    this.timeout(20000)
+    this.timeout(60000)
     await delay(5000) // 5 second delay to prevent API rate limiting
     
     // Create wallet file if it doesn't exist
@@ -379,7 +380,7 @@ describe('list-transactions #13', () => {
 describe('list-transactions #14', () => {
   let exitCode
   before(async function listTransactionsTest14() {
-    this.timeout(20000)
+    this.timeout(60000)
     await delay(5000) // 5 second delay to prevent API rate limiting
     
     // Create encrypted wallet file if it doesn't exist
@@ -410,7 +411,7 @@ describe('list-transactions #14', () => {
 describe('list-transactions #15', () => {
   let exitCode
   before(async function listTransactionsTest15() {
-    this.timeout(15000)
+    this.timeout(60000)
     await delay(5000) // 5 second delay to prevent API rate limiting
     const args = [
       'list-transactions',

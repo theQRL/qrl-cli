@@ -6,7 +6,7 @@ const testSetup = require('../test_setup')
 
 const processFlags = {
   detached: true,
-  stdio: 'inherit',
+  stdio: ['ignore', 'inherit', 'inherit'],
 }
 
 // Helper function to add delay between tests to prevent API rate limiting

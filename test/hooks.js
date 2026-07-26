@@ -12,7 +12,7 @@ const testSetup = require('./test_setup')
 
 const processFlags = {
   detached: true,
-  // stdio: 'inherit', // Moved to runCliCommand to allow stream capture
+  stdio: ['ignore', 'inherit', 'inherit'],
 }
 
 // Helper to run a command and return a Promise
@@ -152,7 +152,7 @@ function latticeCreate(input) {
   before(done => {
     // Add a small delay to prevent overwhelming the network
     setTimeout(() => {
-    const childProcess = spawn('./bin/run', args, { ...processFlags, stdio: ['pipe', 'pipe', 'pipe'] });
+    const childProcess = spawn('./bin/run', args, { ...processFlags, stdio: ['ignore', 'ignore', 'pipe'] });
     let stderr = '';
     childProcess.stderr.on('data', (data) => {
       stderr += data.toString();
@@ -175,7 +175,7 @@ function latticeCreate(input) {
               dilithiumPK: latticeTX[0].dilithiumPK,
               ecdsaPK: latticeTX[0].ecdsaPK
             };
-            const fs = require('fs');
+            const fs = require('fs'); // eslint-disable-line global-require
             fs.writeFileSync(input.pubKeyFile, JSON.stringify([mockPubKeys]));
           }
           done();
@@ -209,7 +209,7 @@ function encLatticeCreate(input) {
   before(done => {
     // Add a small delay to prevent overwhelming the network
     setTimeout(() => {
-      const childProcess = spawn('./bin/run', args, { ...processFlags, stdio: ['pipe', 'pipe', 'pipe'] })
+      const childProcess = spawn('./bin/run', args, { ...processFlags, stdio: ['ignore', 'ignore', 'pipe'] })
       let stderr = '';
       childProcess.stderr.on('data', (data) => {
         stderr += data.toString();
@@ -298,6 +298,7 @@ function fileRemove(dir) {
 // 
 exports.mochaHooks = {
   beforeAll: function _Hooks() {
+    this.timeout(240000)
 
     // create a badWalletFile
     let content = '{"bad_content": "Not a wallet!"}'

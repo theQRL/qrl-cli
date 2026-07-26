@@ -5,7 +5,7 @@ const testSetup = require('../test_setup')
 
 const processFlags = {
   detached: true,
-  stdio: 'inherit',
+  stdio: ['ignore', 'inherit', 'inherit'],
 }
 
 // //////////////
