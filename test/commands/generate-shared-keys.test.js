@@ -8,6 +8,9 @@ const {spawn} = require('child_process')
 const fs = require('fs')
 const setup = require('../test_setup')
 
+// Suites needing on-chain state (skipped in offline mock mode: hooks create no broadcast txs)
+const describeOnline = process.env.QRL_TEST_OFFLINE === 'true' ? describe.skip : describe
+
 
 const processFlags = {
   detached: true,
@@ -32,7 +35,7 @@ let bobPubKeyFileJSON
 let alicePubKeyFileJSON
 
 // lattice command given without any flags
-describe('generate-shared-keys setup', () => {
+describeOnline('generate-shared-keys setup', () => {
 
   let exitCode
   before(done => {
@@ -1012,7 +1015,7 @@ describe('generate-shared-keys #32 encrypted alliceLattice with bad pass', () =>
 // /////////////////////
 
 // alice generates shared keys for bob using his txID
-describe('generate-shared-keys #33 - pub key file', () => {
+describeOnline('generate-shared-keys #33 - pub key file', () => {
   let exitCode
   before(done => {
     const args = [
@@ -1036,7 +1039,7 @@ describe('generate-shared-keys #33 - pub key file', () => {
 })
 
 // alice generates shared keys for bob using his txID in json output
-describe('generate-shared-keys #33.a bob Pub Key txID', () => {
+describeOnline('generate-shared-keys #33.a bob Pub Key txID', () => {
 
   let exitCode
   before(done => {
@@ -1062,7 +1065,7 @@ describe('generate-shared-keys #33.a bob Pub Key txID', () => {
 
 
 
-describe('generate-shared-keys #33.b bob Pub Key JSON', () => {
+describeOnline('generate-shared-keys #33.b bob Pub Key JSON', () => {
   let exitCode
   before(done => {
     const args = [
@@ -1085,7 +1088,7 @@ describe('generate-shared-keys #33.b bob Pub Key JSON', () => {
   })
 })
 
-describe('generate-shared-keys #34 alliceLattice JSON', () => {
+describeOnline('generate-shared-keys #34 alliceLattice JSON', () => {
   let exitCode
   before(done => {
     const args = [
@@ -1108,7 +1111,7 @@ describe('generate-shared-keys #34 alliceLattice JSON', () => {
   })
 })
 
-describe('generate-shared-keys #35 encrypted alliceLattice ', () => {
+describeOnline('generate-shared-keys #35 encrypted alliceLattice ', () => {
   let exitCode
   before(done => {
     const args = [
@@ -1131,7 +1134,7 @@ describe('generate-shared-keys #35 encrypted alliceLattice ', () => {
     assert.strictEqual(exitCode, 0)
   })
 })
-describe('generate-shared-keys #35.a encrypted alliceLattice output key encrypted ', () => {
+describeOnline('generate-shared-keys #35.a encrypted alliceLattice output key encrypted ', () => {
   let exitCode
   before(done => {
     const args = [
@@ -1156,7 +1159,7 @@ describe('generate-shared-keys #35.a encrypted alliceLattice output key encrypte
   })
 })
 
-describe('generate-shared-keys #35.b encrypted alliceLattice json', () => {
+describeOnline('generate-shared-keys #35.b encrypted alliceLattice json', () => {
   let exitCode
   before(done => {
     const args = [
@@ -1186,7 +1189,7 @@ describe('generate-shared-keys #35.b encrypted alliceLattice json', () => {
 // /////////////////////////////
 
 // bob re-generates shared keys for bob using his txID
-describe('re-generate-shared-keys #2c', () => {
+describeOnline('re-generate-shared-keys #2c', () => {
   let exitCode
   before(done => {
     const args = [
@@ -1211,7 +1214,7 @@ describe('re-generate-shared-keys #2c', () => {
 
 // re-generate-shared-keys and output encrypted
 // bob re-generates shared keys for bob using his txID
-describe('generate-shared-keys #2d', () => {
+describeOnline('generate-shared-keys #2d', () => {
   let exitCode
   before(done => {
     const args = [
@@ -1237,7 +1240,7 @@ describe('generate-shared-keys #2d', () => {
 
 // re-generate-shared-keys and output encrypted
 // bob re-generates shared keys for bob using his txID
-describe('generate-shared-keys #2d', () => {
+describeOnline('generate-shared-keys #2d', () => {
   let exitCode
   before(done => {
     const args = [

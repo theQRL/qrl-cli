@@ -4,6 +4,9 @@ const fs = require('fs')
 
 const testSetup = require('../test_setup')
 
+// Suites needing on-chain state (skipped in offline mock mode: hooks create no broadcast txs)
+const describeOnline = process.env.QRL_TEST_OFFLINE === 'true' ? describe.skip : describe
+
 
 const processFlags = {
   detached: true,
@@ -109,7 +112,7 @@ describe('search #4', () => {
   })
 })
 // search command tx lookup grpc to testnet
-describe('search #5', () => {
+describeOnline('search #5', () => {
   let exitCode
   before(done => {
     const args = [
@@ -190,7 +193,7 @@ describe('search #8', () => {
 })
 
 // search command tx lookup with json flag
-describe('search #9', () => {
+describeOnline('search #9', () => {
   let exitCode
   before(done => {
     const args = [
