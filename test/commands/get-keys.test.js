@@ -8,6 +8,9 @@ const {spawn} = require('child_process')
 const fs = require('fs')
 const setup = require('../test_setup')
 
+// Suites needing on-chain state (skipped in offline mock mode: hooks create no broadcast txs)
+const describeOnline = process.env.QRL_TEST_OFFLINE === 'true' ? describe.skip : describe
+
 
 const processFlags = {
   detached: true,
@@ -334,7 +337,7 @@ describe('get-keys #14', () => {
 })
 
 // get keys from address given and print to console without page passed
-describe('get-keys #15', () => {
+describeOnline('get-keys #15', () => {
   let exitCode
   before(done => {
     const args = [
@@ -355,7 +358,7 @@ describe('get-keys #15', () => {
 })
 
 // get keys from address given and print to console without page passed
-describe('get-keys #16', () => {
+describeOnline('get-keys #16', () => {
   let exitCode
   before(done => {
     const args = [
