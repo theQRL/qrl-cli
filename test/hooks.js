@@ -12,7 +12,37 @@ const testSetup = require('./test_setup')
 
 const processFlags = {
   detached: true,
-  stdio: 'inherit',
+  stdio: ['ignore', 'inherit', 'inherit'],
+}
+
+// Helper to run a command and return a Promise
+function runCliCommand(command, args, options) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { ...options, stdio: ['pipe', 'pipe', 'pipe'] });
+    let stdout = '';
+    let stderr = '';
+
+    // Capture stdout and stderr
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Command '${command} ${args.join(' ')}' failed with exit code ${code}. Stderr: ${stderr}`));
+      } else {
+        resolve(stdout);
+      }
+    });
+
+    child.on('error', (err) => {
+      reject(new Error(`Failed to start command '${command} ${args.join(' ')}': ${err.message}`));
+    });
+  });
 }
 
 const openFile = (path) => {
@@ -29,10 +59,14 @@ function walletCreate(input) {
     '-f', input.dir,
   ]
   before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+    const childProcess = spawn('./bin/run', args, processFlags)
+    childProcess.on('exit', code => {
       // exitCode = code
-      done(code)
+      if (code !== 0) {
+        done(new Error(`create-wallet process exited with code ${code}`));
+      } else {
+        done();
+      }
     })
   })
 }
@@ -47,10 +81,14 @@ function encWalletCreate(input) {
     '-p', input.encPass,
   ]
   before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+    const childProcess = spawn('./bin/run', args, processFlags)
+    childProcess.on('exit', code => {
       // exitCode = code
-      done(code)
+      if (code !== 0) {
+        done(new Error(`create-wallet process exited with code ${code}`));
+      } else {
+        done();
+      }
     })
   })
 }
@@ -70,10 +108,20 @@ function sendOfflineFileGen(input) {
     input.dir,
   ]
   before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
+    // Skip offline transaction generation in offline mode
+    if (process.env.QRL_TEST_OFFLINE === 'true') {
+      done();
+      return;
+    }
+    
+    const childProcess = spawn('./bin/run', args, processFlags)
+    childProcess.on('exit', code => {
       // exitCode = code
-      done(code)
+      if (code !== 0) {
+        done(new Error(`send process exited with code ${code}`));
+      } else {
+        done();
+      }
     })
   })
 }
@@ -84,10 +132,9 @@ async function getKeys(input) {
     '-T', input.hash,
     '-t',
     '-f', input.outFile,
-  ]
-  const keys = await spawn('./bin/run', args, processFlags)
-  return keys
-} 
+  ];
+  await runCliCommand('./bin/run', args, processFlags);
+}
 
 function latticeCreate(input) {
   // let exitCode
@@ -97,18 +144,50 @@ function latticeCreate(input) {
     '-w', input.wallet,
     '-c', input.outFile,
     '-t',
-    '-b',
   ]
+  // Only add broadcast flag if not in offline mode
+  if (process.env.QRL_TEST_OFFLINE !== 'true') {
+    args.push('-b');
+  }
   before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      const latticeTX = openFile(input.outFile)
-      const txID = latticeTX[0].tx_hash
-      // console.log(`\n\nlatticeTX: ${JSON.stringify(latticeTX)}\ntxID: ${txID}\n\n`)
-      getKeys({ hash: txID, outFile: input.pubKeyFile })
-      done(code)
-    })
-    })
+    // Add a small delay to prevent overwhelming the network
+    setTimeout(() => {
+    const childProcess = spawn('./bin/run', args, { ...processFlags, stdio: ['ignore', 'ignore', 'pipe'] });
+    let stderr = '';
+    childProcess.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+    childProcess.on('exit', async (code) => {
+        if (code !== 0) {
+          done(new Error(`generate-lattice-keys process exited with code ${code}. Stderr: ${stderr}`));
+          return;
+        }
+        try {
+          const latticeTX = openFile(input.outFile);
+          // Only try to get keys if we have a real transaction hash (not in offline mode)
+          if (latticeTX[0].tx_hash && latticeTX[0].tx_hash !== 'false') {
+            const txID = latticeTX[0].tx_hash;
+            await getKeys({ hash: txID, outFile: input.pubKeyFile });
+          } else if (input.pubKeyFile) {
+            // In offline mode, create a mock pub key file
+            const mockPubKeys = {
+              kyberPK: latticeTX[0].kyberPK,
+              dilithiumPK: latticeTX[0].dilithiumPK,
+              ecdsaPK: latticeTX[0].ecdsaPK
+            };
+            const fs = require('fs'); // eslint-disable-line global-require
+            fs.writeFileSync(input.pubKeyFile, JSON.stringify([mockPubKeys]));
+          }
+          done();
+        } catch (err) {
+          done(err);
+        }
+      });
+      childProcess.on('error', (err) => {
+        done(err);
+      });
+    }, Math.random() * 2000 + 1000); // Random delay between 1-3 seconds
+  });
 }
 
 function encLatticeCreate(input) {
@@ -121,20 +200,40 @@ function encLatticeCreate(input) {
     '-p', input.encPass,
     '-e', input.encPass,
     '-t',
-    '-b',
     //    generate-lattice-keys -i 5, -w alice-wallet-ENC.json -c alice-lattice.json -p password123 -e password123 -t -b
   ]
+  // Only add broadcast flag if not in offline mode
+  if (process.env.QRL_TEST_OFFLINE !== 'true') {
+    args.push('-b');
+  }
   before(done => {
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      // exitCode = code
-      done(code)
-    })
+    // Add a small delay to prevent overwhelming the network
+    setTimeout(() => {
+      const childProcess = spawn('./bin/run', args, { ...processFlags, stdio: ['ignore', 'ignore', 'pipe'] })
+      let stderr = '';
+      childProcess.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+      childProcess.on('exit', code => {
+        // exitCode = code
+        if (code !== 0) {
+          done(new Error(`Process exited with code ${code}. Stderr: ${stderr}`));
+        } else {
+          done();
+        }
+      })
+    }, Math.random() * 2000 + 1000); // Random delay between 1-3 seconds
   })
 }
 
 function sharedKeys(input) {
   before(done => {
+    // Skip shared key generation in offline mode
+    if (process.env.QRL_TEST_OFFLINE === 'true') {
+      done();
+      return;
+    }
+    
     const args = [
       'generate-shared-keys',
       input.pubkey, 
@@ -144,15 +243,25 @@ function sharedKeys(input) {
       '-s', input.signedMessage,
       '-t',
     ]
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', code => {
-      done(code)
+    const childProcess = spawn('./bin/run', args, processFlags)
+    childProcess.on('exit', code => {
+      if (code !== 0) {
+        done(new Error(`generate-shared-keys process exited with code ${code}`));
+      } else {
+        done();
+      }
     })
   })
 }
 
 function regenSharedKeys(input) {
   before(done => {
+    // Skip shared key regeneration in offline mode
+    if (process.env.QRL_TEST_OFFLINE === 'true') {
+      done();
+      return;
+    }
+    
     const args = [
       'generate-shared-keys',
       input.pubkey, 
@@ -162,9 +271,13 @@ function regenSharedKeys(input) {
       '-k', input.sharedKeyFile,
       '-t',
     ]
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', () => {
-      done()
+    const childProcess = spawn('./bin/run', args, processFlags)
+    childProcess.on('exit', code => {
+      if (code !== 0) {
+        done(new Error(`generate-shared-keys process exited with code ${code}`));
+      } else {
+        done();
+      }
     })
   })
 }
@@ -185,6 +298,7 @@ function fileRemove(dir) {
 // 
 exports.mochaHooks = {
   beforeAll: function _Hooks() {
+    this.timeout(240000)
 
     // create a badWalletFile
     let content = '{"bad_content": "Not a wallet!"}'

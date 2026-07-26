@@ -5,9 +5,32 @@ const fs = require('fs')
 const testSetup = require('../test_setup')
 
 const processFlags = {
-  detached: true,
-  stdio: ['ignore', 'inherit', 'inherit'],
+  stdio: 'pipe', // Changed from 'inherit' to 'pipe' to better control output
 }
+
+// Track active processes for cleanup
+const activeProcesses = []
+
+// Cleanup function to kill all active processes
+function cleanupProcesses() {
+  activeProcesses.forEach((childProcess) => {
+    if (!childProcess.killed) {
+      childProcess.kill('SIGTERM')
+    }
+  })
+  activeProcesses.length = 0
+}
+
+// Handle process interruption
+process.on('SIGINT', () => {
+  cleanupProcesses()
+  process.exit(0)
+})
+
+process.on('SIGTERM', () => {
+  cleanupProcesses()
+  process.exit(0)
+})
 
 // Helper function to add delay between tests to prevent API rate limiting
 function delay(ms) {
@@ -51,14 +74,24 @@ function createWalletIfNeeded(walletPath, isEncrypted = false, password = null) 
 }
 
 // no args
-describe('balance #1', () => {
+describe('list-transactions #1', () => {
   let exitCode
   before((done) => {
-    const args = ['balance']
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', (code) => {
+    const args = ['list-transactions']
+    const childProcess = spawn('./bin/run', args, processFlags)
+    activeProcesses.push(childProcess)
+    
+    childProcess.on('exit', (code) => {
       exitCode = code
+      const index = activeProcesses.indexOf(childProcess)
+      if (index > -1) activeProcesses.splice(index, 1)
       done()
+    })
+    
+    childProcess.on('error', (err) => {
+      const index = activeProcesses.indexOf(childProcess)
+      if (index > -1) activeProcesses.splice(index, 1)
+      done(err)
     })
   })
   it('exit code should be non-0 if passed without an argument', () => {
@@ -66,13 +99,13 @@ describe('balance #1', () => {
   })
 })
 
-// bad address
-describe('balance #2', () => {
+// bad address - too short
+describe('list-transactions #2', () => {
   let exitCode
   before((done) => {
     const args = [
-    'balance',
-    'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f',
+      'list-transactions',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f',
     ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', (code) => {
@@ -84,13 +117,14 @@ describe('balance #2', () => {
     assert.notStrictEqual(exitCode, 0)
   })
 })
-// bad address
-describe('balance #3', () => {
+
+// bad address - starts with 'a'
+describe('list-transactions #3', () => {
   let exitCode
   before((done) => {
     const args = [
-    'balance',
-    'a010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+      'list-transactions',
+      'a010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
     ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', (code) => {
@@ -103,13 +137,32 @@ describe('balance #3', () => {
   })
 })
 
-// bad address file
-describe('balance #4', () => {
+// invalid address
+describe('list-transactions #4', () => {
   let exitCode
   before((done) => {
     const args = [
-    'balance',
-    testSetup.notAWalletFile,
+      'list-transactions',
+      'invalid-address',
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', (code) => {
+      exitCode = code
+      done()
+    })
+  })
+  it('exit code should be non-0 if passed with invalid address', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
+// bad address file
+describe('list-transactions #5', () => {
+  let exitCode
+  before((done) => {
+    const args = [
+      'list-transactions',
+      testSetup.notAWalletFile,
     ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', (code) => {
@@ -123,14 +176,14 @@ describe('balance #4', () => {
 })
 
 // bad encrypted address file password
-describe('balance #5', () => {
+describe('list-transactions #6', () => {
   let exitCode
   before((done) => {
     const args = [
-    'balance',
-    testSetup.encWalletFile,
-    '-p',
-    'notThePass',
+      'list-transactions',
+      testSetup.encWalletFile,
+      '-p',
+      'notThePass',
     ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', (code) => {
@@ -143,34 +196,14 @@ describe('balance #5', () => {
   })
 })
 
-describe('balance #6', () => {
-  let exitCode
-  before((done) => {
-    const args = [
-      'balance',
-      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-      '-s',
-      '-q',
-    ]
-    const process = spawn('./bin/run', args, processFlags)
-    process.on('exit', (code) => {
-      exitCode = code
-      done()
-    })
-  })
-  it('exit code should be non-0 if passed with a valid address, and both -s and -q flags', () => {
-    assert.notStrictEqual(exitCode, 0)
-  })
-})
-
 // not valid grpc address
-describe('balance #7', () => {
+describe('list-transactions #7', () => {
   let exitCode
-  before(async function balanceTest7() {
-    this.timeout(15000)
-    await delay(5000) // 2 second delay to prevent API rate limiting
+  before(async function listTransactionsTest7() {
+    this.timeout(60000)
+    await delay(5000) // 5 second delay to prevent API rate limiting
     const args = [
-      'balance',
+      'list-transactions',
       'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
       '-g',
       'https://brooklyn.theqrl.org/nottheapi/',
@@ -188,16 +221,14 @@ describe('balance #7', () => {
   })
 })
 
-// pass
-
-// mainnet balance
-describe('balance #8', () => {
+// mainnet list-transactions
+describe('list-transactions #8', () => {
   let exitCode
-  before(async function balanceTest8() {
-    this.timeout(15000)
-    await delay(5000) // 2 second delay to prevent API rate limiting
+  before(async function listTransactionsTest8() {
+    this.timeout(60000)
+    await delay(5000) // 5 second delay to prevent API rate limiting
     const args = [
-      'balance',
+      'list-transactions',
       'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3'
     ]
     const process = spawn('./bin/run', args, processFlags)
@@ -213,38 +244,14 @@ describe('balance #8', () => {
   })
 })
 
-
-describe('balance #9', () => {
+// success with quiet flag
+describe('list-transactions #9', () => {
   let exitCode
-  before(async function balanceTest9() {
-    this.timeout(15000)
-    await delay(5000) // 2 second delay to prevent API rate limiting
+  before(async function listTransactionsTest9() {
+    this.timeout(60000)
+    await delay(5000) // 5 second delay to prevent API rate limiting
     const args = [
-      'balance',
-      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
-      '-s'
-    ]
-    const process = spawn('./bin/run', args, processFlags)
-    return new Promise((resolve) => {
-      process.on('exit', (code) => {
-        exitCode = code
-        resolve()
-      })
-    })
-  })
-  it('exit code should be 0 if passed with a valid address and a -s flag', () => {
-    assert.strictEqual(exitCode, 0)
-  })
-})
-
-// success -q
-describe('balance #10', () => {
-  let exitCode
-  before(async function balanceTest10() {
-    this.timeout(15000)
-    await delay(5000) // 2 second delay to prevent API rate limiting
-    const args = [
-      'balance', 
+      'list-transactions', 
       'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
       '-q',
     ]
@@ -261,13 +268,48 @@ describe('balance #10', () => {
   })
 })
 
-// success testnet
-describe('balance #11', () => {
+// success with limit flag
+describe('list-transactions #10', () => {
   let exitCode
-  before(async function balanceTest11() {
-    this.timeout(30000)
-    await delay(5000) // 2 second delay to prevent API rate limiting
-    const args = ['balance', 'Q000400e9910eb0b8ff824a017b400b8ea743a32ee35e958575a898eeb1fe796d6f14eb3f51897b', '-t']
+  before(async function listTransactionsTest10() {
+    this.timeout(240000) // Increased timeout to account for API delays and multiple pages
+    await delay(5000) // 5 second delay to prevent API rate limiting
+    const args = [
+      'list-transactions',
+      'Q000400e9910eb0b8ff824a017b400b8ea743a32ee35e958575a898eeb1fe796d6f14eb3f51897b',
+      '--limit',
+      '10',
+      '-t',
+    ]
+    const childProcess = spawn('./bin/run', args, processFlags)
+    activeProcesses.push(childProcess)
+    
+    return new Promise((resolve, reject) => {
+      childProcess.on('exit', (code) => {
+        exitCode = code
+        const index = activeProcesses.indexOf(childProcess)
+        if (index > -1) activeProcesses.splice(index, 1)
+        resolve()
+      })
+      childProcess.on('error', (err) => {
+        const index = activeProcesses.indexOf(childProcess)
+        if (index > -1) activeProcesses.splice(index, 1)
+        reject(err)
+      })
+    })
+  })
+  it('exit code should be 0 if passed with a valid address and limit flag', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+// success testnet
+describe('list-transactions #11', () => {
+  let exitCode
+  before(async function listTransactionsTest11() {
+    this.timeout(60000)
+    await delay(5000) // 5 second delay to prevent API rate limiting
+    const args = ['list-transactions', 'Q000400e9910eb0b8ff824a017b400b8ea743a32ee35e958575a898eeb1fe796d6f14eb3f51897b', '-t']
     const process = spawn('./bin/run', args, processFlags)
     return new Promise((resolve) => {
       process.on('exit', (code) => {
@@ -282,13 +324,13 @@ describe('balance #11', () => {
 })
 
 // success mainnet
-describe('balance #12', () => {
+describe('list-transactions #12', () => {
   let exitCode
-  before(async function balanceTest12() {
-    this.timeout(15000)
-    await delay(5000) // 2 second delay to prevent API rate limiting
+  before(async function listTransactionsTest12() {
+    this.timeout(60000)
+    await delay(5000) // 5 second delay to prevent API rate limiting
     const args = [
-      'balance', 
+      'list-transactions', 
       'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
       '-m',
     ]
@@ -306,18 +348,18 @@ describe('balance #12', () => {
 })
 
 // success wallet file
-describe('balance #13', () => {
+describe('list-transactions #13', () => {
   let exitCode
-  before(async function balanceTest13() {
-    this.timeout(20000)
-    await delay(5000) // 2 second delay to prevent API rate limiting
+  before(async function listTransactionsTest13() {
+    this.timeout(60000)
+    await delay(5000) // 5 second delay to prevent API rate limiting
     
     // Create wallet file if it doesn't exist
     await createWalletIfNeeded(testSetup.walletFile, false, null)
     
-    // Now run the balance command
+    // Now run the list-transactions command
     const args = [
-      'balance', 
+      'list-transactions', 
       testSetup.walletFile,
       '-t',
     ]
@@ -335,18 +377,18 @@ describe('balance #13', () => {
 })
 
 // success enc-wallet file
-describe('balance #14', () => {
+describe('list-transactions #14', () => {
   let exitCode
-  before(async function balanceTest14() {
-    this.timeout(20000)
-    await delay(5000) // 2 second delay to prevent API rate limiting
+  before(async function listTransactionsTest14() {
+    this.timeout(60000)
+    await delay(5000) // 5 second delay to prevent API rate limiting
     
     // Create encrypted wallet file if it doesn't exist
     await createWalletIfNeeded(testSetup.encWalletFile, true, testSetup.encPass)
     
-    // Now run the balance command
+    // Now run the list-transactions command
     const args = [
-      'balance', 
+      'list-transactions', 
       testSetup.encWalletFile,
       '-p',
       testSetup.encPass,
@@ -361,6 +403,31 @@ describe('balance #14', () => {
     })
   })
   it('exit code should be 0 if passed with a valid encrypted wallet file and password flag', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+})
+
+// success with CSV output
+describe('list-transactions #15', () => {
+  let exitCode
+  before(async function listTransactionsTest15() {
+    this.timeout(60000)
+    await delay(5000) // 5 second delay to prevent API rate limiting
+    const args = [
+      'list-transactions',
+      'Q010500bc576efa69fd6cbc854f2224f149f0b0a4d18fcb30c1feab64781245f4f27a61874227f3',
+      '--csv',
+      'test_transactions.csv',
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    return new Promise((resolve) => {
+      process.on('exit', (code) => {
+        exitCode = code
+        resolve()
+      })
+    })
+  })
+  it('exit code should be 0 if passed with a valid address and CSV output flag', () => {
     assert.strictEqual(exitCode, 0)
   })
 })

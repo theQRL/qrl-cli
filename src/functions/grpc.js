@@ -132,7 +132,42 @@ class QrlNode {
     this.version = '0.6.0'
     this.connection = false
     this.client = null
-    this.ipAddress = ipAddress
+
+    // Stateful Configuration & Precedence logic
+    const Conf = require('conf') // eslint-disable-line global-require
+    const config = new Conf({ projectName: 'qrl-cli' })
+    const MAINNET_ENDPOINT = 'mainnet-3.automated.theqrl.org:19009'
+    const TESTNET_ENDPOINT = 'testnet-3.automated.theqrl.org:19009'
+
+    // Check if the user explicitly provided network flags in the process arguments
+    const {argv} = process
+    const hasTestnet = argv.includes('-t') || argv.includes('--testnet')
+    const hasMainnet = argv.includes('-m') || argv.includes('--mainnet')
+    const hasGrpc = argv.includes('-g') || argv.includes('--grpc')
+
+    let resolvedAddress = ipAddress
+
+    // If the user did not pass explicit overrides, check config store & environment variables
+    if (!hasTestnet && !hasMainnet && !hasGrpc) {
+      const configEndpoint = config.get('grpc-endpoint')
+      const configNetwork = config.get('default-network')
+
+      if (process.env.QRL_GRPC_ENDPOINT) {
+        resolvedAddress = process.env.QRL_GRPC_ENDPOINT
+      } else if (configEndpoint) {
+        resolvedAddress = configEndpoint
+      } else if (process.env.QRL_NETWORK === 'testnet') {
+        resolvedAddress = TESTNET_ENDPOINT
+      } else if (configNetwork === 'testnet') {
+        resolvedAddress = TESTNET_ENDPOINT
+      } else if (process.env.QRL_NETWORK === 'mainnet') {
+        resolvedAddress = MAINNET_ENDPOINT
+      } else if (configNetwork === 'mainnet') {
+        resolvedAddress = MAINNET_ENDPOINT
+      }
+    }
+
+    this.ipAddress = resolvedAddress
     this.port = 19009
   }
 

@@ -8,6 +8,8 @@ const aes256 = require('aes256')
 const {cli} = require('cli-ux')
 
 const Qrlnode = require('../functions/grpc')
+const { getNetworkSetup } = require('../functions/network-helper')
+const { readStdin } = require('../functions/stdin-helper')
 
 const openWalletFile = (path) => {
   const contents = fs.readFileSync(path)
@@ -17,8 +19,33 @@ const openWalletFile = (path) => {
 class OTSKey extends Command {
   async run() {
     const {args, flags} = this.parse(OTSKey)
-    let { address}  = args
-    let exitCode = 1 // eslint-disable-line
+    let { address } = args
+
+    const isInteractive = process.stdout.isTTY && process.stdin.isTTY
+
+    if (address === '-' || (!address && !process.stdin.isTTY)) {
+      address = await readStdin()
+    }
+
+    if (!address) {
+      if (!isInteractive) {
+        this.log(` ${red('›')}   Error: Missing QRL address or wallet file.`)
+        this.exit(1)
+      }
+      const prompts = require('prompts') // eslint-disable-line global-require
+      const response = await prompts({
+        type: 'text',
+        name: 'address',
+        message: 'Enter a QRL address or path to wallet.json file:',
+        validate: value => value.length > 0 ? true : 'Address/File is required'
+      })
+      address = response.address
+      if (!address) {
+        this.log(`${red('⨉')} Operation cancelled.`)
+        this.exit(1)
+      }
+    }
+
     if (!validateQrlAddress.hexString(address).result) {
       // not a valid address - is it a file?
       let isFile = false
@@ -66,20 +93,9 @@ class OTSKey extends Command {
         this.exit(1)
       }
     }
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
-    let network = 'Mainnet'
-    if (flags.grpc) {
-      grpcEndpoint = flags.grpc
-      network = `Custom GRPC endpoint: [${flags.grpc}]`
-    }
-    if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
-      network = 'Testnet'
-    }
-    if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
-      network = 'Mainnet'
-    }
+
+    const { grpcEndpoint, network } = getNetworkSetup(flags)
+
     let spinner = ""
     if (!flags.json) {
         this.log(white().bgBlue(network))
@@ -101,7 +117,11 @@ class OTSKey extends Command {
         i++
       }
     } catch (e) {
-      this.log(`Failed to connect to node. Check network connection & parameters.\n${e}`)
+      if (spinner) {
+        spinner.fail(`Failed to connect to node. Check network connection & parameters.\n${e}`)
+      } else {
+        this.log(`${red('⨉')} Failed to connect to node: ${e}`)
+      }
       this.exit(1)
     }
 
@@ -114,16 +134,20 @@ class OTSKey extends Command {
         spinner.succeed(`Next unused OTS key: ${response.next_unused_ots_index}`)
         this.exit(0)
     } else {
-        this.log(`${red('⨉')} Unable to fetch an OTS key`)
+        if (spinner) {
+          spinner.fail(`Unable to fetch an OTS key`)
+        } else {
+          this.log(`${red('⨉')} Unable to fetch an OTS key`)
+        }
         this.exit(1)
     }
   }
 }
 
-OTSKey.description = `Get a address's OTS state from the network
+OTSKey.description = `Get an address's OTS state from the network
 
 Reports the next unused available OTS key. Pass either an address starting with 
-QQ0004 or a wallet.json file to se the next OTS. You can set the network flag with either (-t) testnet or (-m) mainnet
+QQ0004 or a wallet.json file to see the next OTS. You can set the network flag with either (-t) testnet or (-m) mainnet
 
 If the wallet file is encrypted use the -p flag to pass the wallet file encryption password.
 `
@@ -132,37 +156,36 @@ OTSKey.args = [
   {
     name: 'address',
     description: 'QRL address to return OTS state for',
-    required: true,
+    required: false,
   },
 ]
 
 OTSKey.flags = {
   testnet: flags.boolean({
-  char: 't',
-  default: false,
-  description: 'Queries testnet for the OTS state'
-}),
+    char: 't',
+    default: false,
+    description: 'Queries testnet for the OTS state'
+  }),
   mainnet: flags.boolean({
-  char: 'm',
-  default: false,
-  description: '(default) Queries mainnet for the OTS state'
-}),
+    char: 'm',
+    default: false,
+    description: 'Queries mainnet for the OTS state'
+  }),
   grpc: flags.string({
-  char: 'g',
-  required: false,
+    char: 'g',
+    required: false,
     description: 'Custom grcp endpoint to connect a hosted QRL node (-g 127.0.0.1:19009)',
-}),
+  }),
   password: flags.string({
-  char: 'p',
-  required: false,
-  description: 'wallet file password if encrypted'
-}),
+    char: 'p',
+    required: false,
+    description: 'wallet file password if encrypted'
+  }),
   json: flags.boolean({
-  char: 'j',
-  required: false,
-  description: 'Output in JSON'
-}),
-
+    char: 'j',
+    required: false,
+    description: 'Output in JSON'
+  }),
 }
 
 module.exports = {OTSKey}

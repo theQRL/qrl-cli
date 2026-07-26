@@ -1,5 +1,5 @@
 {
-    "branch": "master",
+    "branches": ["master"],
     "plugins": [
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
@@ -14,9 +14,12 @@
         "@semantic-release/github",
         {
           "assets": [
-            {"path": "qrl-cli-macos.zip", "label": "macOS executable"},
-            {"path": "qrl-cli-win.zip", "label": "Windows executable"},
-            {"path": "qrl-cli-linux.zip", "label": "Linux executable"}
+            {"path": "qrl-cli-macos-x64.zip", "label": "macOS executable (Intel x64)"},
+            {"path": "qrl-cli-macos-arm64.zip", "label": "macOS executable (Apple Silicon arm64)"},
+            {"path": "qrl-cli-linux-x64.zip", "label": "Linux executable (x64)"},
+            {"path": "qrl-cli-linux-arm64.zip", "label": "Linux executable (arm64)"},
+            {"path": "qrl-cli-win-x64.zip", "label": "Windows executable (x64)"},
+            {"path": "shasum.256.asc", "label": "SHA-256 checksums"}
           ]
         }
       ]

@@ -1,6 +1,5 @@
-/* eslint new-cap: 0, max-depth: 0 */
 const { Command, flags } = require('@oclif/command')
-const { red, white, black } = require('kleur')
+const { red, white, black, blue } = require('kleur')
 const ora = require('ora')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const BigNumber = require('bignumber.js')
@@ -9,6 +8,8 @@ const aes256 = require('aes256')
 const { cli } = require('cli-ux')
 
 const Qrlnode = require('../functions/grpc')
+const { getNetworkSetup } = require('../functions/network-helper')
+const { readStdin } = require('../functions/stdin-helper')
 
 const shorPerQuanta = 10 ** 9
 
@@ -25,7 +26,34 @@ const addressForAPI = (address) => {
 class Balance extends Command {
   async run() {
     const { args, flags } = this.parse(Balance)
-    let {address} = args
+    let { address } = args
+    const isInteractive = process.stdout.isTTY && process.stdin.isTTY
+
+    // Support reading from STDIN if address is "-" or omitted in a pipe
+    if (address === '-' || (!address && !process.stdin.isTTY)) {
+      address = await readStdin()
+    }
+
+    // Empathic prompt if address is still missing
+    if (!address) {
+      if (!isInteractive) {
+        this.log(` ${red('›')}   Error: Missing QRL address or wallet file.`)
+        this.exit(1)
+      }
+      const prompts = require('prompts') // eslint-disable-line global-require
+      const response = await prompts({
+        type: 'text',
+        name: 'address',
+        message: 'Enter a QRL address or path to wallet.json file:',
+        validate: value => value.length > 0 ? true : 'Address/File is required'
+      })
+      address = response.address
+      if (!address) {
+        this.log(`${red('⨉')} Operation cancelled.`)
+        this.exit(1)
+      }
+    }
+
     if (!validateQrlAddress.hexString(address).result) {
       // not a valid address - is it a file?
       let isFile = false
@@ -67,29 +95,27 @@ class Balance extends Command {
         } catch (error) {
           this.exit(1)
         }
-        this.log(`${black().bgWhite(address)}`)
+        if (!flags.json) {
+          this.log(`${black().bgWhite(address)}`)
+        }
       }
       if (isValidFile === false) {
         this.log(`${red('⨉')} Unable to get a balance: invalid QRL address/wallet file`)
         this.exit(1)
       }
     }
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
-    let network = 'Mainnet'
-    if (flags.grpc) {
-      grpcEndpoint = flags.grpc
-      network = `Custom GRPC endpoint: [${flags.grpc}]`
+
+    const { grpcEndpoint, network } = getNetworkSetup(flags)
+
+    if (!flags.json) {
+      this.log(white().bgBlue(network))
     }
-    if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
-      network = 'Testnet'
+
+    let spinner
+    if (!flags.json) {
+      spinner = ora({ text: 'Fetching balance from node...' }).start()
     }
-    if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
-      network = 'Mainnet'
-    }
-    this.log(white().bgBlue(network))
-    const spinner = ora({ text: 'Fetching balance from node...' }).start()
+
     const Qrlnetwork = await new Qrlnode(grpcEndpoint)
     try {
       await Qrlnetwork.connect()
@@ -97,14 +123,20 @@ class Balance extends Command {
       let i = 0
       const count = 5
       while (Qrlnetwork.connection === false && i < count) {
-        spinner.succeed(`retry connection attempt: ${i}...`)
+        if (spinner) {
+          spinner.succeed(`retry connection attempt: ${i}...`)
+        }
         // eslint-disable-next-line no-await-in-loop
         await Qrlnetwork.connect()
         // eslint-disable-next-line no-plusplus
         i++
       }
     } catch (e) {
-      spinner.fail(`Failed to connect to node. Check network connection & parameters.\n${e}`)
+      if (spinner) {
+        spinner.fail(`Failed to connect to node. Check network connection & parameters.\n${e}`)
+      } else {
+        this.log(`${red('⨉')} Failed to connect to node: ${e}`)
+      }
       this.exit(1)
     }
 
@@ -114,16 +146,36 @@ class Balance extends Command {
     const response = await Qrlnetwork.api('GetOptimizedAddressState', request)
     const balance = new BigNumber(parseInt(response.state.balance, 10))
 
+    if (flags.json) {
+      const output = {
+        address,
+        balance_shor: balance.toString(),
+        balance_quanta: balance.dividedBy(shorPerQuanta).toString(),
+        tokens: response.state.tokens || {}
+      }
+      this.log(JSON.stringify(output, null, 2))
+      this.exit(0)
+    }
+
     if (flags.shor) {
       spinner.succeed(`Balance: ${balance} Shor`)
     }
     if (flags.quanta || !flags.shor) {
       // default to showing balance in Quanta if no flags
-      spinner.succeed(`Balance: ${balance / shorPerQuanta} Quanta`)
+      spinner.succeed(`Balance: ${balance.dividedBy(shorPerQuanta).toString()} Quanta`)
     }
     if (flags.quanta && flags.shor) {
       this.log(`${red('⨉')} Please enter one, shor (-s) or quanta (-q)`)
       this.exit(1)
+    }
+
+    // Display token balances in human-readable format if present
+    const tokens = response.state.tokens || {}
+    if (Object.keys(tokens).length > 0) {
+      this.log(white().bold('\nToken Balances:'))
+      Object.entries(tokens).forEach(([tokenHash, tokenBal]) => {
+        this.log(`  ${blue(tokenHash)}: ${tokenBal}`)
+      })
     }
   }
 }
@@ -140,7 +192,7 @@ Balance.args = [
   {
     name: 'address',
     description: 'QRL address or wallet.json file to return a balance for',
-    required: true,
+    required: false,
   },
 ]
 
@@ -174,6 +226,11 @@ Balance.flags = {
     char: 'p',
     required: false,
     description: 'Encrypted QRL wallet.json password to decrypt',
+  }),
+  json: flags.boolean({
+    char: 'j',
+    default: false,
+    description: 'Output balance information in JSON format'
   }),
 }
 

@@ -12,8 +12,9 @@ const { cli } = require('cli-ux')
 const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl') // eslint-disable-line no-unused-vars
 const { DILLIBmodule } = require('qrllib/build/offline-libjsdilithium') // eslint-disable-line no-unused-vars
 const { KYBLIBmodule } = require('qrllib/build/offline-libjskyber') // eslint-disable-line no-unused-vars
-const eccrypto = require('eccrypto')
+const eccrypto = require('../utils/silent-eccrypto')
 const Qrlnode = require('../functions/grpc')
+const { getNetworkSetup } = require('../functions/network-helper')
 
 let QRLLIBLoaded = false
 let DILLIBLoaded = false
@@ -139,21 +140,7 @@ const openWalletFile = (path) => {
 class Lattice extends Command {
   async run() {
     const { flags } = this.parse(Lattice)
-    // network
-    let grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009' // eslint-disable-line no-unused-vars
-    let network = 'Mainnet'
-    if (flags.grpc) {
-      grpcEndpoint = flags.grpc
-      network = `Custom GRPC endpoint: [${flags.grpc}]`
-    }
-    if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
-      network = 'Testnet'
-    }
-    if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
-      network = 'Mainnet'
-    }
+    const { grpcEndpoint, network } = getNetworkSetup(flags)
     this.log(white().bgBlue(network))
 
     // check that either wallet file or hexseed/mnemonic are passed

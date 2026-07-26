@@ -1,18 +1,17 @@
 /* global QRLLIB */
 /* eslint new-cap: 0 */
 const { Command, flags } = require('@oclif/command')
-const { white, red } = require('kleur')
+const { red, white } = require('kleur')
 const ora = require('ora')
-// const moment = require('moment')
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const aes256 = require('aes256')
 const { cli } = require('cli-ux')
 const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl') // eslint-disable-line no-unused-vars
-// const { BigNumber } = require('bignumber.js')
 const helpers = require('@theqrl/explorer-helpers')
 
 const Qrlnode = require('../functions/grpc')
+const { getNetworkSetup } = require('../functions/network-helper')
 
 let QRLLIBLoaded = false
 
@@ -122,20 +121,7 @@ function byteCount(s) {
 class SendMessage extends Command {
   async run() {
     const { flags } = this.parse(SendMessage)
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
-    let network = 'Mainnet'
-    if (flags.grpc) {
-      grpcEndpoint = flags.grpc
-      network = `Custom GRPC endpoint: [${flags.grpc}]`
-    }
-    if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
-      network = 'Testnet'
-    }
-    if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
-      network = 'Mainnet'
-    }
+    const { grpcEndpoint, network } = getNetworkSetup(flags)
     this.log(white().bgBlue(network))
 
     if (!flags.message) {

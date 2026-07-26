@@ -152,18 +152,18 @@ class SignTxOffline extends Command {
   async run() {
     const { args, flags } = this.parse(SignTxOffline)
     // network
-    // let grpcEndpoint = 'testnet-1.automated.theqrl.org:19009' // eslint-disable-line no-unused-vars
+    // let grpcEndpoint = 'testnet-3.automated.theqrl.org:19009' // eslint-disable-line no-unused-vars
     // let network = 'Testnet'
     // if (flags.grpc) {
     //   grpcEndpoint = flags.grpc
     //   network = `Custom GRPC endpoint: [${flags.grpc}]`
     // }
     // if (flags.testnet) {
-    //   grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+    //   grpcEndpoint = 'testnet-3.automated.theqrl.org:19009'
     //   network = 'Testnet'
     // }
     // if (flags.mainnet) {
-    //   grpcEndpoint = 'mainnet-4.automated.theqrl.org:19009'
+    //   grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
     //   network = 'Mainnet'
     // }
     // this.log(white().bgBlue(network))

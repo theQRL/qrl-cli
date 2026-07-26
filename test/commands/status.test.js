@@ -3,7 +3,7 @@ const {spawn} = require('child_process')
 
 const processFlags = {
   detached: true,
-  stdio: 'inherit',
+  stdio: ['ignore', 'inherit', 'inherit'],
 }
 
 describe('status #1', () => {
@@ -76,7 +76,7 @@ describe('status #3', () => {
 
 describe('status #5', () => {
   let exitCode
-  const args = ['status', '-g', 'mainnet-1.automated.theqrl.org:19009']
+  const args = ['status', '-g', 'mainnet-3.automated.theqrl.org:19009']
   before(done => {
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {

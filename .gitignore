@@ -2,7 +2,6 @@
 *-error.log
 /.nyc_output
 /dist
-/package-lock.json
 /tmp
 node_modules
 coverage.lcov
@@ -10,3 +9,5 @@ oclif.manifest.json
 .vscode/*
 wallet*
 src/commands/create-initial-msg.js
+/qrl-cli-*.zip
+/shasum.256.asc

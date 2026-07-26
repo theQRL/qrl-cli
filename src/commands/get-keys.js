@@ -53,7 +53,7 @@ class keySearch extends Command {
       }
     }  
     // network stuff
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
     let network = 'Mainnet'
 
     if (flags.grpc) {
@@ -61,11 +61,11 @@ class keySearch extends Command {
       network = `Custom GRPC endpoint: [${flags.grpc}]`
     }
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = 'testnet-3.automated.theqrl.org:19009'
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
 

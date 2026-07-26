@@ -59,7 +59,7 @@ class Search extends Command {
     const {
       args
     } = this.parse(Search)
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+    let grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
     let network = 'Mainnet'
     if (flags.grpc) {
       grpcEndpoint = flags.grpc
@@ -68,11 +68,11 @@ class Search extends Command {
  
 
     if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = 'testnet-3.automated.theqrl.org:19009'
       network = 'Testnet'
     }
     if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
+      grpcEndpoint = 'mainnet-3.automated.theqrl.org:19009'
       network = 'Mainnet'
     }
     if (!args.search) {

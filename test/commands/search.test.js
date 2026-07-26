@@ -7,7 +7,7 @@ const testSetup = require('../test_setup')
 
 const processFlags = {
   detached: true,
-  stdio: 'inherit',
+  stdio: ['ignore', 'inherit', 'inherit'],
 }
 const openFile = (path) => {
   const contents = fs.readFileSync(path)
@@ -116,7 +116,7 @@ describe('search #5', () => {
       'search',
       aliceTxHash,
       '-g',
-      'testnet-1.automated.theqrl.org:19009',
+      'testnet-3.automated.theqrl.org:19009',
     ]
     const process = spawn('./bin/run', args, processFlags)
     process.on('exit', code => {

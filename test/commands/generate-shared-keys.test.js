@@ -11,7 +11,7 @@ const setup = require('../test_setup')
 
 const processFlags = {
   detached: true,
-  stdio: 'inherit',
+  stdio: ['ignore', 'inherit', 'inherit'],
 }
 // requires a valid lattice key file on the testnet network
 

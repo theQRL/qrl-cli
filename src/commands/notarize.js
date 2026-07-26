@@ -16,6 +16,7 @@ const { cli } = require('cli-ux')
 const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl') // eslint-disable-line no-unused-vars
 // const CryptoJS = require("crypto-js");
 const Qrlnode = require('../functions/grpc')
+const { getNetworkSetup } = require('../functions/network-helper')
 
 // open wallet file
 const openWalletFile = (path) => {
@@ -79,7 +80,7 @@ function concatenateTypedArrays(resultConstructor, ...arrays) {
 // toUint8Vector
 const toUint8Vector = (arr) => {
   const vec = new QRLLIB.Uint8Vector()
-  for (let i = 0; i < arr.length; i += 1) {
+  for (let i = 0; i < arr.length; i++) {
     vec.push_back(arr[i])
   }
   return vec
@@ -91,25 +92,28 @@ function toBigendianUint64BytesUnsigned(i, bufferResponse = false) {
   if (!Number.isInteger(input)) {
     input = parseInt(input, 10)
   }
+
   const byteArray = [0, 0, 0, 0, 0, 0, 0, 0]
-  for (let index = 0; index < byteArray.length; index += 1) {
-    const byte = input & 0xff // eslint-disable-line no-bitwise
+
+  for (let index = 0; index < byteArray.length; index++) {
+    // eslint-disable-next-line no-bitwise
+    const byte = input & 0xff
     byteArray[index] = byte
     input = (input - byte) / 256
   }
+
   byteArray.reverse()
+
   if (bufferResponse === true) {
-    const result = Buffer.from(byteArray)
-    return result
+    return Buffer.from(byteArray)
   }
-  const result = new Uint8Array(byteArray)
-  return result
+  return new Uint8Array(byteArray)
 }
 
 // Convert Binary object to Bytes
 function binaryToBytes(convertMe) {
   const thisBytes = new Uint8Array(convertMe.size())
-  for (let i = 0; i < convertMe.size(); i += 1) {
+  for (let i = 0; i < convertMe.size(); i++) {
     thisBytes[i] = convertMe.get(i)
   }
   return thisBytes
@@ -126,27 +130,12 @@ class Notarise extends Command {
     let address
     let notarialHash
 
-    // network stuff, defaults to mainnet
-    let grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
-    let network = 'Mainnet'
-
-    if (flags.grpc) {
-      grpcEndpoint = flags.grpc
-      network = `Custom GRPC endpoint: [${flags.grpc}]`
-    }
-    if (flags.testnet) {
-      grpcEndpoint = 'testnet-1.automated.theqrl.org:19009'
-      network = 'Testnet'
-    }
-    if (flags.mainnet) {
-      grpcEndpoint = 'mainnet-1.automated.theqrl.org:19009'
-      network = 'Mainnet'
-    }
+    const { grpcEndpoint, network } = getNetworkSetup(flags)
     if (!flags.json){
       this.log(white().bgBlue(network))
     }
     // the data to notarise here, can be a file submitted (path) or a string passed on cli
-    const spinner = ora({ text: 'Notarising Data...\n', }).start()
+    const spinner = flags.json ? null : ora({ text: 'Notarising Data...\n', }).start()
     if (args.dataHash) {
       const sha256regex = /^\b[A-Fa-f0-9]{64}\b/.test(args.dataHash)
       // is the passed data the correct length? should be a sha256 sum hash
