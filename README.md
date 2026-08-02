@@ -22,7 +22,7 @@ $ npm install -g @theqrl/cli
 $ qrl-cli COMMAND
 running command...
 $ qrl-cli (-v|--version|version)
-@theqrl/cli/1.11.0 linux-x64 node-v24.18.0
+@theqrl/cli/1.11.0 darwin-arm64 node-v24.13.0
 $ qrl-cli --help [COMMAND]
 USAGE
   $ qrl-cli COMMAND

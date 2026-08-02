@@ -3,9 +3,9 @@ const {Command, flags} = require('@oclif/command')
 const {red, white} = require('kleur')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const qrcode = require('qrcode-terminal')
-const aes256 = require('aes256')
 const {cli} = require('cli-ux')
 const fs = require('fs')
+const aes = require('../utils/aes')
 
 const openWalletFile = (path) => {
   const contents = fs.readFileSync(path)
@@ -46,7 +46,7 @@ class Receive extends Command {
             } else {
               password = await cli.prompt('Enter password for wallet file', {type: 'hide'})
             }
-            address = aes256.decrypt(password, walletJson.address)
+            address = aes.decrypt(password, walletJson.address)
             if (validateQrlAddress.hexString(address).result) {
               isValidFile = true
             } else {

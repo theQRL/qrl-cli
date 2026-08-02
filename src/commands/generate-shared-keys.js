@@ -39,7 +39,6 @@ const { Command, flags } = require('@oclif/command')
 // const { red, white } = require('kleur')
 const ora = require('ora')
 const fs = require('fs')
-const aes256 = require('aes256')
 const { cli } = require('cli-ux')
 // eslint-disable-next-line no-unused-vars
 const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl')
@@ -49,6 +48,7 @@ const { DILLIBmodule } = require('qrllib/build/offline-libjsdilithium')
 const { KYBLIBmodule } = require('qrllib/build/offline-libjskyber')
 const Crypto = require('crypto')
 const aesjs = require('aes-js')
+const aes = require('../utils/aes')
 const eccrypto = require('../utils/silent-eccrypto')
 const Qrlnode = require('../functions/grpc')
 const { getNetworkSetup } = require('../functions/network-helper')
@@ -355,14 +355,14 @@ class LatticeShared extends Command {
               password = await cli.prompt('Enter password for lattice file', {type: 'hide'})
             }
             latticeSK[0].encrypted = false
-            latticeSK[0].tx_hash = aes256.decrypt(password, latticeSK[0].tx_hash)
-            latticeSK[0].network = aes256.decrypt(password, latticeSK[0].network)
-            latticeSK[0].kyberPK = aes256.decrypt(password, latticeSK[0].kyberPK)
-            latticeSK[0].kyberSK = aes256.decrypt(password, latticeSK[0].kyberSK)
-            latticeSK[0].dilithiumPK = aes256.decrypt(password, latticeSK[0].dilithiumPK)
-            latticeSK[0].dilithiumSK = aes256.decrypt(password, latticeSK[0].dilithiumSK)
-            latticeSK[0].ecdsaPK = aes256.decrypt(password, latticeSK[0].ecdsaPK)
-            latticeSK[0].ecdsaSK = aes256.decrypt(password, latticeSK[0].ecdsaSK)
+            latticeSK[0].tx_hash = aes.decrypt(password, latticeSK[0].tx_hash)
+            latticeSK[0].network = aes.decrypt(password, latticeSK[0].network)
+            latticeSK[0].kyberPK = aes.decrypt(password, latticeSK[0].kyberPK)
+            latticeSK[0].kyberSK = aes.decrypt(password, latticeSK[0].kyberSK)
+            latticeSK[0].dilithiumPK = aes.decrypt(password, latticeSK[0].dilithiumPK)
+            latticeSK[0].dilithiumSK = aes.decrypt(password, latticeSK[0].dilithiumSK)
+            latticeSK[0].ecdsaPK = aes.decrypt(password, latticeSK[0].ecdsaPK)
+            latticeSK[0].ecdsaSK = aes.decrypt(password, latticeSK[0].ecdsaSK)
             if (!latticeSK[0].network.match(/^(Testnet|Mainnet|GRPC)$/)) {
               spinner.fail('Data still encrypted... Bad passphrase?')
               this.exit(1)
@@ -396,14 +396,14 @@ class LatticeShared extends Command {
             decryptPassword = await cli.prompt('Enter password for lattice file', {type: 'hide'})
           }
           latticeSK[0].encrypted = false
-          latticeSK[0].tx_hash = aes256.decrypt(decryptPassword, latticeSK[0].tx_hash)
-          latticeSK[0].network = aes256.decrypt(decryptPassword, latticeSK[0].network)
-          latticeSK[0].kyberPK = aes256.decrypt(decryptPassword, latticeSK[0].kyberPK)
-          latticeSK[0].kyberSK = aes256.decrypt(decryptPassword, latticeSK[0].kyberSK)
-          latticeSK[0].dilithiumPK = aes256.decrypt(decryptPassword, latticeSK[0].dilithiumPK)
-          latticeSK[0].dilithiumSK = aes256.decrypt(decryptPassword, latticeSK[0].dilithiumSK)
-          latticeSK[0].ecdsaPK = aes256.decrypt(decryptPassword, latticeSK[0].ecdsaPK)
-          latticeSK[0].ecdsaSK = aes256.decrypt(decryptPassword, latticeSK[0].ecdsaSK)
+          latticeSK[0].tx_hash = aes.decrypt(decryptPassword, latticeSK[0].tx_hash)
+          latticeSK[0].network = aes.decrypt(decryptPassword, latticeSK[0].network)
+          latticeSK[0].kyberPK = aes.decrypt(decryptPassword, latticeSK[0].kyberPK)
+          latticeSK[0].kyberSK = aes.decrypt(decryptPassword, latticeSK[0].kyberSK)
+          latticeSK[0].dilithiumPK = aes.decrypt(decryptPassword, latticeSK[0].dilithiumPK)
+          latticeSK[0].dilithiumSK = aes.decrypt(decryptPassword, latticeSK[0].dilithiumSK)
+          latticeSK[0].ecdsaPK = aes.decrypt(decryptPassword, latticeSK[0].ecdsaPK)
+          latticeSK[0].ecdsaSK = aes.decrypt(decryptPassword, latticeSK[0].ecdsaSK)
           if (!latticeSK[0].network.match(/^(Testnet|Mainnet|GRPC)$/)) {
             spinner.fail('Data still encrypted... Bad passphrase?')
             this.exit(1)
@@ -537,8 +537,12 @@ class LatticeShared extends Command {
           // encrypt cyphertext with encrypted AES key
           eccrypto.encrypt(Buffer.from(bobECDSAPK, 'hex'), Buffer.from(aliceCypherText)).then( function eccCypher(encryptedCypherText) {
             const mykey = Uint8Array.from(Buffer.from(sharedKey.toString(), 'hex'))
-            // Encrypt the seed *s* with shared key *key*
-            const aesCtr = new aesjs.ModeOfOperation.ctr(mykey)
+            // Encrypt the seed *s* with shared key *key*.
+            // The CTR counter is explicitly fixed at 1 (matching the decrypt
+            // side below): safe ONLY because mykey is a fresh Kyber shared
+            // key per exchange — this key must never encrypt anything else,
+            // or the keystream repeats.
+            const aesCtr = new aesjs.ModeOfOperation.ctr(mykey, new aesjs.Counter(1))
             // encrypt the seed with
             const encSeed = aesCtr.encrypt(seed)
             // sender signs the payload with DilithiumSK
@@ -555,13 +559,13 @@ class LatticeShared extends Command {
               const sBin = QRLLIB.hstr2bin(Buffer.from(Buffer.from(seed).toString('hex')))
               let keylist = QRLLIB.shake128(64000, sBin)
               if (flags.encryptPassword) {
-                keylist = aes256.encrypt(flags.encryptPassword, QRLLIB.bin2hstr(keylist))
-                fs.writeFileSync(sharedKeyListFile, keylist)
+                keylist = aes.encrypt(flags.encryptPassword, QRLLIB.bin2hstr(keylist))
+                fs.writeFileSync(sharedKeyListFile, keylist, {mode: 0o600})
                 spinner.succeed(`Shared Key List file written to: ${sharedKeyListFile}`)
               }
               else {
                 // Write the shared keylist file
-                fs.writeFileSync(sharedKeyListFile, QRLLIB.bin2hstr(keylist))
+                fs.writeFileSync(sharedKeyListFile, QRLLIB.bin2hstr(keylist), {mode: 0o600})
                 spinner.succeed(`Shared Key List file written to: ${sharedKeyListFile}`)
               }
             })
@@ -690,7 +694,8 @@ class LatticeShared extends Command {
             const sharedKey = KYBOBJECT_RECEIVER.getMyKey()
             // 5 - Decrypt encrypted p to get the seed s
             const mykeyAlice = Uint8Array.from(Buffer.from(sharedKey.toString(), 'hex'))
-            const aesCtr = new aesjs.ModeOfOperation.ctr(mykeyAlice)
+            // Counter fixed at 1 to match the encrypt side (fresh key per exchange)
+            const aesCtr = new aesjs.ModeOfOperation.ctr(mykeyAlice, new aesjs.Counter(1))
             const encryptedBytes = aesjs.utils.hex.toBytes(msgFinal)
             const sDecrypted = aesCtr.decrypt(encryptedBytes)
             // Bob now has access to the seed s and the shared key sent from Alice
@@ -698,7 +703,7 @@ class LatticeShared extends Command {
             waitForQRLLIB(async () => {
               const sBin = QRLLIB.hstr2bin(Buffer.from(Buffer.from(sDecrypted).toString('hex')))
               const keyList = QRLLIB.shake128(64000, sBin)
-              fs.writeFileSync(sharedKeyListFile, QRLLIB.bin2hstr(keyList))
+              fs.writeFileSync(sharedKeyListFile, QRLLIB.bin2hstr(keyList), {mode: 0o600})
               spinner.succeed(`Keylist generated and written to: ${sharedKeyListFile}`)
             })
           })

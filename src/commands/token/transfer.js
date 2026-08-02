@@ -4,10 +4,10 @@ const { red, green, blue } = require('kleur')
 const ora = require('ora')
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
-const aes256 = require('aes256')
 const { cli } = require('cli-ux')
 const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl') // eslint-disable-line no-unused-vars
 const helpers = require('@theqrl/explorer-helpers') // eslint-disable-line no-unused-vars
+const aes = require('../../utils/aes')
 
 const Qrlnode = require('../../functions/grpc')
 const { getNetworkSetup } = require('../../functions/network-helper')
@@ -195,7 +195,7 @@ class TokenTransfer extends Command {
         flags.wallet = fileResp.walletFile
       } else if (response.walletType === 'seed') {
         const seedResp = await prompts({
-          type: 'text',
+          type: 'password',
           name: 'hexseed',
           message: 'Enter wallet Hexseed or Mnemonic:',
           validate: value => value.trim().length > 0 ? true : 'Hexseed/Mnemonic is required'
@@ -225,8 +225,8 @@ class TokenTransfer extends Command {
           } else {
             password = await cli.prompt('Enter password for wallet file', { type: 'hide' })
           }
-          address = aes256.decrypt(password, walletJson.address)
-          hexseed = aes256.decrypt(password, walletJson.hexseed)
+          address = aes.decrypt(password, walletJson.address)
+          hexseed = aes.decrypt(password, walletJson.hexseed)
           if (validateQrlAddress.hexString(address).result) {
             isValidFile = true
           } else {

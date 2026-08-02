@@ -8,7 +8,7 @@ const Crypto = require('crypto')
 const bech32 = require('bech32')
 const ora = require('ora')
 const fs = require('fs')
-const aes256 = require('aes256')
+const aes = require('../utils/aes')
 
 let QRLLIBLoaded = false
 
@@ -153,14 +153,14 @@ class CreateWallet extends Command {
         if (flags.password) {
           const passphrase = flags.password
           walletDetail.encrypted = true
-          walletDetail.address = aes256.encrypt(passphrase, walletDetail.address)
-          walletDetail.mnemonic = aes256.encrypt(passphrase, walletDetail.mnemonic)
-          walletDetail.hexseed = aes256.encrypt(passphrase, walletDetail.hexseed)
-          walletDetail.addressB32 = aes256.encrypt(passphrase, walletDetail.addressB32)
-          walletDetail.pk = aes256.encrypt(passphrase, walletDetail.pk)
+          walletDetail.address = aes.encrypt(passphrase, walletDetail.address)
+          walletDetail.mnemonic = aes.encrypt(passphrase, walletDetail.mnemonic)
+          walletDetail.hexseed = aes.encrypt(passphrase, walletDetail.hexseed)
+          walletDetail.addressB32 = aes.encrypt(passphrase, walletDetail.addressB32)
+          walletDetail.pk = aes.encrypt(passphrase, walletDetail.pk)
         }
         const walletJson = ['[', JSON.stringify(walletDetail), ']'].join('')
-        fs.writeFileSync(flags.file, walletJson)
+        fs.writeFileSync(flags.file, walletJson, {mode: 0o600})
         spinner.succeed(`Wallet written to ${flags.file}`)
       }
     })
