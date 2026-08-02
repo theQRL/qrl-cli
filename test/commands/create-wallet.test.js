@@ -1,5 +1,8 @@
 const assert = require('assert')
 const {spawn} = require('child_process')
+const fs = require('fs')
+const os = require('os')
+const path = require('path')
 
 const testSetup = require('../test_setup')
 
@@ -296,3 +299,59 @@ describe('create-wallet', () => {
 })
 
 
+
+// Seeds must be pairwise distinct across wallets. Guards against a broken or
+// deterministic entropy source silently producing identical seeds.
+describe('create-wallet', () => {
+  const walletCount = 5
+  const walletFiles = []
+  const hexseeds = []
+  let exitCodes = []
+
+  before(function generateWallets(done) {
+    this.timeout(120000)
+    exitCodes = []
+    const spawnNext = index => {
+      if (index >= walletCount) {
+        done()
+        return
+      }
+      const file = path.join(os.tmpdir(), `qrl-cli-test-distinct-${index}.json`)
+      walletFiles.push(file)
+      const proc = spawn('./bin/run', ['create-wallet', '-f', file], processFlags)
+      proc.on('exit', code => {
+        exitCodes.push(code)
+        spawnNext(index + 1)
+      })
+    }
+    spawnNext(0)
+  })
+
+  after(() => {
+    walletFiles.forEach(file => {
+      try {
+        fs.unlinkSync(file)
+      } catch (e) {
+        // already gone
+      }
+    })
+  })
+
+  it(`creates ${walletCount} wallets successfully`, () => {
+    assert.deepStrictEqual(exitCodes, new Array(walletCount).fill(0))
+  })
+
+  it('all generated hexseeds are pairwise distinct', () => {
+    walletFiles.forEach(file => {
+      const wallet = JSON.parse(fs.readFileSync(file, 'utf8'))
+      hexseeds.push(wallet[0].hexseed)
+    })
+    assert.strictEqual(hexseeds.length, walletCount)
+    hexseeds.forEach(seed => {
+      assert.strictEqual(typeof seed, 'string')
+      assert.ok(seed.length > 0, 'hexseed should not be empty')
+    })
+    assert.strictEqual(new Set(hexseeds).size, walletCount,
+      'duplicate hexseed generated — entropy source is broken')
+  })
+})

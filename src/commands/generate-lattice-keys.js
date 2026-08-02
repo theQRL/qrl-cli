@@ -7,11 +7,11 @@ const { red, white, black } = require('kleur')
 const ora = require('ora')
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
-const aes256 = require('aes256')
 const { cli } = require('cli-ux')
 const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl') // eslint-disable-line no-unused-vars
 const { DILLIBmodule } = require('qrllib/build/offline-libjsdilithium') // eslint-disable-line no-unused-vars
 const { KYBLIBmodule } = require('qrllib/build/offline-libjskyber') // eslint-disable-line no-unused-vars
+const aes = require('../utils/aes')
 const eccrypto = require('../utils/silent-eccrypto')
 const Qrlnode = require('../functions/grpc')
 const { getNetworkSetup } = require('../functions/network-helper')
@@ -170,8 +170,8 @@ class Lattice extends Command {
           } else {
             password = await cli.prompt('Enter password for wallet file', { type: 'hide' })
           }
-          address = aes256.decrypt(password, walletJson.address)
-          hexseed = aes256.decrypt(password, walletJson.hexseed)
+          address = aes.decrypt(password, walletJson.address)
+          hexseed = aes.decrypt(password, walletJson.hexseed)
           if (validateQrlAddress.hexString(address).result) {
             isValidFile = true
           } else {
@@ -288,21 +288,21 @@ class Lattice extends Command {
               if (flags.crystalsPassword) {
                 const passphrase = flags.crystalsPassword
                 crystalsDetail.encrypted = true
-                crystalsDetail.tx_hash = aes256.encrypt(passphrase, crystalsDetail.tx_hash)
-                crystalsDetail.network = aes256.encrypt(passphrase, crystalsDetail.network)
-                crystalsDetail.kyberPK = aes256.encrypt(passphrase, crystalsDetail.kyberPK)
-                crystalsDetail.kyberSK = aes256.encrypt(passphrase, crystalsDetail.kyberSK)
-                crystalsDetail.dilithiumPK = aes256.encrypt(passphrase, crystalsDetail.dilithiumPK)
-                crystalsDetail.dilithiumSK = aes256.encrypt(passphrase, crystalsDetail.dilithiumSK)
-                crystalsDetail.ecdsaPK = aes256.encrypt(passphrase, crystalsDetail.ecdsaPK)
-                crystalsDetail.ecdsaSK = aes256.encrypt(passphrase, crystalsDetail.ecdsaSK)
+                crystalsDetail.tx_hash = aes.encrypt(passphrase, crystalsDetail.tx_hash)
+                crystalsDetail.network = aes.encrypt(passphrase, crystalsDetail.network)
+                crystalsDetail.kyberPK = aes.encrypt(passphrase, crystalsDetail.kyberPK)
+                crystalsDetail.kyberSK = aes.encrypt(passphrase, crystalsDetail.kyberSK)
+                crystalsDetail.dilithiumPK = aes.encrypt(passphrase, crystalsDetail.dilithiumPK)
+                crystalsDetail.dilithiumSK = aes.encrypt(passphrase, crystalsDetail.dilithiumSK)
+                crystalsDetail.ecdsaPK = aes.encrypt(passphrase, crystalsDetail.ecdsaPK)
+                crystalsDetail.ecdsaSK = aes.encrypt(passphrase, crystalsDetail.ecdsaSK)
                 spinner.succeed(`Lattice key file encrypted...`)
               }
 
               // output keys to file if flag passed
               if (flags.crystalsFile) {
                 const crystalsJson = ['[', JSON.stringify(crystalsDetail), ']'].join('')
-                fs.writeFileSync(flags.crystalsFile, crystalsJson)
+                fs.writeFileSync(flags.crystalsFile, crystalsJson, {mode: 0o600})
                 spinner.succeed(`Lattice keys written to ${flags.crystalsFile}`)
               }
               else{
@@ -428,20 +428,20 @@ class Lattice extends Command {
                 if (flags.crystalsPassword) {
                   const passphrase = flags.crystalsPassword
                   crystalsDetail.encrypted = true
-                  crystalsDetail.tx_hash = aes256.encrypt(passphrase, crystalsDetail.tx_hash)
-                  crystalsDetail.network = aes256.encrypt(passphrase, crystalsDetail.network)
-                  crystalsDetail.kyberPK = aes256.encrypt(passphrase, crystalsDetail.kyberPK)
-                  crystalsDetail.kyberSK = aes256.encrypt(passphrase, crystalsDetail.kyberSK)
-                  crystalsDetail.dilithiumPK = aes256.encrypt(passphrase, crystalsDetail.dilithiumPK)
-                  crystalsDetail.dilithiumSK = aes256.encrypt(passphrase, crystalsDetail.dilithiumSK)
-                  crystalsDetail.ecdsaPK = aes256.encrypt(passphrase, crystalsDetail.ecdsaPK)
-                  crystalsDetail.ecdsaSK = aes256.encrypt(passphrase, crystalsDetail.ecdsaSK)
+                  crystalsDetail.tx_hash = aes.encrypt(passphrase, crystalsDetail.tx_hash)
+                  crystalsDetail.network = aes.encrypt(passphrase, crystalsDetail.network)
+                  crystalsDetail.kyberPK = aes.encrypt(passphrase, crystalsDetail.kyberPK)
+                  crystalsDetail.kyberSK = aes.encrypt(passphrase, crystalsDetail.kyberSK)
+                  crystalsDetail.dilithiumPK = aes.encrypt(passphrase, crystalsDetail.dilithiumPK)
+                  crystalsDetail.dilithiumSK = aes.encrypt(passphrase, crystalsDetail.dilithiumSK)
+                  crystalsDetail.ecdsaPK = aes.encrypt(passphrase, crystalsDetail.ecdsaPK)
+                  crystalsDetail.ecdsaSK = aes.encrypt(passphrase, crystalsDetail.ecdsaSK)
                 }
                 spinner2.succeed(`Lattice key file encrypted!`)
                 if (flags.crystalsFile) {
                   // write the file here
                   const crystalsJson = ['[', JSON.stringify(crystalsDetail), ']'].join('')
-                  fs.writeFileSync(flags.crystalsFile, crystalsJson)
+                  fs.writeFileSync(flags.crystalsFile, crystalsJson, {mode: 0o600})
                   spinner3.succeed(`Lattice keys written to ${flags.crystalsFile}`)
                 }
                 else {

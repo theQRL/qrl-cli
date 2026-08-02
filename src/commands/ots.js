@@ -4,8 +4,8 @@ const {red, white} = require('kleur')
 const ora = require('ora')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
 const fs = require('fs')
-const aes256 = require('aes256')
 const {cli} = require('cli-ux')
+const aes = require('../utils/aes')
 
 const Qrlnode = require('../functions/grpc')
 const { getNetworkSetup } = require('../functions/network-helper')
@@ -76,7 +76,7 @@ class OTSKey extends Command {
             } else {
               password = await cli.prompt('Enter password for wallet file', {type: 'hide'})
             }
-            address = aes256.decrypt(password, walletJson.address)
+            address = aes.decrypt(password, walletJson.address)
             if (validateQrlAddress.hexString(address).result) {
               isValidFile = true
             } else {

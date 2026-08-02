@@ -5,11 +5,11 @@ const { red } = require('kleur')
 const ora = require('ora')
 const fs = require('fs')
 const validateQrlAddress = require('@theqrl/validate-qrl-address')
-const aes256 = require('aes256')
 const { cli } = require('cli-ux')
 const { QRLLIBmodule } = require('qrllib/build/offline-libjsqrl') // eslint-disable-line no-unused-vars
 const { BigNumber } = require('bignumber.js')
 const helpers = require('@theqrl/explorer-helpers')
+const aes = require('../utils/aes')
 
 // const Qrlnode = require('../functions/grpc')
 
@@ -275,8 +275,8 @@ class SignTxOffline extends Command {
           } else {
             password = await cli.prompt('Enter password for wallet file', { type: 'hide' })
           }
-          address = aes256.decrypt(password, walletJson.address)
-          hexseed = aes256.decrypt(password, walletJson.hexseed)
+          address = aes.decrypt(password, walletJson.address)
+          hexseed = aes.decrypt(password, walletJson.hexseed)
           if (validateQrlAddress.hexString(address).result) {
             isValidFile = true
           } else {

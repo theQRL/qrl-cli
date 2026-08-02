@@ -1,29 +1,44 @@
 /**
- * Silent eccrypto loader
- * This module loads eccrypto while suppressing the "secp256k1 unavailable, reverting to browser version" message
+ * Eccrypto loader with explicit implementation reporting.
+ *
+ * eccrypto emits "secp256k1 unavailable, reverting to browser version" via
+ * console.info when the native module is missing. Rather than silently
+ * suppressing the only runtime signal that a fallback occurred, this loader
+ * captures it, records which implementation is active, and reports it when
+ * verbose output is requested (--verbose flag or QRL_CLI_VERBOSE env var).
  */
 
 /* eslint-disable no-console */
 
-// Store original console.info
 const originalConsoleInfo = console.info;
 
-// Temporarily override console.info to filter out the secp256k1 message
+let usingFallback = false;
+
+// Capture (rather than print) the fallback notice while eccrypto loads
 console.info = function info(message, ...args) {
-  // Check if the message contains the secp256k1 warning
   if (typeof message === 'string' && message.includes('secp256k1 unavailable, reverting to browser version')) {
-    // Silently ignore this specific message
+    usingFallback = true;
     return;
   }
-  // For all other messages, use the original console.info
   originalConsoleInfo.call(console, message, ...args);
 };
 
-// Load eccrypto (this will trigger the try/catch but we've silenced the warning)
 const eccrypto = require('eccrypto');
 
-// Restore original console.info
 console.info = originalConsoleInfo;
 
-// Export the loaded eccrypto module
+const implementation = usingFallback ? 'browser (elliptic, pure JS)' : 'native (secp256k1 ecdh.node)';
+
+const verbose = process.env.QRL_CLI_VERBOSE === '1'
+  || process.argv.includes('--verbose')
+  || process.argv.includes('-v');
+
+if (verbose) {
+  console.info(`eccrypto secp256k1 implementation: ${implementation}`);
+}
+
+// Expose which implementation was resolved so callers/tests can assert on it
+eccrypto.implementation = implementation;
+eccrypto.usingFallback = usingFallback;
+
 module.exports = eccrypto;
