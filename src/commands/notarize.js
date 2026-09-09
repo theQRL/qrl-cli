@@ -200,12 +200,11 @@ class Notarise extends Command {
     let fee = 0 // default fee 0 Shor
     if (flags.fee) {
       const passedFee = parseInt(flags.fee, 10)
-      if (passedFee) {
-        fee = passedFee
-      } else {
+      if (Number.isNaN(passedFee) || passedFee < 0) {
         spinner.fail(`${black().bgRed(`Fee is invalid...`)}` )
         this.exit(1)
       }
+      fee = passedFee
     }
 
     // sign and send transaction

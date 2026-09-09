@@ -682,9 +682,43 @@ describe('send #3a', () => {
   })
 })
 
+// an explicit fee of 0 (the default) must be accepted, not rejected as invalid
+describe('send #3c', () => {
+  const fs = require('fs') // eslint-disable-line global-require
+  const outFile = `${testSetup.sendTXOfflineFile}.zerofee`
+  let exitCode
+  before(done => {
+    const args = [
+      'send',
+      '1',
+      '-r', 'Q000200ecffb27f3d7b11ccd048eb559277d64bb52bfda998341e66a9f11b2d07f6b2ee4f62c408',
+      '-h', 'aback filled atop regal town opaque gloss send cheek ten fisher cow once home remain module aye salt chord before bunch stiff heel won attend reduce heroic oak shrug midday king fit islam appear',
+      '-i', '10',
+      '-f', '0',
+      '-t',
+      '-T', outFile,
+    ]
+    const process = spawn('./bin/run', args, processFlags)
+    process.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  after(() => {
+    try { fs.unlinkSync(outFile) } catch (e) { /* ignore */ }
+  })
+  it('exit code should be 0 when --fee 0 is passed explicitly', () => {
+    assert.strictEqual(exitCode, 0)
+  })
+  it('writes a transaction carrying a zero fee', () => {
+    const tx = JSON.parse(fs.readFileSync(outFile))
+    assert.strictEqual(tx.tx.fee, '0')
+  })
+})
 
 
-// load from a file 
+
+// load from a file
 describe('send #3b', () => {
   let exitCode
   before(done => {

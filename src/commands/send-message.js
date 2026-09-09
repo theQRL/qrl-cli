@@ -177,15 +177,14 @@ class SendMessage extends Command {
       }
     }
     // set the fee to default or flag
-    let fee = 0 // default fee 100 Shor
+    let fee = 0 // default fee 0 Shor
     if (flags.fee) {
       const passedFee = parseInt(flags.fee, 10)
-      if (passedFee) {
-        fee = passedFee
-      } else {
+      if (Number.isNaN(passedFee) || passedFee < 0) {
         this.log(`${red('⨉')} Fee is invalid`)
         this.exit(1)
       }
+      fee = passedFee
     }
 
     const spinner = ora({ text: 'Sending Message to network...' }).start()
@@ -387,7 +386,7 @@ SendMessage.flags = {
   fee: flags.string({
     char: 'f',
     required: false,
-    description: 'QRL (f)ee for transaction in Shor (defaults to 100 Shor)'
+    description: 'QRL (f)ee for transaction in Shor (defaults to 0 Shor)'
   }),
 
   otsindex: flags.string({ 

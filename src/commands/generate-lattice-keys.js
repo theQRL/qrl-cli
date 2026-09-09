@@ -178,15 +178,14 @@ class Lattice extends Command {
     }
 
     // set the fee to default or flag
-    let fee = 0 // default fee 100 Shor
+    let fee = 0 // default fee 0 Shor
     if (flags.fee) {
       const passedFee = parseInt(flags.fee, 10)
-      if (passedFee) {
-        fee = passedFee
-      } else {
+      if (Number.isNaN(passedFee) || passedFee < 0) {
         this.log(`${red('⨉')} Fee is invalid`)
         this.exit(1)
       }
+      fee = passedFee
     }
 
     // create the keys
@@ -497,7 +496,7 @@ Lattice.flags = {
   fee: flags.string({
     char: 'f',
     required: false,
-    description: '(default: 100) QRL (f)ee for transaction in Shor'
+    description: '(default: 0) QRL (f)ee for transaction in Shor'
   }),
 
   otsindex: flags.string({ 

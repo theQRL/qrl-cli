@@ -323,12 +323,11 @@ class SignTxOffline extends Command {
     let fee = 100 // default fee 100 Shor
     if (flags.fee) {
       const passedFee = parseInt(flags.fee, 10)
-      if (passedFee) {
-        fee = passedFee
-      } else {
+      if (Number.isNaN(passedFee) || passedFee < 0) {
         this.log(`${red('⨉')} Fee is invalid`)
         this.exit(1)
       }
+      fee = passedFee
     }
     const thisAddressesTo = []
     const thisAmounts = []
