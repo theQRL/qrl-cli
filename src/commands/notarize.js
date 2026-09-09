@@ -81,8 +81,14 @@ class Notarise extends Command {
     if (!flags.json){
       this.log(white().bgBlue(network))
     }
+    // In --json mode use a spinner that swallows its output: the progress text
+    // would corrupt the JSON, and every spinner.succeed()/.fail() call below is
+    // unconditional (calling them on a bare `null` threw a TypeError).
+    const noop = function noop() { return this }
+    const nullSpinner = { start: noop, succeed: noop, fail: noop, info: noop, warn: noop, stop: noop }
+    const makeSpinner = (text) => (flags.json ? nullSpinner : ora({ text }).start())
     // the data to notarise here, can be a file submitted (path) or a string passed on cli
-    const spinner = flags.json ? null : ora({ text: 'Notarising Data...\n', }).start()
+    const spinner = makeSpinner('Notarising Data...\n')
     if (args.dataHash) {
       const sha256regex = /^\b[A-Fa-f0-9]{64}\b/.test(args.dataHash)
       // is the passed data the correct length? should be a sha256 sum hash
@@ -247,7 +253,7 @@ class Notarise extends Command {
       // send the message transaction with the notarise encoding to the node
       const message = await Qrlnetwork.api('GetMessageTxn', request)
 
-      const spinner3 = ora({ text: 'Signing transaction...' }).start()
+      const spinner3 = makeSpinner('Signing transaction...')
 
       // Preimage order is QRL core's MessageTransaction.get_data_bytes():
       //   master_addr || fee || message_hash || addr_to
@@ -291,7 +297,7 @@ class Notarise extends Command {
         this.exit(1)
       }
       spinner3.succeed(`Node response matches the request. Transaction signed with OTS key ${flags.otsindex}. (nodes will reject this transaction if key reuse is detected)`)
-      const spinner4 = ora({ text: 'Pushing transaction to node...' }).start()
+      const spinner4 = makeSpinner('Pushing transaction to node...')
       // transaction sig and pub key into buffer
       returnedTx.signature = Buffer.from(signature)
       returnedTx.public_key = Buffer.from(xmssPK) // eslint-disable-line camelcase

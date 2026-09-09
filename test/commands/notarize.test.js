@@ -198,9 +198,40 @@ describe('notarize #8', () => {
   })
 })
 
+// --json mode used to throw "TypeError: Cannot read properties of null" on the
+// first spinner.succeed() call. It should now run without that crash (here it
+// still exits non-0 because the grpc endpoint is deliberately unreachable).
+describe('notarize #8b --json does not crash', () => {
+  let exitCode
+  let output = ''
+  before(done => {
+    const args = [
+      'notarize',
+      sha256Hash,
+      '-w', setup.bobPTWalletLocation,
+      '-i', '0',
+      '-j',
+      '-g', 'https://brooklyn.theqrl.org/nottheapi/',
+    ]
+    const child = spawn('./bin/run', args, { detached: true, stdio: ['ignore', 'pipe', 'pipe'] })
+    child.stdout.on('data', d => { output += d.toString() })
+    child.stderr.on('data', d => { output += d.toString() })
+    child.on('exit', code => {
+      exitCode = code
+      done()
+    })
+  })
+  it('does not throw a TypeError', () => {
+    assert.ok(!output.includes('TypeError'), output)
+  })
+  it('exit code should be non-0 when the node is unreachable', () => {
+    assert.notStrictEqual(exitCode, 0)
+  })
+})
+
 
 // //////////////////////////
-// pass 
+// pass
 // //////////////////////////
 
 describe('notarize #9 bobs plaintext wallet hexString', () => {
