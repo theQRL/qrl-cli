@@ -29,6 +29,20 @@ let childEnv
 // before matching on the message text.
 const ANSI = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g')
 
+// Where `conf` puts the store once the child has been pointed at `home`. `env-paths` builds
+// that path differently per platform, and only the Linux branch reads XDG_CONFIG_HOME -- macOS
+// and Windows derive it from the home directory and APPDATA -- so the layout has to be mirrored
+// here rather than assumed.
+function configDir(home) {
+  if (process.platform === 'darwin') {
+    return path.join(home, 'Library', 'Preferences', 'qrl-cli-nodejs')
+  }
+  if (process.platform === 'win32') {
+    return path.join(home, 'qrl-cli-nodejs', 'Config')
+  }
+  return path.join(home, 'qrl-cli-nodejs')
+}
+
 // Run the CLI against the throwaway config store and capture what it said.
 function run(args) {
   return new Promise(resolve => {
@@ -102,7 +116,7 @@ describe('config command tests', () => {
 
   it('writes only to the redirected config directory', async () => {
     await run(['config', 'set', 'grpc-endpoint', '127.0.0.1:19009'])
-    const stored = path.join(tempHome, 'qrl-cli-nodejs', 'config.json')
+    const stored = path.join(configDir(tempHome), 'config.json')
     assert.ok(fs.existsSync(stored), `expected a config file at ${stored}`)
     assert.match(fs.readFileSync(stored, 'utf8'), /127\.0\.0\.1:19009/)
     await run(['config', 'delete', 'grpc-endpoint'])

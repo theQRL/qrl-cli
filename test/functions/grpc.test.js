@@ -55,6 +55,17 @@ const contentDigest = text => crypto.createHash('sha256').update(text).digest('h
 // The constructor reads process.argv to find out whether the user pinned a network on the command
 // line. Under mocha, argv carries the runner's own flags (`-t` is mocha's timeout), so every test
 // states the argv it means instead of inheriting however mocha happened to be invoked.
+// `env-paths` reads os.homedir() once, when it is first required, and on macOS the config
+// directory is derived from that alone -- XDG_CONFIG_HOME is a Linux-only variable. Requiring it
+// happens as soon as anything pulls in `conf`, which src/functions/grpc.js does, so by the time
+// the hooks below redirect HOME the cached value is already the developer's real home. Dropping
+// both modules from the require cache forces the next `new Conf()` -- including the one inside
+// QrlNode -- to resolve against whatever HOME is set now.
+function reloadConf() {
+  delete require.cache[require.resolve('env-paths')]
+  delete require.cache[require.resolve('conf')]
+}
+
 function makeNode(ipAddress, argv = ['node', 'qrl-cli', '--grpc', ipAddress]) {
   const savedArgv = process.argv
   process.argv = argv
@@ -303,6 +314,7 @@ describe('functions/grpc endpoint precedence', () => {
     NETWORK_ENV.forEach(key => {
       delete process.env[key]
     })
+    reloadConf()
 
     // eslint-disable-next-line global-require
     const Conf = require('conf')
@@ -326,6 +338,8 @@ describe('functions/grpc endpoint precedence', () => {
         process.env[key] = saved[key]
       }
     })
+    // Leave the real home resolving normally for whatever runs next.
+    reloadConf()
     fs.rmSync(tempHome, {recursive: true, force: true})
   })
 

@@ -10,12 +10,15 @@
  *    copied; a mismatch aborts the copy and eccrypto falls back to its
  *    JS implementation.
  *
- * 2. Hardens the vendored qrllib Emscripten bundles:
- *    - forces Module.ENVIRONMENT = 'NODE' so the random-device selection is
- *      explicit rather than environment-sniffed
- *    - replaces the Math.random() fallback arm of the /dev/urandom device
- *      with a throw, so a mis-detected environment fails closed instead of
- *      silently degrading key generation
+ * 2. Checks the RNG the vendored qrllib Emscripten bundles feed into key
+ *    generation, and hardens it where the bundle allows:
+ *    - older bundles that sniff the environment get Module.ENVIRONMENT pinned
+ *      to 'NODE', and the Math.random() fallback arm of the /dev/urandom
+ *      device replaced with a throw, so a mis-detected environment fails
+ *      closed instead of silently degrading key generation
+ *    - current bundles already wire the device to randomFillSync /
+ *      getRandomValues with no fallback arm, so they are verified instead of
+ *      rewritten; anything else is reported as an error
  */
 
 const crypto = require('crypto');
@@ -84,11 +87,20 @@ function installEcdhNode() {
   }
 }
 
-// The Emscripten glue in the qrllib bundles selects the /dev/urandom device
-// implementation by sniffing the environment, with a silent Math.random()
-// fallback if neither WebCrypto nor Node is detected. Both properties are
-// unacceptable for code that feeds key generation, so patch the installed
-// bundles: pin the environment and make the fallback arm throw.
+// qrllib ships prebuilt Emscripten bundles, so the RNG that feeds key
+// generation is whatever the bundle's glue code decided to use.
+//
+// Bundles from qrllib < 1.2.5 sniffed the environment for the /dev/urandom
+// device and fell back to Math.random() when neither WebCrypto nor Node was
+// detected. That fallback is patched out here and replaced with a throw, so a
+// mis-detected environment fails closed instead of silently degrading.
+//
+// qrllib >= 1.2.5 is built with an Emscripten that wires the device straight to
+// randomFillSync/getRandomValues and has no Math.random() arm at all, so there
+// is nothing to patch. Those bundles are verified rather than rewritten: a
+// Math.random() RNG arm in any form is reported as an error, because it means
+// the bundle is neither a shape this script can harden nor one that is already
+// safe.
 const QRLLIB_BUNDLES = [
   'offline-libjsqrl.js',
   'offline-libjsdilithium.js',
@@ -100,6 +112,14 @@ const ENV_PINNED = 'var Module=typeof Module!=="undefined"?Module:{};Module["ENV
 
 const MATH_RANDOM_ARM = 'else{random_device=(function(){return Math.random()*256|0})}';
 const FAIL_CLOSED_ARM = 'else{random_device=(function(){throw new Error("qrl-cli: no secure random source available in this environment")})}';
+
+// Signatures of the secure entropy sources the current bundles use: the
+// randomFill helper backing /dev/random and /dev/urandom, and the getRandomSeed
+// export. A bundle needs at least one of them.
+const SECURE_RNG_SIGNATURES = [
+  'nodeCrypto.randomFillSync(view)',
+  'cryptoObj.getRandomValues(bytes)',
+];
 
 function patchQrllibBundles() {
   const buildDir = path.join(__dirname, '..', 'node_modules', 'qrllib', 'build');
@@ -124,10 +144,22 @@ function patchQrllibBundles() {
     if (changed) {
       fs.writeFileSync(bundlePath, source);
       console.log(`✓ Hardened ${bundle}: ENVIRONMENT pinned to NODE, Math.random RNG arm removed`);
-    } else if (source.includes('Math.random()*256|0')) {
+      return;
+    }
+
+    if (source.includes('Math.random')) {
       console.error(`ERROR: ${bundle} contains a Math.random RNG arm in an unexpected form; manual review required`);
       process.exitCode = 1;
+      return;
     }
+
+    const secure = SECURE_RNG_SIGNATURES.filter((sig) => source.includes(sig));
+    if (secure.length === 0) {
+      console.error(`ERROR: ${bundle} exposes no recognised secure entropy source; manual review required`);
+      process.exitCode = 1;
+      return;
+    }
+    console.log(`✓ Verified ${bundle}: no Math.random RNG arm, entropy from ${secure.join(' + ')}`);
   });
 }
 

@@ -22,6 +22,11 @@ const NETWORK_ENV = ['QRL_NETWORK', 'QRL_GRPC_ENDPOINT']
 
 const MODULE_PATH = require.resolve('../../src/functions/network-helper')
 const CONF_PATH = require.resolve('conf')
+// `env-paths` reads os.homedir() once, when it is first required, and on macOS the config
+// directory is derived from that alone -- XDG_CONFIG_HOME is a Linux-only variable. Unless it is
+// dropped from the require cache too, redirecting HOME below leaves `conf` pointing at the
+// developer's real configuration.
+const ENV_PATHS_PATH = require.resolve('env-paths')
 
 let saved
 let tempHome
@@ -48,6 +53,7 @@ describe('functions/network-helper', () => {
     // environment is redirected.
     delete require.cache[MODULE_PATH]
     delete require.cache[CONF_PATH]
+    delete require.cache[ENV_PATHS_PATH]
     // eslint-disable-next-line global-require
     const Conf = require('conf')
     config = new Conf({projectName: 'qrl-cli'})
@@ -70,6 +76,7 @@ describe('functions/network-helper', () => {
     })
     delete require.cache[MODULE_PATH]
     delete require.cache[CONF_PATH]
+    delete require.cache[ENV_PATHS_PATH]
     fs.rmSync(tempHome, {recursive: true, force: true})
   })
 
