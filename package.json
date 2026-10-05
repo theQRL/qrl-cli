@@ -8,7 +8,7 @@
   },
   "bugs": "https://github.com/theqrl/qrl-cli/issues",
   "dependencies": {
-    "@grpc/grpc-js": "1.14.4",
+    "@grpc/grpc-js": "1.14.5",
     "@grpc/proto-loader": "0.7.15",
     "@oclif/command": "1.8.36",
     "@oclif/config": "1.18.17",
